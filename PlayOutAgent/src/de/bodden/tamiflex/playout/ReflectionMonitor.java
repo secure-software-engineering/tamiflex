@@ -29,7 +29,7 @@ import de.bodden.tamiflex.playout.rt.ReflLogger;
 
 public class ReflectionMonitor implements ClassFileTransformer {
 	
-	private final static String REFL_LOGGER = ReflLogger.class.getName().replace('.', '/');
+//	private final static String REFL_LOGGER = ReflLogger.class.getName().replace('.', '/');
 	
 	public ReflectionMonitor(File logFile, boolean count) {
 		ReflLogger.setMustCount(count);
@@ -85,7 +85,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load first argument on stack, i.e. the name of the class to be loaded
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Class object as argument
-				mv.visitMethodInsn(INVOKESTATIC, REFL_LOGGER, "classForName", "(Ljava/lang/String;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classForName", "(Ljava/lang/String;)V");
 			}
 			super.visitInsn(opcode);
 		}
@@ -104,7 +104,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load "this" on stack, i.e. the Class object
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Class object as argument
-				mv.visitMethodInsn(INVOKESTATIC, REFL_LOGGER, "classNewInstance", "(Ljava/lang/Class;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classNewInstance", "(Ljava/lang/Class;)V");
 			}
 			super.visitInsn(opcode);
 		}
@@ -125,7 +125,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load "this" on stack, i.e. the Method object
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Method object as argument
-				mv.visitMethodInsn(INVOKESTATIC, REFL_LOGGER, "methodInvoke", "(Ljava/lang/Object;Ljava/lang/reflect/Method;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "methodInvoke", "(Ljava/lang/Object;Ljava/lang/reflect/Method;)V");
 			}
 			super.visitInsn(opcode);
 		}
@@ -144,7 +144,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load "this" on stack, i.e. the Constructor object
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Method object as argument
-				mv.visitMethodInsn(INVOKESTATIC, REFL_LOGGER, "constructorNewInstance", "(Ljava/lang/reflect/Constructor;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "constructorNewInstance", "(Ljava/lang/reflect/Constructor;)V");
 			}
 			super.visitInsn(opcode);
 		}

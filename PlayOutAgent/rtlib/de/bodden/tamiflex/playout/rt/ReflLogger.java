@@ -59,6 +59,7 @@ public class ReflLogger {
 	}
 
 	private static RuntimeLogEntry pullOrCreateEntry(Map<String,Map<RuntimeLogEntry,RuntimeLogEntry>>map, String containerMethod, RuntimeLogEntry newEntry) {
+		System.out.println(System.identityHashCode(ReflLogger.class));
 		Map<RuntimeLogEntry,RuntimeLogEntry> entries = map.get(containerMethod);
 		if(entries==null) {
 			entries = new HashMap<RuntimeLogEntry,RuntimeLogEntry>();
@@ -277,6 +278,7 @@ public class ReflLogger {
 	}
 	
 	private static Set<PersistedLogEntry> mergeOldAndNewLog() {
+		System.out.println(System.identityHashCode(containerMethodToEntries));
 		initializeLogFile();
 		Set<RuntimeLogEntry> newLogSet = new HashSet<RuntimeLogEntry>();
 		for(Map<RuntimeLogEntry,RuntimeLogEntry> values: containerMethodToEntries.values()) {

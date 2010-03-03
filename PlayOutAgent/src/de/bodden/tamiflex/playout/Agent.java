@@ -122,8 +122,7 @@ public class Agent {
 	}
 
 	private static void appendRtJarToBootClassPath(Instrumentation inst) throws URISyntaxException, IOException {
-		String reflLoggerClassFilePath = "/"+ReflLogger.class.getName().replace('.', '/')+".class";
-		URL locationOfAgent = Agent.class.getResource(reflLoggerClassFilePath);
+		URL locationOfAgent = Agent.class.getResource("/de/bodden/tamiflex/playout/rt/ReflLogger.class");
 		if(locationOfAgent==null) {
 			System.err.println("Support library for reflection log not found on classpath.");
 			System.exit(1);
