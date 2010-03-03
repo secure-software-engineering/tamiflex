@@ -1,0 +1,13 @@
+
+syntax: regexp
+^PlayOutAgent/poa-rt\.jar$
+syntax: regexp
+^PlayOutAgent/poa\.jar$
+syntax: regexp
+^PlayInAgent/pia\.jar$
+syntax: regexp
+^Normalizer/bin$
+syntax: regexp
+^PlayOutAgent/bin$
+syntax: regexp
+^PlayInAgent/bin$
