@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     ====================================================================== -->
+<project name="project" default="default">
+    <description>
+            description
+    </description>
+
+    <target name="default" depends="agent-jar"/>
+
+    <target name="runtime">
+    	<mkdir dir="bin-rt"/>
+        <javac
+            destdir="bin-rt"
+        	source="1.5"
+        	target="1.5"
+        	debug="true"
+			debuglevel="lines,vars,source"        	
+        >
+            <src path="rtlib"/>
+            <src path="../Normalizer/src"/>
+            <classpath>
+                <pathelement location="../Normalizer/lib/asm-3.2.jar"/>
+                <pathelement location="../Normalizer/lib/asm-commons-3.2.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+	<target name="rt-jar" depends="runtime">
+        <jar destfile="poa-rt.jar">
+            <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
+            <fileset dir="bin-rt"/>
+        </jar>
+		<delete dir="bin-rt"/>
+	</target>
+	
+	<target name="agent" depends="rt-jar">
+    	<mkdir dir="bin-agent"/>
+        <javac
+            destdir="bin-agent"
+        	source="1.5"
+        	target="1.5"
+        	debug="true"
+			debuglevel="lines,vars,source"        	
+        >
+            <src path="src"/>
+            <src path="../Normalizer/src"/>
+            <classpath>
+                <pathelement location="poa-rt.jar"/>
+                <pathelement location="../Normalizer/lib/asm-3.2.jar"/>
+                <pathelement location="../Normalizer/lib/asm-commons-3.2.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="agent-jar" depends="agent">
+        <jar destfile="poa.jar" manifest="META-INF/manifest.mf">
+            <fileset dir="bin-agent"/>
+        </jar>
+		<delete dir="bin-agent"/>
+    </target>
+
+</project>

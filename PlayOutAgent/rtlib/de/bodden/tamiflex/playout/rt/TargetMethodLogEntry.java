@@ -1,0 +1,99 @@
+package de.bodden.tamiflex.playout.rt;
+
+import java.util.Arrays;
+
+public class TargetMethodLogEntry extends RuntimeLogEntry {
+
+	protected final String declaringClass;
+	protected final String returnType;
+	protected final String name;
+	protected final String[] paramTypes;
+
+	public TargetMethodLogEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
+		super(containerMethod, lineNumber, kind);
+		this.declaringClass = declaringClass;
+		this.returnType = returnType;
+		this.name = name;
+		this.paramTypes = paramTypes;
+	}
+
+	public PersistedLogEntry toPersistedEntry() {
+		String hashedContainerMethod = replaceByHashedClassNameAndMethodName(containerMethod);
+		String hashedDeclaringClass = replaceByHashedClassName(declaringClass);
+		String hashedReturnType = replaceByHashedClassName(returnType);
+		String[] hashedParamTypes = new String[paramTypes.length];
+		int i=0;
+		for (String paramType : paramTypes) {
+			hashedParamTypes[i] = replaceByHashedClassName(paramType);
+			i++;
+		}
+			
+		String sootSignature = sootSignature(hashedDeclaringClass, hashedReturnType, name, hashedParamTypes);
+		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, count);
+	}
+	
+	private static String sootSignature(String declaringClass, String returnType, String name, String... paramTypes) {
+		StringBuilder b = new StringBuilder();
+		b.append("<");
+		b.append(declaringClass);
+		b.append(": ");
+		b.append(returnType);
+		b.append(" ");
+		b.append(name);
+		b.append("(");
+		int i = 0;
+		for (String type : paramTypes) {
+			i++;
+			b.append(type);
+			if(i<paramTypes.length) {
+				b.append(",");
+			}
+		}
+		b.append(")>");
+		return b.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result
+				+ ((declaringClass == null) ? 0 : declaringClass.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + Arrays.hashCode(paramTypes);
+		result = prime * result
+				+ ((returnType == null) ? 0 : returnType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TargetMethodLogEntry other = (TargetMethodLogEntry) obj;
+		if (declaringClass == null) {
+			if (other.declaringClass != null)
+				return false;
+		} else if (!declaringClass.equals(other.declaringClass))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (!Arrays.equals(paramTypes, other.paramTypes))
+			return false;
+		if (returnType == null) {
+			if (other.returnType != null)
+				return false;
+		} else if (!returnType.equals(other.returnType))
+			return false;
+		return true;
+	}
+
+	
+}

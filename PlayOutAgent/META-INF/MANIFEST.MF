@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Premain-Class: de.bodden.tamiflex.playout.Agent
+Can-Retransform-Classes: true
