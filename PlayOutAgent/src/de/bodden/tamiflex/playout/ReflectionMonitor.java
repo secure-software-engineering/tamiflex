@@ -85,7 +85,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load first argument on stack, i.e. the name of the class to be loaded
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Class object as argument
-				mv.visitMethodInsn(INVOKESTATIC, "REFL_LOGGER", "classForName", "(Ljava/lang/String;)V");
+				mv.visitMethodInsn(INVOKESTATIC, REFL_LOGGER, "classForName", "(Ljava/lang/String;)V");
 			}
 			super.visitInsn(opcode);
 		}
