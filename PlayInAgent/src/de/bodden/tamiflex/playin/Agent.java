@@ -48,7 +48,7 @@ public class Agent {
 
 	private static void usage() {
 		System.out.println("This agent accepts the following options:");
-		System.out.println("[dontwarn,]:<path>");
+		System.out.println("[dontwarn,]<path>");
 		System.out.println();
 		System.out.println("If 'dontwarn' is given, then the replace agent won't issue a warning when a ");
 		System.out.println("class cannot be found.");
