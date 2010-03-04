@@ -44,7 +44,7 @@ public class ClassDumper implements ClassFileTransformer {
 		this.outDir = outDir;
 	}
 
-	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public synchronized byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		if(hasShutDown) return null;
 		if(className.startsWith(Agent.PKGNAME)) return null;
 		
@@ -59,53 +59,51 @@ public class ClassDumper implements ClassFileTransformer {
 		return null;
 	}
 	
-	public void writeClassesToDisk() {
-		synchronized (this) {
-			Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
-			for (Map.Entry<String, byte[]> entry: entrySet) {
-				String className = entry.getKey();
-				byte[] classfileBuffer = entry.getValue();
-		
-				if(containsGeneratedClassName(className)) {
-						generateHashNumber(className, classfileBuffer);
-						className = hashedClassNameForGeneratedClassName(className);
-						classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
-				}
+	public synchronized void writeClassesToDisk() {
+		Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
+		for (Map.Entry<String, byte[]> entry: entrySet) {
+			String className = entry.getKey();
+			byte[] classfileBuffer = entry.getValue();
+	
+			if(containsGeneratedClassName(className)) {
+					generateHashNumber(className, classfileBuffer);
+					className = hashedClassNameForGeneratedClassName(className);
+					classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
+			}
 
-				File localOutDir = outDir;
-				
+			File localOutDir = outDir;
+			
+			localOutDir.mkdirs();
+			
+			String simpleName = className;
+			
+			if(className.contains("/")) {
+				String packageName = className.substring(0,className.lastIndexOf('/'));
+				simpleName = className.substring(className.lastIndexOf('/')+1);
+
+				localOutDir = new File(localOutDir,packageName);
 				localOutDir.mkdirs();
-				
-				String simpleName = className;
-				
-				if(className.contains("/")) {
-					String packageName = className.substring(0,className.lastIndexOf('/'));
-					simpleName = className.substring(className.lastIndexOf('/')+1);
-
-					localOutDir = new File(localOutDir,packageName);
-					localOutDir.mkdirs();
-				}
-				
-				String fileName = simpleName+".class";
-				
-				File outFile = new File(localOutDir, fileName);
-				if(outFile.exists()) {
-					outFile.delete();
-				} 
-				FileOutputStream fos = null;
-				try {
-					outFile.createNewFile();
-					fos = new FileOutputStream(outFile);
-					fos.write(classfileBuffer);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					if(fos!=null) {
-						try {
-							fos.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+			}
+			
+			String fileName = simpleName+".class";
+			
+			File outFile = new File(localOutDir, fileName);
+			if(outFile.exists()) {
+				outFile.delete();
+			} 
+			FileOutputStream fos = null;
+			try {
+				outFile.createNewFile();
+				fos = new FileOutputStream(outFile);
+				fos.write(classfileBuffer);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if(fos!=null) {
+					try {
+						fos.close();
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
 				}
 			}
