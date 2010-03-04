@@ -51,18 +51,13 @@ public class ClassDumper implements ClassFileTransformer {
 		if(hasShutDown) return null;
 		if(className.startsWith(Agent.PKGNAME)) return null;
 		
-		if(verbose) {
-			byte[] oldBytes;
-			synchronized (this) {
-				oldBytes = classNameToBytes.get(className);
-			}
-			if (oldBytes!=null && !Arrays.equals(classfileBuffer, oldBytes)) {
-				System.err.println("WARNING: There exist two different classes with name "+className);
-			} 
-		}
-		
+		byte[] oldBytes;
 		synchronized (this) {
-			classNameToBytes.put(className, classfileBuffer);
+			oldBytes = classNameToBytes.put(className, classfileBuffer);
+		}
+
+		if(verbose && oldBytes!=null && !Arrays.equals(classfileBuffer, oldBytes)) {
+			System.err.println("WARNING: There exist two different classes with name "+className);
 		}
 
 		return null;
