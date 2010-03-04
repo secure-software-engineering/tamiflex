@@ -211,8 +211,8 @@ public class ReflLogger {
 		return outerFrame;
 	}
 	
-	public static synchronized void writeLogfileToDisk() {
-		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog();
+	public static synchronized void writeLogfileToDisk(boolean verbose) {
+		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog(verbose);
 		//printStatistics();
 		try {
 			PrintWriter pw = new PrintWriter(logFile);
@@ -275,7 +275,7 @@ public class ReflLogger {
 		} 
 	}
 	
-	private static Set<PersistedLogEntry> mergeOldAndNewLog() {
+	private static Set<PersistedLogEntry> mergeOldAndNewLog(boolean verbose) {
 		initializeLogFile();
 		Set<RuntimeLogEntry> newLogSet = new HashSet<RuntimeLogEntry>();
 		for(Map<RuntimeLogEntry,RuntimeLogEntry> values: containerMethodToEntries.values()) {
@@ -305,9 +305,16 @@ public class ReflLogger {
 		Set<PersistedLogEntry> newEntries = new HashSet<PersistedLogEntry>(merged);
 		newEntries.removeAll(oldContainerMethodToEntries.keySet());
 		
-		System.err.println("New Entries: ");
-		for (PersistedLogEntry logEntry : newEntries) {
-			System.err.println(logEntry);
+		if(newEntries.isEmpty()) {
+			System.err.println("Found no new entries.");
+		} else {
+			System.err.println("Found "+newEntries.size()+" new entries.");
+		}
+		if(verbose) {
+			System.err.println("New Entries: ");
+			for (PersistedLogEntry logEntry : newEntries) {
+				System.err.println(logEntry);
+			}
 		}
 		
 		return merged;

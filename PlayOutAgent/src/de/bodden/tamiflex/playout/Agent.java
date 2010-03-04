@@ -37,6 +37,11 @@ public class Agent {
 		}
 		
 		if(agentArgs==null) agentArgs = "";
+		boolean verbose = false;
+		if(agentArgs.startsWith("verbose,")) {
+			verbose = true;
+			agentArgs = agentArgs.substring("verbose,".length());
+		}
 		boolean count = false;
 		if(agentArgs.startsWith("count,")) {
 			count = true;
@@ -74,13 +79,14 @@ public class Agent {
 		
 		inst.addTransformer(classDumper,true /* can retransform */);		
 		
+		final boolean verboseOutput = verbose;
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
 			@Override
 			public void run() {
 				ShutdownStatus.hasShutDown = true;
 				classDumper.writeClassesToDisk();
-				ReflLogger.writeLogfileToDisk();
+				ReflLogger.writeLogfileToDisk(verboseOutput);
 			}
 			
 		});
@@ -129,7 +135,10 @@ public class Agent {
 
 	private static void usage() {
 		System.out.println("This agent accepts the following options:");
-		System.out.println("[count,]<path>");
+		System.out.println("[verbose,][count,]<path>");
+		System.out.println();
+		System.out.println("If 'verbose' is selected then the agent will print out all entries that it also added");
+		System.out.println("to the log file for the current run.");
 		System.out.println();
 		System.out.println("If 'count' is selected then the agent will add the number of reflective invocations");
 		System.out.println("to the end of each line of the trace file.");
