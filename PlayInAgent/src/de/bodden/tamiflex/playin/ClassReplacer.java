@@ -93,7 +93,7 @@ public class ClassReplacer implements ClassFileTransformer {
 			
 			InputStream is = loader.getResourceAsStream(classFileName);
 			if(is==null) {
-				if(!verbose) {
+				if(verbose) {
 					if(isGeneratedClass)
 						System.err.println("WARNING: Cannot find class "+classNameInFileSystem+". Will use original class "+className+" instead.");
 					else
