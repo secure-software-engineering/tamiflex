@@ -212,7 +212,6 @@ public class ReflLogger {
 	}
 	
 	public static synchronized void writeLogfileToDisk() {
-		ShutdownStatus.hasShutDown = true;
 		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog();
 		//printStatistics();
 		try {
