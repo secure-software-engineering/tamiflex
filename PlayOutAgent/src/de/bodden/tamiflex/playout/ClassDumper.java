@@ -39,71 +39,82 @@ public class ClassDumper implements ClassFileTransformer {
 	 * referenced classes must already have been computed.
 	 */
 	protected final LinkedHashMap<String,byte[]> classNameToBytes = new LinkedHashMap<String, byte[]>();
+
+	private final boolean verbose;
 	
-	public ClassDumper(File outDir) {
+	public ClassDumper(File outDir, boolean verbose) {
 		this.outDir = outDir;
+		this.verbose = verbose;
 	}
 
-	public synchronized byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		if(hasShutDown) return null;
 		if(className.startsWith(Agent.PKGNAME)) return null;
 		
-		if(classNameToBytes.containsKey(className) && !Arrays.equals(classfileBuffer, classNameToBytes.get(className))) {
-			System.err.println("WARNING: There exist two different classes with name "+className);
-		} else {
-			byte[] copy = new byte[classfileBuffer.length];
-			System.arraycopy(classfileBuffer, 0, copy, 0, classfileBuffer.length);
-			classNameToBytes.put(className, copy);
+		if(verbose) {
+			byte[] oldBytes;
+			synchronized (this) {
+				oldBytes = classNameToBytes.get(className);
+			}
+			if (oldBytes!=null && !Arrays.equals(classfileBuffer, oldBytes)) {
+				System.err.println("WARNING: There exist two different classes with name "+className);
+			} 
 		}
 		
+		synchronized (this) {
+			classNameToBytes.put(className, classfileBuffer);
+		}
+
 		return null;
 	}
 	
-	public synchronized void writeClassesToDisk() {
-		Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
-		for (Map.Entry<String, byte[]> entry: entrySet) {
-			String className = entry.getKey();
-			byte[] classfileBuffer = entry.getValue();
+	public void writeClassesToDisk() {
+		synchronized (this) {
+			Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
+			for (Map.Entry<String, byte[]> entry: entrySet) {
+				String className = entry.getKey();
+				byte[] classfileBuffer = entry.getValue();
+		
+				if(containsGeneratedClassName(className)) {
+						generateHashNumber(className, classfileBuffer);
+						className = hashedClassNameForGeneratedClassName(className);
+						classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
+				}
 	
-			if(containsGeneratedClassName(className)) {
-					generateHashNumber(className, classfileBuffer);
-					className = hashedClassNameForGeneratedClassName(className);
-					classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
-			}
-
-			File localOutDir = outDir;
-			
-			localOutDir.mkdirs();
-			
-			String simpleName = className;
-			
-			if(className.contains("/")) {
-				String packageName = className.substring(0,className.lastIndexOf('/'));
-				simpleName = className.substring(className.lastIndexOf('/')+1);
-
-				localOutDir = new File(localOutDir,packageName);
+				File localOutDir = outDir;
+				
 				localOutDir.mkdirs();
-			}
-			
-			String fileName = simpleName+".class";
-			
-			File outFile = new File(localOutDir, fileName);
-			if(outFile.exists()) {
-				outFile.delete();
-			} 
-			FileOutputStream fos = null;
-			try {
-				outFile.createNewFile();
-				fos = new FileOutputStream(outFile);
-				fos.write(classfileBuffer);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				if(fos!=null) {
-					try {
-						fos.close();
-					} catch (IOException e) {
-						e.printStackTrace();
+				
+				String simpleName = className;
+				
+				if(className.contains("/")) {
+					String packageName = className.substring(0,className.lastIndexOf('/'));
+					simpleName = className.substring(className.lastIndexOf('/')+1);
+	
+					localOutDir = new File(localOutDir,packageName);
+					localOutDir.mkdirs();
+				}
+				
+				String fileName = simpleName+".class";
+				
+				File outFile = new File(localOutDir, fileName);
+				if(outFile.exists()) {
+					outFile.delete();
+				} 
+				FileOutputStream fos = null;
+				try {
+					outFile.createNewFile();
+					fos = new FileOutputStream(outFile);
+					fos.write(classfileBuffer);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					if(fos!=null) {
+						try {
+							fos.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}

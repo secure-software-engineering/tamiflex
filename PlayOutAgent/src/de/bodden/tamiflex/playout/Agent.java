@@ -73,7 +73,7 @@ public class Agent {
 		
 		appendRtJarToBootClassPath(inst);
 		
-		dumpLoadedClasses(inst,outDir);
+		dumpLoadedClasses(inst,outDir,verbose);
 		
 		instrumentClassesForLogging(inst, logFile, count);
 		
@@ -92,9 +92,9 @@ public class Agent {
 		});
 }
 
-	private static void dumpLoadedClasses(Instrumentation inst, File outDir)
+	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean verbose)
 			throws UnmodifiableClassException {
-		classDumper = new ClassDumper(outDir);
+		classDumper = new ClassDumper(outDir,verbose);
 		inst.addTransformer(classDumper,true /* can retransform */);			
 		//dump all classes that are already loaded
 		for (Class<?> c : inst.getAllLoadedClasses()) {
