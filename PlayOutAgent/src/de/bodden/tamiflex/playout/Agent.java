@@ -19,9 +19,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.jar.JarFile;
 
 import de.bodden.tamiflex.playout.rt.ReflLogger;
@@ -39,18 +36,15 @@ public class Agent {
 			throw new RuntimeException("retransformation not supported");
 		}
 		
-		if(agentArgs==null||agentArgs.isEmpty()) usage();
-
-		List<String> args = new ArrayList<String>(Arrays.asList(agentArgs.split(",")));
-		boolean count = args.remove("count");
-		
-		String outPath = null;
-		for (String arg : args) {
-			if(arg.startsWith("outpath=")) {
-				outPath = arg.substring("outpath=".length());
-				break;
-			}
+		if(agentArgs==null) agentArgs = "";
+		boolean count = false;
+		if(agentArgs.startsWith("count,")) {
+			count = true;
+			agentArgs = agentArgs.substring("count,".length());
 		}
+		if(agentArgs.equals("")) usage();
+		
+		String outPath=agentArgs;
 		if(outPath==null) {
 			System.err.println("No outpath given!");
 			usage();
@@ -135,7 +129,7 @@ public class Agent {
 
 	private static void usage() {
 		System.out.println("This agent accepts the following options:");
-		System.out.println("[count,]outpath=<path>");
+		System.out.println("[count,]<path>");
 		System.out.println();
 		System.out.println("If 'count' is selected then the agent will add the number of reflective invocations");
 		System.out.println("to the end of each line of the trace file.");

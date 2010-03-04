@@ -25,18 +25,18 @@ public class Agent {
 
 	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, IllegalClassFormatException {
 		if(agentArgs==null) agentArgs = "";
-		boolean dontWarn = false;
-		if(agentArgs.startsWith("dontwarn,")) {
-			dontWarn = true;
-			agentArgs = agentArgs.substring("dontwarn,".length());
+		boolean verbose = false;
+		if(agentArgs.startsWith("verbose,")) {
+			verbose = true;
+			agentArgs = agentArgs.substring("verbose,".length());
 		}
 		if(agentArgs.equals("")) usage();
-		inst.addTransformer(new ClassReplacer(agentArgs,dontWarn),true);					
+		inst.addTransformer(new ClassReplacer(agentArgs,verbose),true);					
 		
 		for (Class<?> c : inst.getAllLoadedClasses()) {
 			if(inst.isModifiableClass(c)) {
 				inst.retransformClasses(c);
-			} else if(!dontWarn) {
+			} else if(verbose) {
 				//warn if there is a class that we cannot re-transform, except for classes that resemble primitive types,
 				//arrays or are in java.lang
 				if(!c.isPrimitive() && !c.isArray() && (c.getPackage()==null || !c.getPackage().getName().startsWith("java.lang"))){
@@ -48,14 +48,14 @@ public class Agent {
 
 	private static void usage() {
 		System.out.println("This agent accepts the following options:");
-		System.out.println("[dontwarn,]<path>");
+		System.out.println("[verbose,]<path>");
 		System.out.println();
-		System.out.println("If 'dontwarn' is given, then the replace agent won't issue a warning when a ");
-		System.out.println("class cannot be found.");
+		System.out.println("If 'verbose' is given, then the replace agent will issue a warning when a ");
+		System.out.println("class cannot be found on the given path.");
 		System.out.println("");
-		System.out.println("For instance, the following command will cause the agent to dump class files into");
-		System.out.println("the directory /tmp/out:");
-		System.out.println("java -javaagent:agent.jar=/tmp/out ...");
+		System.out.println("For instance, the following command will cause the agent to load class files from");
+		System.out.println("the directory /tmp/classes:");
+		System.out.println("java -javaagent:agent.jar=/tmp/classes ...");
 		System.exit(1);
 	}
 }

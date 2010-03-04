@@ -38,7 +38,7 @@ public class ClassReplacer implements ClassFileTransformer {
 	protected final ClassLoader loader;
 
 	/** If true, the agent will issue no warnings. **/
-	protected final boolean dontWarn;
+	protected final boolean verbose;
 
 	/** A mapping from class names of generated classes to the original class bytes of the respective class, i.e.,
 	 *  the bytes as they were just about to be loaded on the current execution.
@@ -46,8 +46,8 @@ public class ClassReplacer implements ClassFileTransformer {
 	 */
 	protected Map<String,byte[]> generatedClassNameToOriginalBytes = new HashMap<String, byte[]>();
 	
-	public ClassReplacer(String srcPath, boolean dontWarn) {
-		this.dontWarn = dontWarn;				
+	public ClassReplacer(String srcPath, boolean verbose) {
+		this.verbose = verbose;				
 		this.loader = createClassLoader(srcPath);		
 	}
 
@@ -93,7 +93,7 @@ public class ClassReplacer implements ClassFileTransformer {
 			
 			InputStream is = loader.getResourceAsStream(classFileName);
 			if(is==null) {
-				if(!dontWarn) {
+				if(!verbose) {
 					if(isGeneratedClass)
 						System.err.println("WARNING: Cannot find class "+classNameInFileSystem+". Will use original class "+className+" instead.");
 					else
@@ -175,11 +175,11 @@ public class ClassReplacer implements ClassFileTransformer {
 	 * Stores a mapping from <code>className</code> to a copy of <code>classfileBuffer</code> into
 	 * {@link #generatedClassNameToOriginalBytes}. In cases where this map already holds a mapping
 	 * for <code>className</code> and this mapping points to an array with different contents, then
-	 * this method issues a warning. The warning is not issued if {@link #dontWarn} is true.
+	 * this method issues a warning. The warning is only issued if {@link #verbose} is true.
 	 */
 	private synchronized void storeClassBytesOfGeneratedClass(final String className, byte[] classfileBuffer) {
 		if(generatedClassNameToOriginalBytes.containsKey(className) && !Arrays.equals(classfileBuffer, generatedClassNameToOriginalBytes.get(className))) {
-			if(!dontWarn)
+			if(verbose)
 				System.err.println("WARNING: There exist two different classes with name "+className);
 		} else {
 			byte[] copy = new byte[classfileBuffer.length];
