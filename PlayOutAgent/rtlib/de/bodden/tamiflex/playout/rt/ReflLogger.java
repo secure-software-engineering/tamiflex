@@ -46,23 +46,23 @@ public class ReflLogger {
 	
 	private static synchronized void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
-		RuntimeLogEntry entry = pullOrCreateEntry(containerMethodToEntries,containerMethod, new TargetClassLogEntry(containerMethod, lineNumber, kind, targetClass));
+		RuntimeLogEntry entry = pullOrCreateEntry(containerMethod, new TargetClassLogEntry(containerMethod, lineNumber, kind, targetClass));
 		if(doCount)
 			entry.incrementCounter();		
 	}
 
 	private static synchronized void logAndIncrementTargetMethodEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
 		if(hasShutDown) return;
-		RuntimeLogEntry entry = pullOrCreateEntry(containerMethodToEntries,containerMethod, new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, paramTypes));
+		RuntimeLogEntry entry = pullOrCreateEntry(containerMethod, new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, paramTypes));
 		if(doCount)
 			entry.incrementCounter();		
 	}
 
-	private static RuntimeLogEntry pullOrCreateEntry(Map<String,Map<RuntimeLogEntry,RuntimeLogEntry>>map, String containerMethod, RuntimeLogEntry newEntry) {
-		Map<RuntimeLogEntry,RuntimeLogEntry> entries = map.get(containerMethod);
+	private static RuntimeLogEntry pullOrCreateEntry(String containerMethod, RuntimeLogEntry newEntry) {
+		Map<RuntimeLogEntry,RuntimeLogEntry> entries = containerMethodToEntries.get(containerMethod);
 		if(entries==null) {
 			entries = new HashMap<RuntimeLogEntry,RuntimeLogEntry>();
-			map.put(containerMethod, entries);
+			containerMethodToEntries.put(containerMethod, entries);
 		}
 		RuntimeLogEntry sameEntry = entries.get(newEntry);
 		if(sameEntry==null) {
