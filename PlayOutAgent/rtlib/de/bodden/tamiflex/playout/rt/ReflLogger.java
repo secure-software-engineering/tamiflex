@@ -44,18 +44,26 @@ public class ReflLogger {
 	//is initialized by the agent
 	public static boolean doCount;
 	
-	private static synchronized void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
+	private static void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
-		RuntimeLogEntry entry = pullOrCreateEntry(containerMethod, new TargetClassLogEntry(containerMethod, lineNumber, kind, targetClass));
-		if(doCount)
-			entry.incrementCounter();		
+		TargetClassLogEntry newEntry = new TargetClassLogEntry(containerMethod, lineNumber, kind, targetClass);
+		RuntimeLogEntry entry;
+		synchronized (ReflLogger.class) {
+			entry = pullOrCreateEntry(containerMethod, newEntry);
+			if(doCount)
+				entry.incrementCounter();		
+		}
 	}
 
-	private static synchronized void logAndIncrementTargetMethodEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
+	private static void logAndIncrementTargetMethodEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
 		if(hasShutDown) return;
-		RuntimeLogEntry entry = pullOrCreateEntry(containerMethod, new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, paramTypes));
-		if(doCount)
-			entry.incrementCounter();		
+		TargetMethodLogEntry newEntry = new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, paramTypes);
+		RuntimeLogEntry entry;
+		synchronized (ReflLogger.class) {
+			entry = pullOrCreateEntry(containerMethod, newEntry);
+			if(doCount)
+				entry.incrementCounter();		
+		}
 	}
 
 	private static RuntimeLogEntry pullOrCreateEntry(String containerMethod, RuntimeLogEntry newEntry) {
