@@ -70,6 +70,9 @@ public class ReflectionMonitor implements ClassFileTransformer {
         } catch (IllegalStateException e) {
             throw new IllegalClassFormatException("Error: " + e.getMessage() +
                 " on class " + className);
+		} catch(RuntimeException e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
 	
