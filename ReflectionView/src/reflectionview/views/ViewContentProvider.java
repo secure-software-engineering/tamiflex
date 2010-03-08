@@ -93,7 +93,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 						String target = portions[1];
 						String source = portions[2];
 						
-						String classNameDotMethodName = source.substring(0,source.indexOf('('));
+						String classNameDotMethodName = source;
 						String className= classNameDotMethodName.substring(0, classNameDotMethodName.lastIndexOf('.'));
 						if(reflectionView.isHideJREMethods()) {
 							if(className.startsWith("java.") || className.startsWith("sun.") || className.startsWith("com.sun.")) {
@@ -104,8 +104,8 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 						
 						String methodName= classNameDotMethodName.substring(classNameDotMethodName.lastIndexOf('.')+1);
 						int lineNumber=-1;
-						if(source.contains(":")) {
-							lineNumber = Integer.parseInt(source.substring(source.indexOf(':')+1,source.indexOf(')')));
+						if(portions.length>3) {
+							lineNumber = Integer.parseInt(portions[3]);
 						}					
 						if(kind.equals("Class.forName")) {
 							TreeParent sourceMethodNode;
