@@ -129,8 +129,6 @@ public class ReflLogger {
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
 			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(),paramTypes);
-		} catch(StackOverflowError e) {
-			//ignore stack-overflow error in Tomcat
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
