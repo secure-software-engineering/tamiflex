@@ -10,9 +10,7 @@
       Eric Bodden - initial API and implementation
 -->
 <project name="project" default="default">
-    <description>
-            description
-    </description>
+    <property file="ant.settings"/>
 
     <target name="default" depends="agent-jar"/>
 
@@ -35,12 +33,22 @@
     </target>
 
     <target name="agent-jar" depends="agent">
-        <jar destfile="pia.jar" manifest="META-INF/manifest.mf">
+    	<mkdir dir="META-INF"/>
+
+    	<manifest file="META-INF/MANIFEST.MF">
+           <attribute name="Premain-Class" value="de.bodden.tamiflex.playin.Agent"/>
+           <attribute name="Can-Retransform-Classes" value="true"/>
+           <attribute name="Implementation-Version" value="${tf.version}"/> 
+       </manifest>
+
+    	<jar destfile="pia.jar" manifest="META-INF/manifest.mf">
             <fileset dir="bin-agent"/>
             <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
             <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
         </jar>
-		<delete dir="bin-agent"/>
+
+    	<delete dir="bin-agent"/>
+		<delete dir="META-INF"/>
     </target>
 
 </project>

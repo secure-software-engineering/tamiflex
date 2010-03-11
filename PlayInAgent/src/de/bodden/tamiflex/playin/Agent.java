@@ -47,6 +47,7 @@ public class Agent {
 	}
 
 	private static void usage() {
+		System.out.println("TamiFlex version "+Agent.class.getPackage().getImplementationVersion()+", Play-in Agent \n");
 		System.out.println("This agent accepts the following options:");
 		System.out.println("[verbose,]<path>");
 		System.out.println();
