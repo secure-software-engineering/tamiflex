@@ -1,18 +1,33 @@
 package de.bodden.tamiflex.reflectionview.launching;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
+import java.util.Date;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.osgi.framework.Bundle;
 
 import de.bodden.tamiflex.reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.views.OnlineMonitorNode;
+import de.bodden.tamiflex.reflectionview.views.ReflectionView;
+import de.bodden.tamiflex.reflectionview.views.ReflectionViewContentInserter;
+import de.bodden.tamiflex.reflectionview.views.TreeParent;
 
 
 public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
@@ -30,7 +45,7 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 		return vmArguments.toString();
 	}
 
-	private String getArgs(ILaunchConfiguration configuration) {
+	private String getArgs(final ILaunchConfiguration configuration) throws CoreException {
 		StringBuilder args = new StringBuilder();
 		boolean toFolder = false;
 		String outFolder = "";
@@ -49,6 +64,80 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 			String root = ResourcesPlugin.getWorkspace().getRoot().getLocation().makeAbsolute().toOSString();
 			args.append(root);
 			args.append(outFolder);
+		} else {
+			//online monitoring
+			args.append("socket,");
+			final ServerSocket serverSocket;
+			try {
+				serverSocket = new ServerSocket(0);
+				String host = serverSocket.getInetAddress().getHostAddress();
+				int port = serverSocket.getLocalPort();
+				args.append(host);
+				args.append(":");
+				args.append(port);
+				
+				String projectName = configuration.getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
+				final IProject project = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(projectName);
+				
+				new Thread("SocketListener") {
+
+					private ReflectionView reflView;
+					@Override
+					public void run() {
+						Display.getDefault().syncExec(new Runnable() {
+							public void run() {
+								try {
+								IWorkbenchPage activePage = Activator.getDefault().getWorkbench().getActiveWorkbenchWindow().getActivePage();
+									activePage.showView(ReflectionView.ID);
+									reflView = (ReflectionView) activePage.findView(ReflectionView.ID);
+								} catch (PartInitException e) {
+									e.printStackTrace();
+								}
+							}
+						});
+						TreeParent root = reflView.getContentProvider().getRoot();
+						OnlineMonitorNode socketRoot;
+						String rootLabel = configuration.getName()+" - "+new Date().toString();
+						socketRoot = new OnlineMonitorNode(project, rootLabel);
+						root.addChild(socketRoot);
+						
+						Socket socket=null;
+						InputStream is=null;
+						try {
+							socket = serverSocket.accept();
+							is = socket.getInputStream();
+							BufferedReader r = new BufferedReader(new InputStreamReader(is));
+							
+							final ReflectionViewContentInserter contentInserter =
+								new ReflectionViewContentInserter(socketRoot, reflView);
+							String line;
+							while((line=r.readLine())!=null) {
+								contentInserter.insertFromTraceFileLine(line);
+								Display.getDefault().asyncExec(new Runnable() {			
+									public void run() {
+										reflView.refresh();
+									}
+								});
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						} finally {
+							try {
+								if(socket!=null) socket.close();
+								if(is!=null) is.close();
+								if(serverSocket!=null) serverSocket.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				}.start();
+				//allow other thread to get to the point where we
+				//accept connections on the server socket before we proceed here
+				Thread.yield();
+			} catch (IOException e) {
+				throw new RuntimeException("Probem creating server socket",e);
+			} 
 		}
 		return args.toString();
 	}

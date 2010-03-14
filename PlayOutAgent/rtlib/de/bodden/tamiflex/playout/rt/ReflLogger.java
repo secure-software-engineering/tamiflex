@@ -47,7 +47,7 @@ public class ReflLogger {
 	private static boolean doCount;
 	
 	//is initialized by the agent
-	private static PrintWriter newLineWriter  = new PrintWriter(new OutputStream() {
+	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
 		
 		@Override
 		public void write(int b) throws IOException {
@@ -88,7 +88,8 @@ public class ReflLogger {
 			//found a new entry
 			sameEntry = newEntry;
 			entries.put(newEntry,newEntry);
-			newLineWriter.write(newEntry.toString());
+			newLineWriter.println(newEntry.toString());
+			newLineWriter.flush();			
 		}
 		return sameEntry;
 	}

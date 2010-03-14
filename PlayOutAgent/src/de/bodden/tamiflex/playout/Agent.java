@@ -33,7 +33,7 @@ public class Agent {
 	private static ClassDumper classDumper;
 	private static Socket socket;
 	
-	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException {
+	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
 		if(!inst.isRetransformClassesSupported()) {
 			throw new RuntimeException("retransformation not supported");
 		}
@@ -56,7 +56,9 @@ public class Agent {
 		}
 		if(agentArgs.equals("")) usage();
 		
-		ReflLogger.setMustCount(count);
+		appendRtJarToBootClassPath(inst);
+
+		ReflLogger.setMustCount(count);		
 
 		if(useSocket) {
 			//online mode; no need to create any files; just insert instrumentation...
@@ -90,8 +92,6 @@ public class Agent {
 			}
 			
 			File logFile = new File(outDir,"refl.log");
-			
-			appendRtJarToBootClassPath(inst);
 			
 			dumpLoadedClasses(inst,outDir,verbose);
 			

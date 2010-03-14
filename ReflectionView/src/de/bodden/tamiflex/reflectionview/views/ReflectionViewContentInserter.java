@@ -1,8 +1,9 @@
 package de.bodden.tamiflex.reflectionview.views;
 
+
 public class ReflectionViewContentInserter {
 	
-	private final TraceFileNode root;
+	private final TreeParent root;
 	private final CategoryNode classForNameNode;
 	private final CategoryNode classNewInstanceNode;
 	private final CategoryNode methodInvokeNode;
@@ -10,7 +11,7 @@ public class ReflectionViewContentInserter {
 	private final ReflectionView reflectionView;
 
 	
-	public ReflectionViewContentInserter(TraceFileNode root, ReflectionView container) {
+	public ReflectionViewContentInserter(TreeParent root, ReflectionView container) {
 		this.reflectionView = container;
 		classForNameNode = new CategoryNode("Class.forName");
 		root.addChild(classForNameNode);
@@ -22,7 +23,7 @@ public class ReflectionViewContentInserter {
 		root.addChild(constructorNewInstanceNode);
 		this.root = root;
 	}
-	
+
 	public void insertFromTraceFileLine(String line) {
 		if(line.length()==0) return;
 		String[] portions = line.split(";");
