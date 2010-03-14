@@ -1,7 +1,7 @@
 /**
  * 
  */
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;

@@ -1,4 +1,4 @@
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;

@@ -1,4 +1,4 @@
-package reflectionview.launching.ui;
+package de.bodden.tamiflex.reflectionview.launching.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;

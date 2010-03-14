@@ -1,4 +1,4 @@
-package reflectionview.launching;
+package de.bodden.tamiflex.reflectionview.launching;
 
 public interface PlayOutLaunchConstants {
 

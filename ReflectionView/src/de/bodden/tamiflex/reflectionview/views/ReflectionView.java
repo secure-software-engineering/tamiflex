@@ -1,4 +1,4 @@
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 
 import java.util.Collections;
@@ -40,7 +40,7 @@ public class ReflectionView extends ViewPart {
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "reflectionview.views.ReflectionView";
+	public static final String ID = "de.bodden.tamiflex.reflectionview.views.ReflectionView";
 	
 	private TreeViewer viewer;
 	private Action hideLibMethods;

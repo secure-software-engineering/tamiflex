@@ -1,4 +1,4 @@
-package reflectionview;
+package de.bodden.tamiflex.reflectionview;
 
 import java.io.File;
 
@@ -10,7 +10,8 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.views.IViewDescriptor;
 import org.osgi.framework.BundleContext;
 
-import reflectionview.views.ReflectionView;
+import de.bodden.tamiflex.reflectionview.views.ReflectionView;
+
 
 /**
  * The activator class controls the plug-in life cycle

@@ -1,4 +1,4 @@
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +28,8 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PartInitException;
 
-import reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.Activator;
+
 
 
 public class AmbiguousMethodNode extends MethodNode {

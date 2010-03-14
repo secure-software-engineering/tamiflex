@@ -1,4 +1,4 @@
-package reflectionview.launching;
+package de.bodden.tamiflex.reflectionview.launching;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,8 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
 import org.osgi.framework.Bundle;
 
-import reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.Activator;
+
 
 public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 	

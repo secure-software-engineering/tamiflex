@@ -1,7 +1,7 @@
 /**
  * 
  */
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.graphics.Image;

@@ -1,12 +1,13 @@
-package reflectionview.editors;
+package de.bodden.tamiflex.reflectionview.editors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.IEditorLauncher;
 import org.eclipse.ui.IWorkbenchPage;
 
-import reflectionview.Activator;
-import reflectionview.views.ReflectionView;
+import de.bodden.tamiflex.reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.views.ReflectionView;
+
 
 public class TraceFileViewerLauncher implements IEditorLauncher {
 

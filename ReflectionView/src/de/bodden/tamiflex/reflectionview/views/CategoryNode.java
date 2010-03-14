@@ -1,7 +1,7 @@
 /**
  * 
  */
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import java.util.HashMap;
 import java.util.Map;

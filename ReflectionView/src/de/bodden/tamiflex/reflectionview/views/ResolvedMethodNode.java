@@ -1,4 +1,4 @@
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -12,7 +12,8 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PartInitException;
 
-import reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.Activator;
+
 
 
 public class ResolvedMethodNode extends MethodNode {

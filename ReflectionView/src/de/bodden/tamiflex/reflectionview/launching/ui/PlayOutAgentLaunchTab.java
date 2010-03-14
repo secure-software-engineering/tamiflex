@@ -1,4 +1,4 @@
-package reflectionview.launching.ui;
+package de.bodden.tamiflex.reflectionview.launching.ui;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -27,7 +27,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
-import reflectionview.launching.PlayOutLaunchConstants;
+import de.bodden.tamiflex.reflectionview.launching.PlayOutLaunchConstants;
+
 
 public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 

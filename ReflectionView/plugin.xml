@@ -12,7 +12,7 @@
             name="Reflection View"
             icon="icons/sample.gif"
             category="ReflectionView"
-            class="reflectionview.views.ReflectionView"
+            class="de.bodden.tamiflex.reflectionview.views.ReflectionView"
             id="reflectionview.views.ReflectionView">
       </view>
    </extension>
@@ -41,14 +41,14 @@
             extensions="refllog"
             icon="icons/sample.gif"
             id="reflectionview.editors.TraceFileViewerEditor"
-            launcher="reflectionview.editors.TraceFileViewerLauncher"
+            launcher="de.bodden.tamiflex.reflectionview.editors.TraceFileViewerLauncher"
             name="Reflection Editor">
       </editor>
    </extension>
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="reflectionview.launching.PlayOutLaunchDelegate"
+            delegate="de.bodden.tamiflex.reflectionview.launching.PlayOutLaunchDelegate"
             delegateDescription="Launches the Java application with the Play-out Agent attached"
             delegateName="Play-Out-Agent Launcher"
             id="ReflectionView.playOutLaunchConfig"
@@ -62,7 +62,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="reflectionview.launching.ui.PlayOutAgentLaunchTabGroup"
+            class="de.bodden.tamiflex.reflectionview.launching.ui.PlayOutAgentLaunchTabGroup"
             id="ReflectionView.playOutAgentLaunchTabGroup"
             type="ReflectionView.playOutLaunchConfig">
       </launchConfigurationTabGroup>

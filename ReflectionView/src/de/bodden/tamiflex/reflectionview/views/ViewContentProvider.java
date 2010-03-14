@@ -1,7 +1,7 @@
 /**
  * 
  */
-package reflectionview.views;
+package de.bodden.tamiflex.reflectionview.views;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -17,7 +17,8 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IViewSite;
 
-import reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.Activator;
+
 
 public class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
