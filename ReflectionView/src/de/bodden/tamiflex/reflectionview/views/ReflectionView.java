@@ -40,7 +40,7 @@ public class ReflectionView extends ViewPart {
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "de.bodden.tamiflex.reflectionview.views.ReflectionView";
+	public static final String ID = "reflectionview.views.ReflectionView";
 	
 	private TreeViewer viewer;
 	private Action hideLibMethods;
@@ -52,7 +52,7 @@ public class ReflectionView extends ViewPart {
 	private Set<IPath> traceFiles = new HashSet<IPath>();
 
 	/*
-	 * The content provider class is respo¯nsible for
+	 * The content provider class is responsible for
 	 * providing objects to the view. It can wrap
 	 * existing objects in adapters or simply return
 	 * objects as-is. These objects may be sensitive
