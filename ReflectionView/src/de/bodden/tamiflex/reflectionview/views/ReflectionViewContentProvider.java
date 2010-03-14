@@ -20,13 +20,13 @@ import org.eclipse.ui.IViewSite;
 import de.bodden.tamiflex.reflectionview.Activator;
 
 
-public class ViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
+public class ReflectionViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
 	private TreeParent invisibleRoot;
 		private final IViewSite viewSite;
 		private final ReflectionView reflectionView;
 
-		public ViewContentProvider(IViewSite viewSite, ReflectionView reflectionView) {
+		public ReflectionViewContentProvider(IViewSite viewSite, ReflectionView reflectionView) {
 			this.viewSite = viewSite;
 			this.reflectionView = reflectionView;
 		}

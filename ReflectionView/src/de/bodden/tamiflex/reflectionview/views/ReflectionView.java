@@ -47,7 +47,7 @@ public class ReflectionView extends ViewPart {
 	private Action doubleClickAction;
 	private boolean hideJREMethods;
 
-	private ViewContentProvider contentProvider;
+	private ReflectionViewContentProvider contentProvider;
 
 	private Set<IPath> traceFiles = new HashSet<IPath>();
 
@@ -77,9 +77,9 @@ public class ReflectionView extends ViewPart {
 	 */
 	public void createPartControl(Composite parent) {
 		viewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-		contentProvider = new ViewContentProvider(getViewSite(),this);
+		contentProvider = new ReflectionViewContentProvider(getViewSite(),this);
 		viewer.setContentProvider(contentProvider);
-		viewer.setLabelProvider(new ViewLabelProvider());
+		viewer.setLabelProvider(new ReflectionViewLabelProvider());
 		viewer.setSorter(new ViewerSorter());
 		viewer.setInput(getViewSite());
 
