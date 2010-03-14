@@ -12,7 +12,6 @@ package de.bodden.tamiflex.playout;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
-import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
@@ -25,16 +24,7 @@ import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import de.bodden.tamiflex.playout.rt.ReflLogger;
-
 public class ReflectionMonitor implements ClassFileTransformer {
-	
-//	private final static String REFL_LOGGER = ReflLogger.class.getName().replace('.', '/');
-	
-	public ReflectionMonitor(File logFile, boolean count) {
-		ReflLogger.setMustCount(count);
-		ReflLogger.setLogFile(logFile);
-	}
 	
 	public byte[] transform(ClassLoader loader, final String className,
 		Class<?> classBeingRedefined, ProtectionDomain protectionDomain,

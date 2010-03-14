@@ -17,10 +17,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,10 +41,19 @@ public class ReflLogger {
 	protected static Map<String,Map<RuntimeLogEntry,RuntimeLogEntry>> containerMethodToEntries = new HashMap<String, Map<RuntimeLogEntry,RuntimeLogEntry>>();
 	
 	//is initialized by the agent
-	protected static File logFile;
+	private static File logFile;
 	
 	//is initialized by the agent
-	public static boolean doCount;
+	private static boolean doCount;
+	
+	//is initialized by the agent
+	private static PrintWriter newLineWriter  = new PrintWriter(new OutputStream() {
+		
+		@Override
+		public void write(int b) throws IOException {
+			//by default, do nothing
+		}
+	});
 	
 	private static void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
@@ -74,8 +85,10 @@ public class ReflLogger {
 		}
 		RuntimeLogEntry sameEntry = entries.get(newEntry);
 		if(sameEntry==null) {
+			//found a new entry
 			sameEntry = newEntry;
 			entries.put(newEntry,newEntry);
+			newLineWriter.write(newEntry.toString());
 		}
 		return sameEntry;
 	}
@@ -249,6 +262,10 @@ public class ReflLogger {
 		logFile = f;
 	}
 	
+	public static void setSocket(Socket s) throws IOException {
+		newLineWriter = new PrintWriter(s.getOutputStream());
+	}
+
 	//is called by the agent
 	private static void initializeLogFile() {
 		File f = logFile;

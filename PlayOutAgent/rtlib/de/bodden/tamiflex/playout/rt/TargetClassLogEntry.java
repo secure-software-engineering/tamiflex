@@ -50,4 +50,9 @@ public class TargetClassLogEntry extends RuntimeLogEntry {
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return kind.label() + ";" + targetClass + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
+	}
 }

@@ -105,5 +105,10 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 		return true;
 	}
 
+	@Override
+	public String toString() {
+		String targetMethod = sootSignature(declaringClass, returnType, name, paramTypes);
+		return kind.label() + ";" + targetMethod + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
+	}
 	
 }

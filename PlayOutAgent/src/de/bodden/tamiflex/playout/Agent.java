@@ -16,6 +16,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -30,6 +31,7 @@ public class Agent {
 	
 	public final static String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
 	private static ClassDumper classDumper;
+	private static Socket socket;
 	
 	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException {
 		if(!inst.isRetransformClassesSupported()) {
@@ -47,49 +49,77 @@ public class Agent {
 			count = true;
 			agentArgs = agentArgs.substring("count,".length());
 		}
+		boolean useSocket = false;
+		if(agentArgs.startsWith("socket,")) {
+			useSocket = true;
+			agentArgs = agentArgs.substring("socket,".length());
+		}
 		if(agentArgs.equals("")) usage();
 		
-		String outPath=agentArgs;
-		if(outPath==null) {
-			System.err.println("No outpath given!");
-			usage();
-		}
-		
-		File outDir = new File(outPath);
-		if(outDir.exists()) {
-			if(!outDir.isDirectory()) {
-				System.err.println(outDir+ "is not a directory");
-				usage();
-			}
+		ReflLogger.setMustCount(count);
+
+		if(useSocket) {
+			//online mode; no need to create any files; just insert instrumentation...
+			String hostColonPort = agentArgs;
+			if(!hostColonPort.contains(":")) throw new IllegalArgumentException("Wrong destination "+hostColonPort+" ! Format is host:port.");
+			String[] split = hostColonPort.split(":");
+			String host = split[0];
+			int port = Integer.parseInt(split[1]);
+			socket = new Socket(host, port);
+			ReflLogger.setSocket(socket);
+			instrumentClassesForLogging(inst);
 		} else {
-			boolean res = outDir.mkdirs();
-			if(!res) {
-				System.err.println("Cannot create directory "+outDir);
+			String outPath=agentArgs;
+			if(outPath==null) {
+				System.err.println("No outpath given!");
 				usage();
 			}
-		}
-		
-		File logFile = new File(outDir,"refl.log");
-		
-		appendRtJarToBootClassPath(inst);
-		
-		dumpLoadedClasses(inst,outDir,verbose);
-		
-		instrumentClassesForLogging(inst, logFile, count);
-		
-		inst.addTransformer(classDumper,true /* can retransform */);		
-		
-		final boolean verboseOutput = verbose;
-		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
-			@Override
-			public void run() {
-				ShutdownStatus.hasShutDown = true;
-				classDumper.writeClassesToDisk();
-				ReflLogger.writeLogfileToDisk(verboseOutput);
+			File outDir = new File(outPath);
+			if(outDir.exists()) {
+				if(!outDir.isDirectory()) {
+					System.err.println(outDir+ "is not a directory");
+					usage();
+				}
+			} else {
+				boolean res = outDir.mkdirs();
+				if(!res) {
+					System.err.println("Cannot create directory "+outDir);
+					usage();
+				}
 			}
 			
-		});
+			File logFile = new File(outDir,"refl.log");
+			
+			appendRtJarToBootClassPath(inst);
+			
+			dumpLoadedClasses(inst,outDir,verbose);
+			
+			ReflLogger.setLogFile(logFile);
+			
+			instrumentClassesForLogging(inst);
+			
+			inst.addTransformer(classDumper,true /* can retransform */);		
+			
+			final boolean verboseOutput = verbose;
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+				
+				@Override
+				public void run() {
+					ShutdownStatus.hasShutDown = true;
+					if(socket!=null) {
+						try {
+							socket.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					classDumper.writeClassesToDisk();
+					ReflLogger.writeLogfileToDisk(verboseOutput);
+				}
+				
+			});
+		}
 }
 
 	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean verbose)
@@ -109,9 +139,8 @@ public class Agent {
 		inst.removeTransformer(classDumper);
 	}
 
-	private static void instrumentClassesForLogging(Instrumentation inst,
-			File logFile, boolean count) throws UnmodifiableClassException {
-		ReflectionMonitor reflMonitor = new ReflectionMonitor(logFile,count);
+	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
+		ReflectionMonitor reflMonitor = new ReflectionMonitor();
 		inst.addTransformer(reflMonitor, true /* can retransform */);				
 
 		//make sure that these classes are instrumented
