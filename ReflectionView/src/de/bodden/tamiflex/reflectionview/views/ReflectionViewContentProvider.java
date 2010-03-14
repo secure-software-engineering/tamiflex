@@ -17,8 +17,6 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.ui.IViewSite;
 
-import de.bodden.tamiflex.reflectionview.Activator;
-
 
 public class ReflectionViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
@@ -74,7 +72,7 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 				TraceFileNode fileNode = new TraceFileNode(relativePath);
 				invisibleRoot.addChild(fileNode);
 				try {
-					InputStream inputStream = traceFilePath.toFile().toURL().openStream();
+					InputStream inputStream = traceFilePath.toFile().toURI().toURL().openStream();
 					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 					String line;
 					int lines = 0;
