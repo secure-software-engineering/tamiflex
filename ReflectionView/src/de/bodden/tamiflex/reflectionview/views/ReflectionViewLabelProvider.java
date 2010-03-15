@@ -5,8 +5,6 @@ package de.bodden.tamiflex.reflectionview.views;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
-import org.eclipse.ui.PlatformUI;
 
 class ReflectionViewLabelProvider extends LabelProvider {
 

@@ -30,6 +30,7 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import de.bodden.tamiflex.reflectionview.launching.PlayOutLaunchConstants;
 
 
+@SuppressWarnings("restriction")
 public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 
 	class OutputFolderSelectionDialog extends ContainerSelectionDialog {
