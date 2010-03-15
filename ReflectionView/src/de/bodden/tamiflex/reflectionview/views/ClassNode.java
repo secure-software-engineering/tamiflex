@@ -30,10 +30,10 @@ public class ClassNode extends TreeObject {
 	@Override
 	public void handleDoubleClick() {
 		TreeObject parent = this.parent;
-		while(!(parent instanceof TraceFileNode)) {
+		while(parent.getParent()!=INVISIBLE_ROOT_NODE) {
 			parent = parent.getParent();
 		}
-		IProject project = ((TraceFileNode)parent).getProject();
+		IProject project = ((TreeParent)parent).getProject();
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
 			IType type = javaProject.findType(name, (IProgressMonitor) null);
