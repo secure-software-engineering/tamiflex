@@ -3,6 +3,8 @@
  */
 package de.bodden.tamiflex.reflectionview.views;
 
+import static de.bodden.tamiflex.reflectionview.views.TreeObject.INVISIBLE_ROOT_NODE;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,7 +22,6 @@ import org.eclipse.ui.IViewSite;
 
 public class ReflectionViewContentProvider implements IStructuredContentProvider, ITreeContentProvider {
 
-	private final TreeParent invisibleRoot = new ResolvedMethodNode("","","");
 	private final IViewSite viewSite;
 	private final ReflectionView reflectionView;
 
@@ -33,8 +34,8 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 	}
 	public Object[] getElements(Object parent) {
 		if (parent.equals(viewSite)) {
-			if (invisibleRoot==null) initialize();
-			return getChildren(invisibleRoot);
+			if (INVISIBLE_ROOT_NODE==null) initialize();
+			return getChildren(INVISIBLE_ROOT_NODE);
 		}
 		return getChildren(parent);
 	}
@@ -56,17 +57,17 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 			if(traceFilePath==null) continue;
 			IPath relativePath = traceFilePath.makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
 			
-			if (invisibleRoot.hasChildren()) {
-				for(TreeObject o: invisibleRoot.getChildren()) {
+			if (INVISIBLE_ROOT_NODE.hasChildren()) {
+				for(TreeObject o: INVISIBLE_ROOT_NODE.getChildren()) {
 					TraceFileNode n = (TraceFileNode)o;
 					if(n.getName().equals(relativePath.toString())) {
-						invisibleRoot.removeChild(n);
+						INVISIBLE_ROOT_NODE.removeChild(n);
 						break;
 					}					
 				}
 			}
 			TraceFileNode fileNode = new TraceFileNode(relativePath);
-			invisibleRoot.addChild(fileNode);
+			INVISIBLE_ROOT_NODE.addChild(fileNode);
 			ReflectionViewContentInserter contentInserter = new ReflectionViewContentInserter(fileNode, reflectionView);
 			try {
 				InputStream inputStream = traceFilePath.toFile().toURI().toURL().openStream();
@@ -95,6 +96,6 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 	}
 	
 	public TreeParent getRoot() {
-		return invisibleRoot;
+		return INVISIBLE_ROOT_NODE;
 	}
 }

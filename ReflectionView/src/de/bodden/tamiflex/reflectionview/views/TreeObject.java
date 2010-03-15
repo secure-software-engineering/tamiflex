@@ -10,6 +10,9 @@ import org.eclipse.swt.graphics.Image;
 
 
 public abstract class TreeObject {
+
+	public final static TreeParent INVISIBLE_ROOT_NODE = new ResolvedMethodNode("","","");
+
 	public enum Kind {CATEGORY, TRACEFILE, CLASS, METHOD};
 	
 	protected String name;
@@ -44,9 +47,9 @@ public abstract class TreeObject {
 	
 	public IProject getProject() {
 		TreeObject parent = this.parent;
-		while(!(parent instanceof TraceFileNode)) {
+		while(parent.getParent()!=INVISIBLE_ROOT_NODE) {
 			parent = parent.getParent();
 		}
-		return ((TraceFileNode)parent).getProject();
+		return ((TreeParent)parent).getProject();
 	}
 }
