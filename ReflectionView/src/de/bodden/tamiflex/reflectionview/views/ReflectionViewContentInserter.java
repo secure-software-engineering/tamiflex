@@ -66,7 +66,7 @@ public class ReflectionViewContentInserter {
 			}
 			String targetClassName= target.substring(1,target.indexOf(':'));
 			String targetSignature= target.substring(target.indexOf('('),target.length()-1);
-			String targetMethodName= target.substring(0,target.length()-targetSignature.length());
+			String targetMethodName= target.substring(0,target.length()-targetSignature.length()-1);
 			targetMethodName = targetMethodName.substring(targetMethodName.lastIndexOf(' ')+1);
 			sourceMethodNode.addChild(new ResolvedMethodNode(targetClassName,targetMethodName,targetSignature));
 		} else if(kind.equals("Constructor.newInstance")) {
