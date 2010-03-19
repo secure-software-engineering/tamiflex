@@ -330,7 +330,7 @@ public class ReflLogger {
 		newEntries.removeAll(oldContainerMethodToEntries.keySet());
 		
 		System.err.println("=============================================");
-		System.err.println("TamiFlex version "+ReflLogger.class.getPackage().getImplementationVersion());
+		System.err.println("TamiFlex Play-Out Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
 		if(newEntries.isEmpty()) {
 			System.err.println("Found no new log entries.");
 		} else {

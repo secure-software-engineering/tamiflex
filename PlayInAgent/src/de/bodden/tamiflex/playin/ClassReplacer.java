@@ -46,12 +46,15 @@ public class ClassReplacer implements ClassFileTransformer {
 	 */
 	protected Map<String,byte[]> generatedClassNameToOriginalBytes = new HashMap<String, byte[]>();
 	
+	public int numInvoked, numSuccess;
+	
 	public ClassReplacer(String srcPath, boolean verbose) {
 		this.verbose = verbose;				
 		this.loader = createClassLoader(srcPath);		
 	}
 
 	public byte[] transform(ClassLoader ldr, final String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+		numInvoked++;
 		try{
 			if(containsGeneratedClassName(className))
 				storeClassBytesOfGeneratedClass(className, classfileBuffer);			
@@ -134,6 +137,7 @@ public class ClassReplacer implements ClassFileTransformer {
 						}
 					}				
 					
+					numSuccess++;
 					return readBytes;
 				} finally {
 					is.close();

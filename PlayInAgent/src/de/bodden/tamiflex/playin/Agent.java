@@ -37,7 +37,17 @@ public class Agent {
 			Hasher.dontNormalize();
 		}
 		if(agentArgs.equals("")) usage();
-		inst.addTransformer(new ClassReplacer(agentArgs,verbose),true);					
+		final ClassReplacer replacer = new ClassReplacer(agentArgs,verbose);
+		inst.addTransformer(replacer,true);
+		
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				System.err.println("=============================================");
+				System.err.println("TamiFlex Play-In Agent Version "+Agent.class.getPackage().getImplementationVersion());
+				System.err.println("Replaced "+replacer.numSuccess+" out of "+replacer.numSuccess+" classes.");
+			}
+		});
 		
 		for (Class<?> c : inst.getAllLoadedClasses()) {
 			if(inst.isModifiableClass(c)) {
