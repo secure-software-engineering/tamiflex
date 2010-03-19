@@ -180,8 +180,18 @@ public class Agent {
 		System.out.println("For instance, the following command will cause the agent to dump class files into");
 		System.out.println("the directory /tmp/out, counting reflective invocations:");
 		System.out.println("java -javaagent:agent.jar=count,outpath=/tmp/out ...");
+		System.out.println(DISCLAIMER);
 		System.exit(1);
 	}
-
+	
+	private final static String DISCLAIMER=
+		"Copyright (c) 2010 Eric Bodden.\n" +
+		"\n" +
+		"DISCLAIMER: USE OF THIS SOFTWARE IS AT OWN RISK.\n" +
+		"\n" +
+		"All rights reserved. This program and the accompanying materials\n" +
+		"are made available under the terms of the Eclipse Public License v1.0\n" +
+		"which accompanies this distribution, and is available at\n" +
+		"http://www.eclipse.org/legal/epl-v10.html";
 
 }
