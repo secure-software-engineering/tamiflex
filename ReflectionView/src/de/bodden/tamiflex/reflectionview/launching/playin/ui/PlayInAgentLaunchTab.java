@@ -25,6 +25,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -32,12 +33,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
+import de.bodden.tamiflex.reflectionview.Activator;
 import de.bodden.tamiflex.reflectionview.launching.LaunchUtil;
 import de.bodden.tamiflex.reflectionview.launching.playin.PlayInLaunchConstants;
 
 @SuppressWarnings("restriction")
 public class PlayInAgentLaunchTab extends AbstractLaunchConfigurationTab {
 
+	private static final Image IMAGE = Activator.getImageDescriptor("icons/pia.gif").createImage();
 	private Text fInputFolderText;
 	private Button fInputFolderButton;
 	private Button fVerboseOption;
@@ -200,5 +203,10 @@ public class PlayInAgentLaunchTab extends AbstractLaunchConfigurationTab {
 			getLaunchConfigurationDialog().updateButtons();
 			getLaunchConfigurationDialog().updateMessage();
 		}
+	}
+	
+	@Override
+	public Image getImage() {
+		return IMAGE;
 	}
 }

@@ -25,6 +25,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -32,6 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Text;
 
+import de.bodden.tamiflex.reflectionview.Activator;
 import de.bodden.tamiflex.reflectionview.launching.LaunchUtil;
 import de.bodden.tamiflex.reflectionview.launching.playout.PlayOutLaunchConstants;
 
@@ -39,6 +41,7 @@ import de.bodden.tamiflex.reflectionview.launching.playout.PlayOutLaunchConstant
 @SuppressWarnings("restriction")
 public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 
+	private static final Image IMAGE = Activator.getImageDescriptor("icons/poa.gif").createImage();
 	private Button fDirectlyRadioButton;
 	private Button fToFolderRadioButton;
 	private Text fOutputFolderText;
@@ -276,5 +279,10 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 			getLaunchConfigurationDialog().updateButtons();
 			getLaunchConfigurationDialog().updateMessage();
 		}
+	}
+	
+	@Override
+	public Image getImage() {
+		return IMAGE;
 	}
 }

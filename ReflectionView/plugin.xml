@@ -20,7 +20,7 @@
       </category>
       <view
             name="Reflection View"
-            icon="icons/sample.gif"
+            icon="icons/poa.gif"
             category="ReflectionView"
             class="de.bodden.tamiflex.reflectionview.views.ReflectionView"
             id="reflectionview.views.ReflectionView">
@@ -48,7 +48,7 @@
          point="org.eclipse.ui.editors">
       <editor
             extensions="refllog"
-            icon="icons/sample.gif"
+            icon="icons/poa.gif"
             id="reflectionview.editors.TraceFileViewerEditor"
             launcher="de.bodden.tamiflex.reflectionview.editors.TraceFileViewerLauncher"
             name="Reflection Editor">
@@ -96,5 +96,19 @@
             type="ReflectionView.playInLaunchConfig">
       </launchConfigurationTabGroup>
    </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            icon="$nl$/icons/poa.gif"
+            configTypeID="ReflectionView.playOutLaunchConfig"
+            id="ReflectionView.icons.playOutLaunchConfig">
+      </launchConfigurationTypeImage>
+      <launchConfigurationTypeImage
+            icon="$nl$/icons/pia.gif"
+            configTypeID="ReflectionView.playInLaunchConfig"
+            id="ReflectionView.icons.playInLaunchConfig">
+      </launchConfigurationTypeImage>
+   </extension>
+   
 
 </plugin>
