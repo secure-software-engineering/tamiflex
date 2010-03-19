@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#  Copyright (c) 2010 Eric Bodden.
+#  All rights reserved. This program and the accompanying materials
+#  are made available under the terms of the Eclipse Public License v1.0
+#  which accompanies this distribution, and is available at
+#  http://www.eclipse.org/legal/epl-v10.html
+#  
+#  Contributors:
+#      Eric Bodden - initial API and implementation
+
+. ./settings
+
+for SIZE in small default large huge
+do
+	for BM in `${JVM} -jar ${DACAPOJAR} -l`
+	do
+		PROCESSDIR=${DUMPDIR}/${BM}-${SIZE}
+		LOGFILE=${PROCESSDIR}/refl.log
+		OUTDIR=${SOOTOUTDIR}/${BM}-${SIZE}/
+		
+		mkdir -p ${OUTDIR}
+
+		COMMAND="${SOOTJVM} -cp ${SOOTJAR} soot.Main -w -app -p cg.spark enabled -p cg reflection-log:${LOGFILE} -cp ${SOOTCP}:${PROCESSDIR} -main-class Harness ${SOOTOPTS} -d ${OUTDIR} Harness"
+		echo processing classes in ${PROCESSDIR} with log file at ${LOGFILE}...
+		echo $COMMAND > ${OUTDIR}/$BM-$SIZE/soot.log 2>&1
+		eval $COMMAND >> ${OUTDIR}/$BM-$SIZE/soot.log 2>&1
+	done
+done

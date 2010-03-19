@@ -1,0 +1,42 @@
+#!/bin/bash
+
+#  Copyright (c) 2010 Eric Bodden.
+#  All rights reserved. This program and the accompanying materials
+#  are made available under the terms of the Eclipse Public License v1.0
+#  which accompanies this distribution, and is available at
+#  http://www.eclipse.org/legal/epl-v10.html
+#  
+#  Contributors:
+#      Eric Bodden - initial API and implementation
+
+# the VM command used to run the DaCapo harness
+# (give more heap space than usual because the Play-Out Agent requires some...)
+JVM="nice -n 19 java -Xmx4G"
+
+# the path to the DaCapo JAR file
+DACAPOJAR=dacapo-9.12-bach.jar
+
+# the options to the DaCapo harness during dumping
+DACAPOOPTS1="--scratch-directory /tmp/dacaposcratch -n 3"
+
+# the options to the DaCapo harness during running with offline-transformed classes
+DACAPOOPTS2="--scratch-directory /tmp/dacaposcratch"
+
+# the directory into which the Play-Out Agent will dump classes and reflection logs
+DUMPDIR=out
+
+# the directory into which Soot will place the processed class files
+SOOTOUTDIR=sootified
+
+# the VM command used to run Soot
+SOOTJVM="nice -n 19 /usr/bin/java -Xmx10G"
+
+# the JAR file of Soot
+SOOTJAR="soot-trunk.jar" 
+
+# the classpath with respect to which Soot should analyze the benchmark
+# (the classes of the benchmark itself are added automatically)
+SOOTCP="jre/lib/jce.jar:jre/lib/rt.jar"
+
+# the options to Soot; by default we explicitly include the packages named below in the analysis
+SOOTOPTS="-include org.apache. -include org.w3c."
