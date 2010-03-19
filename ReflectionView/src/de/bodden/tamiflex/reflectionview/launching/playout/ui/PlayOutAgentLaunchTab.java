@@ -46,8 +46,8 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 	class OutputFolderSelectionDialog extends ContainerSelectionDialog {
 		private final String SETTINGS_ID = IDebugUIConstants.PLUGIN_ID + ".SHARED_LAUNCH_CONFIGURATON_DIALOG"; //$NON-NLS-1$
 		
-		public OutputFolderSelectionDialog(Shell parentShell, IContainer initialRoot, boolean allowNewContainerName, String message) {
-			super(parentShell, initialRoot, allowNewContainerName, message);
+		public OutputFolderSelectionDialog(Shell parentShell, IContainer initialRoot, String message) {
+			super(parentShell, initialRoot, true, message);
 		}
 
 		protected IDialogSettings getDialogBoundsSettings() {
@@ -86,6 +86,32 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 		comp.setFont(parent.getFont());
 		createOutFolderOption(comp);
 		createOptionsGroup(comp);
+		setToFolderEnabled(false);			
+	}
+	
+	private void createOutFolderOption(Composite parent) {
+		Group group = SWTFactory.createGroup(parent, "Output/viewing options", 3, 2, GridData.FILL_HORIZONTAL);
+		Composite comp = SWTFactory.createComposite(group, parent.getFont(), 3, 3, GridData.FILL_BOTH, 0, 0);
+		fDirectlyRadioButton = createRadioButton(comp, "Show reflective calls directly at runtime");
+		GridData gd = new GridData();
+		gd.horizontalSpan = 3;
+		fDirectlyRadioButton.setLayoutData(gd);
+		fToFolderRadioButton = createRadioButton(comp, "Store into folder");
+		fToFolderRadioButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent evt) {
+				handleRadioButtonSelected();
+			}
+		});
+		fOutputFolderText = SWTFactory.createSingleText(comp, 1);
+		fOutputFolderText.addModifyListener(fBasicModifyListener);
+		fOutputFolderButton = createPushButton(comp, "Browse...", null);	 
+		fOutputFolderButton.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent evt) {
+				handleBrowseButtonSelected();
+			}
+		});	
+
+		fDirectlyRadioButton.setSelection(true);
 	}
 
 	private void createOptionsGroup(Composite parent) {
@@ -132,32 +158,6 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
         });			
 
 	}
-
-	private void createOutFolderOption(Composite parent) {
-		Group group = SWTFactory.createGroup(parent, "Output/viewing options", 3, 2, GridData.FILL_HORIZONTAL);
-		Composite comp = SWTFactory.createComposite(group, parent.getFont(), 3, 3, GridData.FILL_BOTH, 0, 0);
-		fDirectlyRadioButton = createRadioButton(comp, "Show reflective calls directly at runtime");
-		GridData gd = new GridData();
-		gd.horizontalSpan = 3;
-		fDirectlyRadioButton.setLayoutData(gd);
-		fToFolderRadioButton = createRadioButton(comp, "Store into folder");
-		fToFolderRadioButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent evt) {
-				handleRadioButtonSelected();
-			}
-		});
-		fOutputFolderText = SWTFactory.createSingleText(comp, 1);
-		fOutputFolderText.addModifyListener(fBasicModifyListener);
-		fOutputFolderButton = createPushButton(comp, "Browse...", null);	 
-		fOutputFolderButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent evt) {
-				handleBrowseButtonSelected();
-			}
-		});	
-
-		fDirectlyRadioButton.setSelection(true);
-		setToFolderEnabled(false);			
-	}
 	
 	/**
 	 * handles the shared radio button being selected
@@ -187,7 +187,6 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 		IContainer currentContainer = getContainer(currentContainerString);
 		OutputFolderSelectionDialog dialog = new OutputFolderSelectionDialog(getShell(),
 				   currentContainer,
-				   false,
 				   "Select output folder");
 		dialog.showClosedProjects(false);
 		dialog.open();
@@ -206,6 +205,11 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 	private void setToFolderEnabled(boolean enable) {
 		fOutputFolderText.setEnabled(enable);
 		fOutputFolderButton.setEnabled(enable);
+		//if we don't write to a folder then we don't dump classes and we also don't normalize
+		fDontDumpClasses.setSelection(!enable);
+		fDontDumpClasses.setEnabled(enable);
+		fDontNormalize.setSelection(!enable);
+		fDontNormalize.setEnabled(enable);
 	}
 
 	public String getName() {		
@@ -224,12 +228,14 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 			 outFolder = configuration.getAttribute(PlayOutLaunchConstants.OUT_FOLDER_PATH, "");
 			 count = configuration.getAttribute(PlayOutLaunchConstants.COUNT, false);
 			 verbose = configuration.getAttribute(PlayOutLaunchConstants.VERBOSE, false);
-			 dontDumpClasses = configuration.getAttribute(PlayOutLaunchConstants.DONT_DUMP_CLASSES, false);
-			 dontNormalize = configuration.getAttribute(PlayOutLaunchConstants.DONT_NORMALIZE, false);
+			 dontDumpClasses = configuration.getAttribute(PlayOutLaunchConstants.DONT_DUMP_CLASSES, true);
+			 dontNormalize = configuration.getAttribute(PlayOutLaunchConstants.DONT_NORMALIZE, true);
 		} catch (CoreException e) {
 		}
 		fToFolderRadioButton.setSelection(toFolder);
 		fDirectlyRadioButton.setSelection(!toFolder);
+		fOutputFolderButton.setEnabled(toFolder);
+		fOutputFolderText.setEnabled(toFolder);
 		fOutputFolderText.setText(outFolder);
 		fCountOption.setSelection(count);
 		fVerboseOption.setSelection(verbose);
@@ -254,12 +260,16 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
     private boolean validateOutputFolder() {
 		if (isToFolder()) {
 			String path = fOutputFolderText.getText().trim();
+			if(path.isEmpty()) {
+				setErrorMessage("No output folder set"); 
+				return false;
+			}
 			IContainer container = getContainer(path);
 			if (container == null) {
 				if (path==null) {
 					setErrorMessage("No output folder set"); 
 				} else {
-					setMessage("Output folder does not exist");
+					setErrorMessage("Output folder does not exist");
 				}
 				return false;
 			}
