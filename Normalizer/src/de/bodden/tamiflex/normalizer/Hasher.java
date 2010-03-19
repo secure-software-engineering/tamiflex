@@ -43,6 +43,10 @@ public class Hasher {
 		"schemaorg_apache_xmlbeans/system/" these names seem to be stable, as they are already hashed */
 	};
 	
+	public static void dontNormalize() {
+		instableNames = new String[0];
+	}
+	
 	public synchronized static void generateHashNumber(final String theClassName, byte[] classBytes) throws NoHashedNameException {
 		boolean usingAssertions = false; assert usingAssertions = true;		
 		

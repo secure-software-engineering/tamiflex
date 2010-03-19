@@ -16,6 +16,8 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URISyntaxException;
 
+import de.bodden.tamiflex.normalizer.Hasher;
+
 /**
  * This agent registers a {@link ClassReplacer} as a class-file transformer. 
  */
@@ -29,6 +31,10 @@ public class Agent {
 		if(agentArgs.startsWith("verbose,")) {
 			verbose = true;
 			agentArgs = agentArgs.substring("verbose,".length());
+		}
+		if(agentArgs.startsWith("dontNormalize,")) {
+			agentArgs = agentArgs.substring("dontNormalize,".length());
+			Hasher.dontNormalize();
 		}
 		if(agentArgs.equals("")) usage();
 		inst.addTransformer(new ClassReplacer(agentArgs,verbose),true);					
@@ -53,6 +59,7 @@ public class Agent {
 		System.out.println();
 		System.out.println("If 'verbose' is given, then the replace agent will issue a warning when a ");
 		System.out.println("class cannot be found on the given path.");
+		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
 		System.out.println("");
 		System.out.println("For instance, the following command will cause the agent to load class files from");
 		System.out.println("the directory /tmp/classes:");
