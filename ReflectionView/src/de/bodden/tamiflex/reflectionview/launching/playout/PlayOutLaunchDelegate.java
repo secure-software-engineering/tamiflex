@@ -11,29 +11,25 @@
 package de.bodden.tamiflex.reflectionview.launching.playout;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URL;
 import java.util.Date;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaLaunchDelegate;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.osgi.framework.Bundle;
 
 import de.bodden.tamiflex.reflectionview.Activator;
+import de.bodden.tamiflex.reflectionview.launching.LaunchUtil;
 import de.bodden.tamiflex.reflectionview.views.OnlineMonitorNode;
 import de.bodden.tamiflex.reflectionview.views.ReflectionView;
 import de.bodden.tamiflex.reflectionview.views.ReflectionViewContentInserter;
@@ -48,7 +44,7 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 		StringBuilder vmArguments = new StringBuilder(super.getVMArguments(configuration));
 		
 		vmArguments.append("-javaagent:");
-		vmArguments.append(getAgentJarPath());		
+		vmArguments.append(LaunchUtil.getAgentJarPath("lib/poa.jar"));		
 		vmArguments.append("=");
 		vmArguments.append(getArgs(configuration));		
 
@@ -156,44 +152,6 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 			} 
 		}
 		return args.toString();
-	}
-	
-	private static String getAgentJarPath() {
-
-		StringBuffer cpath = new StringBuffer();
-
-		// This returns the bundle with the highest version or null if none
-		// found
-		// - for Eclipse 3.0 compatibility
-		Bundle pluginBundle = Platform.getBundle(Activator.PLUGIN_ID);
-
-		String pluginLoc = null;
-		// 3.0 using bundles instead of plugin descriptors
-		if (pluginBundle != null) {
-			URL installLoc = pluginBundle.getEntry("/"); //$NON-NLS-1$
-			URL resolved = null;
-			try {
-				resolved = FileLocator.resolve(installLoc);
-				pluginLoc = resolved.toExternalForm();
-			} catch (IOException e) {
-			}
-		}
-		if (pluginLoc != null) {
-			if (pluginLoc.startsWith("file:")) { //$NON-NLS-1$
-				cpath.append(pluginLoc.substring("file:".length())); //$NON-NLS-1$
-				cpath.append("lib/poa.jar"); //$NON-NLS-1$
-			}
-		}
-
-		// Verify that the file actually exists at the plugins location
-		// derived above. If not then it might be because we are inside
-		// a runtime workbench. Check under the workspace directory.
-		if (new File(cpath.toString()).exists()) {
-			// File does exist under the plugins directory
-			return cpath.toString();
-		} else {
-			throw new InternalError("File "+cpath+" does not exist.");
-		}
 	}
 
 }

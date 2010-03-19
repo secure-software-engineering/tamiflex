@@ -12,7 +12,7 @@
 <project name="project" default="default">
     <property file="ant.settings"/>
 
-    <target name="default" depends="agent-jar"/>
+    <target name="default" depends="copy-agent-jar"/>
 
 	<target name="agent">
     	<mkdir dir="bin-agent"/>
@@ -50,5 +50,9 @@
     	<delete dir="bin-agent"/>
 		<delete dir="META-INF"/>
     </target>
+
+	<target name="copy-agent-jar" depends="agent-jar">
+		<copy file="pia-${tf.version}.jar" tofile="../ReflectionView/lib/pia.jar"/>
+	</target>
 
 </project>

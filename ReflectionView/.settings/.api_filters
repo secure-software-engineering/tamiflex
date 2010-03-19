@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <component id="ReflectionView" version="2">
-    <resource path="src/de/bodden/tamiflex/reflectionview/launching/playout/ui/PlayOutAgentLaunchTab.java" type="de.bodden.tamiflex.reflectionview.launching.playout.ui.PlayOutAgentLaunchTab$OutputFolderSelectionDialog">
+    <resource path="src/de/bodden/tamiflex/reflectionview/launching/LaunchUtil.java" type="de.bodden.tamiflex.reflectionview.launching.LaunchUtil$FolderSelectionDialog">
         <filter id="571473929">
             <message_arguments>
                 <message_argument value="ContainerSelectionDialog"/>
-                <message_argument value="OutputFolderSelectionDialog"/>
+                <message_argument value="FolderSelectionDialog"/>
             </message_arguments>
         </filter>
     </resource>

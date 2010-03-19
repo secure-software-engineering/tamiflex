@@ -61,7 +61,6 @@
             delegateDescription="Launches the Java application with the Play-out Agent attached"
             delegateName="Play-Out-Agent Launcher"
             id="ReflectionView.playOutLaunchConfig"
-            migrationDelegate="org.eclipse.jdt.internal.launching.JavaMigrationDelegate"
             modes="run, debug"
             name="Java Application with Play-out Agent"
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
@@ -74,6 +73,27 @@
             class="de.bodden.tamiflex.reflectionview.launching.playout.ui.PlayOutAgentLaunchTabGroup"
             id="ReflectionView.playOutAgentLaunchTabGroup"
             type="ReflectionView.playOutLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="de.bodden.tamiflex.reflectionview.launching.playin.PlayInLaunchDelegate"
+            delegateDescription="Launches the Java application with the Play-in Agent attached"
+            delegateName="Play-In-Agent Launcher"
+            id="ReflectionView.playInLaunchConfig"
+            modes="run, debug"
+            name="Java Application with Play-in Agent"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="de.bodden.tamiflex.reflectionview.launching.playin.ui.PlayInAgentLaunchTabGroup"
+            id="ReflectionView.playInAgentLaunchTabGroup"
+            type="ReflectionView.playInLaunchConfig">
       </launchConfigurationTabGroup>
    </extension>
 
