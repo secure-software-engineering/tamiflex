@@ -152,7 +152,7 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 				//accept connections on the server socket before we proceed here
 				Thread.yield();
 			} catch (IOException e) {
-				throw new RuntimeException("Probem creating server socket",e);
+				throw new RuntimeException("Problem creating server socket",e);
 			} 
 		}
 		return args.toString();
