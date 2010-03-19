@@ -11,3 +11,5 @@ syntax: regexp
 ^PlayOutAgent/bin$
 syntax: regexp
 ^PlayInAgent/bin$
+syntax: regexp
+^ReflectionView/lib/poa\.jar$
