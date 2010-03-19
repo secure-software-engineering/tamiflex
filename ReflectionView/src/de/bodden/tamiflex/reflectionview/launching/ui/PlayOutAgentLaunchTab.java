@@ -66,6 +66,8 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 	private Button fOutputFolderButton;
 	private Button fCountOption;
 	private Button fVerboseOption;
+	private Button fDontDumpClasses;
+	private Button fDontNormalize;
 	
 	
 	/**
@@ -102,6 +104,24 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
             }
         });		
 
+        fDontDumpClasses = createCheckButton(comp, "do not dump classes, just dump the log file"); 
+        gd.horizontalSpan = 5;
+        fDontDumpClasses.setLayoutData(gd);
+        fDontDumpClasses.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                updateLaunchConfigurationDialog();
+            }
+        });		
+
+        fDontNormalize = createCheckButton(comp, "do not normalize randomized class names"); 
+        gd.horizontalSpan = 5;
+        fDontNormalize.setLayoutData(gd);
+        fDontNormalize.addSelectionListener(new SelectionAdapter() {
+            public void widgetSelected(SelectionEvent e) {
+                updateLaunchConfigurationDialog();
+            }
+        });	
+        
         fVerboseOption = createCheckButton(comp, "enable verbose output"); 
         gd.horizontalSpan = 5;
         fVerboseOption.setLayoutData(gd);
@@ -109,8 +129,9 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
             public void widgetSelected(SelectionEvent e) {
                 updateLaunchConfigurationDialog();
             }
-        });		
-}
+        });			
+
+	}
 
 	private void createOutFolderOption(Composite parent) {
 		Group group = SWTFactory.createGroup(parent, "Output/viewing options", 3, 2, GridData.FILL_HORIZONTAL);
@@ -196,11 +217,15 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 		String outFolder = "";
 		boolean count = false;
 		boolean verbose = false;
+		boolean dontDumpClasses = false;
+		boolean dontNormalize = false;
 		try {
 			 toFolder = configuration.getAttribute(PlayOutLaunchConstants.WRITE_TO_FOLDER, false);
 			 outFolder = configuration.getAttribute(PlayOutLaunchConstants.OUT_FOLDER_PATH, "");
 			 count = configuration.getAttribute(PlayOutLaunchConstants.COUNT, false);
 			 verbose = configuration.getAttribute(PlayOutLaunchConstants.VERBOSE, false);
+			 dontDumpClasses = configuration.getAttribute(PlayOutLaunchConstants.DONT_DUMP_CLASSES, false);
+			 dontNormalize = configuration.getAttribute(PlayOutLaunchConstants.DONT_NORMALIZE, false);
 		} catch (CoreException e) {
 		}
 		fToFolderRadioButton.setSelection(toFolder);
@@ -208,6 +233,8 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 		fOutputFolderText.setText(outFolder);
 		fCountOption.setSelection(count);
 		fVerboseOption.setSelection(verbose);
+		fDontDumpClasses.setSelection(dontDumpClasses);
+		fDontNormalize.setSelection(dontNormalize);
 	}
 
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
@@ -216,6 +243,8 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
 		configuration.setAttribute(PlayOutLaunchConstants.OUT_FOLDER_PATH, outFolder);
 		setAttribute(PlayOutLaunchConstants.COUNT, configuration, fCountOption.getSelection(), false);
 		setAttribute(PlayOutLaunchConstants.VERBOSE, configuration, fVerboseOption.getSelection(), false);
+		setAttribute(PlayOutLaunchConstants.DONT_DUMP_CLASSES, configuration, fDontDumpClasses.getSelection(), false);
+		setAttribute(PlayOutLaunchConstants.DONT_NORMALIZE, configuration, fDontNormalize.getSelection(), false);
 	}
 
 	public void setDefaults(ILaunchConfigurationWorkingCopy config) {

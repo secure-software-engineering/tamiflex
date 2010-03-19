@@ -47,11 +47,11 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 			throws CoreException {
 		StringBuilder vmArguments = new StringBuilder(super.getVMArguments(configuration));
 		
-		vmArguments.append(" -javaagent:");
+		vmArguments.append("-javaagent:");
 		vmArguments.append(getAgentJarPath());		
 		vmArguments.append("=");
 		vmArguments.append(getArgs(configuration));		
-		
+
 		return vmArguments.toString();
 	}
 
@@ -61,13 +61,19 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 		String outFolder = "";
 		boolean count = false;
 		boolean verbose = false;
+		boolean dontDumpClasses = false;
+		boolean dontNormalize = false;
 		try {
 			 toFolder = configuration.getAttribute(PlayOutLaunchConstants.WRITE_TO_FOLDER, false);
 			 outFolder = configuration.getAttribute(PlayOutLaunchConstants.OUT_FOLDER_PATH, "");
 			 count = configuration.getAttribute(PlayOutLaunchConstants.COUNT, false);
 			 verbose = configuration.getAttribute(PlayOutLaunchConstants.VERBOSE, false);
+			 dontDumpClasses = configuration.getAttribute(PlayOutLaunchConstants.DONT_DUMP_CLASSES, false);
+			 dontNormalize = configuration.getAttribute(PlayOutLaunchConstants.DONT_NORMALIZE, false);
 		} catch (CoreException e) {
 		}
+		if(dontDumpClasses) args.append("dontDumpClasses,");
+		if(dontNormalize) args.append("dontNormalize,");
 		if(count) args.append("count,");
 		if(verbose) args.append("verbose,");
 		if(toFolder) {

@@ -16,5 +16,7 @@ public interface PlayOutLaunchConstants {
 	public static final String COUNT = "PlayOutAgentLaunchConfig.count";
 	public static final String OUT_FOLDER_PATH = "PlayOutAgentLaunchConfig.folderPath";
 	public static final String WRITE_TO_FOLDER = "PlayOutAgentLaunchConfig.toFolder";
+	public static final String DONT_DUMP_CLASSES = "PlayOutAgentLaunchConfig.dontDumpClasses";
+	public static final String DONT_NORMALIZE = "PlayOutAgentLaunchConfig.dontNormalize";
 
 }

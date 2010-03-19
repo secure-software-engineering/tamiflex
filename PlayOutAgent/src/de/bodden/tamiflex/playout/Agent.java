@@ -26,8 +26,6 @@ import de.bodden.tamiflex.normalizer.Hasher;
 import de.bodden.tamiflex.playout.rt.ReflLogger;
 import de.bodden.tamiflex.playout.rt.ShutdownStatus;
 
-
-
 public class Agent {
 	
 	public final static String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
@@ -40,35 +38,37 @@ public class Agent {
 		}
 		
 		if(agentArgs==null) agentArgs = "";
-		boolean verbose = false;
-		if(agentArgs.startsWith("verbose,")) {
-			verbose = true;
-			agentArgs = agentArgs.substring("verbose,".length());
+		boolean dontDump = false;
+		if(agentArgs.startsWith("dontDumpClasses,")) {
+			dontDump = true;
+			agentArgs = agentArgs.substring("dontDumpClasses,".length());
+		}
+		boolean dontNormalize = false;
+		if(agentArgs.startsWith("dontNormalize,")) {
+			dontNormalize = true;
+			agentArgs = agentArgs.substring("dontNormalize,".length());
 		}
 		boolean count = false;
 		if(agentArgs.startsWith("count,")) {
 			count = true;
 			agentArgs = agentArgs.substring("count,".length());
 		}
+		boolean verbose = false;
+		if(agentArgs.startsWith("verbose,")) {
+			verbose = true;
+			agentArgs = agentArgs.substring("verbose,".length());
+		}
 		boolean useSocket = false;
 		if(agentArgs.startsWith("socket,")) {
 			useSocket = true;
 			agentArgs = agentArgs.substring("socket,".length());
-		}
-		boolean dontDump = false;
-		if(agentArgs.startsWith("dontDumpClasses,")) {
-			dontDump = true;
-			agentArgs = agentArgs.substring("dontDumpClasses,".length());
-		}
-		if(agentArgs.startsWith("dontNormalize,")) {
-			agentArgs = agentArgs.substring("dontNormalize,".length());
-			Hasher.dontNormalize();
 		}
 		if(agentArgs.equals("")) usage();
 		
 		appendRtJarToBootClassPath(inst);
 
 		ReflLogger.setMustCount(count);		
+		if(dontNormalize) Hasher.dontNormalize();
 
 		if(useSocket) {
 			//online mode; no need to create any files; just insert instrumentation...
@@ -103,15 +103,13 @@ public class Agent {
 			
 			File logFile = new File(outDir,"refl.log");
 			
-			if(!dontDump)
-				dumpLoadedClasses(inst,outDir,verbose);
+			dumpLoadedClasses(inst,outDir,dontDump,verbose);
 			
 			ReflLogger.setLogFile(logFile);
 			
 			instrumentClassesForLogging(inst);
 			
-			if(!dontDump)
-				inst.addTransformer(classDumper,true /* can retransform */);		
+			inst.addTransformer(classDumper,true /* can retransform */);		
 			
 			final boolean verboseOutput = verbose;
 			Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -134,9 +132,9 @@ public class Agent {
 		}
 }
 
-	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean verbose)
+	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
 			throws UnmodifiableClassException {
-		classDumper = new ClassDumper(outDir,verbose);
+		classDumper = new ClassDumper(outDir,dontReallyDump,verbose);
 		inst.addTransformer(classDumper,true /* can retransform */);			
 		//dump all classes that are already loaded
 		for (Class<?> c : inst.getAllLoadedClasses()) {
@@ -177,20 +175,19 @@ public class Agent {
 	private static void usage() {
 		System.out.println("TamiFlex version "+Agent.class.getPackage().getImplementationVersion()+", Play-Out Agent \n");
 		System.out.println("This agent accepts the following options:");
-		System.out.println("[verbose,][count,][dontDumpClasses,]<path>");
+		System.out.println("[dontDumpClasses,][dontNormalize,][count,][verbose,]<path>");
 		System.out.println();
-		System.out.println("If 'verbose' is selected then the agent will print out all entries that it also added");
-		System.out.println("to the log file for the current run.");
-		System.out.println();
+		System.out.println("If 'dontDumpClasses' is given then the agent only produces a log file but dumps no classes.");
+		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
 		System.out.println("If 'count' is selected then the agent will add the number of reflective invocations");
 		System.out.println("to the end of each line of the trace file.");
-		System.out.println("The 'outpath' points to the output directory. The agent will write all class files");
+		System.out.println("If 'verbose' is selected then the agent will print out all entries that it also added");
+		System.out.println("to the log file for the current run.");
+		System.out.println("");
+		System.out.println("The 'path' points to the output directory. The agent will write all class files");
 		System.out.println("into this directory. In addition, the agent will write a log file 'refl.log'. If this");
 		System.out.println("file already exists in the 'outpath' directory then the agent will add to the log,");
 		System.out.println("incrementing the respective counts, etc.");
-		System.out.println("If 'dontDumpClasses' is given then the agent only produces a log file but dumps no classes.");
-		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
-		System.out.println("");
 		System.out.println("");
 		System.out.println("");
 		System.out.println("For instance, the following command will cause the agent to dump class files into");

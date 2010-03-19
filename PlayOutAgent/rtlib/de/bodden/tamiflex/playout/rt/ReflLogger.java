@@ -329,10 +329,12 @@ public class ReflLogger {
 		Set<PersistedLogEntry> newEntries = new HashSet<PersistedLogEntry>(merged);
 		newEntries.removeAll(oldContainerMethodToEntries.keySet());
 		
+		System.err.println("=============================================");
+		System.err.println("TamiFlex version "+ReflLogger.class.getPackage().getImplementationVersion());
 		if(newEntries.isEmpty()) {
-			System.err.println("Found no new entries.");
+			System.err.println("Found no new log entries.");
 		} else {
-			System.err.println("Found "+newEntries.size()+" new entries.");
+			System.err.println("Found "+newEntries.size()+" new log entries.");
 		}
 		if(verbose) {
 			System.err.println("New Entries: ");

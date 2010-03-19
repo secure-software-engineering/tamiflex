@@ -41,9 +41,12 @@ public class ClassDumper implements ClassFileTransformer {
 	protected final LinkedHashMap<String,byte[]> classNameToBytes = new LinkedHashMap<String, byte[]>();
 
 	private final boolean verbose;
+
+	private final boolean dontReallyDump;
 	
-	public ClassDumper(File outDir, boolean verbose) {
+	public ClassDumper(File outDir, boolean dontReallyDump, boolean verbose) {
 		this.outDir = outDir;
+		this.dontReallyDump = dontReallyDump;
 		this.verbose = verbose;
 	}
 
@@ -71,11 +74,13 @@ public class ClassDumper implements ClassFileTransformer {
 				byte[] classfileBuffer = entry.getValue();
 		
 				if(containsGeneratedClassName(className)) {
-						generateHashNumber(className, classfileBuffer);
-						className = hashedClassNameForGeneratedClassName(className);
-						classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
+					generateHashNumber(className, classfileBuffer);
+					className = hashedClassNameForGeneratedClassName(className);
+					classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
 				}
 	
+				if(dontReallyDump) continue; //don't dump
+				
 				File localOutDir = outDir;
 				
 				localOutDir.mkdirs();
