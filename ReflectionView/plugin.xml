@@ -19,7 +19,7 @@
             id="ReflectionView">
       </category>
       <view
-            name="Reflection View"
+            name="Reflection Log"
             icon="icons/poa.gif"
             category="ReflectionView"
             class="de.bodden.tamiflex.reflectionview.views.ReflectionView"
