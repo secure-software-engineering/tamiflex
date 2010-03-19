@@ -43,7 +43,7 @@ public class Agent {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
-				System.err.println("=============================================");
+				System.err.println("\n=============================================");
 				System.err.println("TamiFlex Play-In Agent Version "+Agent.class.getPackage().getImplementationVersion());
 				System.err.println("Replaced "+replacer.numSuccess+" out of "+replacer.numSuccess+" classes.");
 			}

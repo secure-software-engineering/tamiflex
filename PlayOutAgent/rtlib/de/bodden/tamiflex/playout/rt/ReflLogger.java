@@ -329,7 +329,7 @@ public class ReflLogger {
 		Set<PersistedLogEntry> newEntries = new HashSet<PersistedLogEntry>(merged);
 		newEntries.removeAll(oldContainerMethodToEntries.keySet());
 		
-		System.err.println("=============================================");
+		System.err.println("\n=============================================");
 		System.err.println("TamiFlex Play-Out Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
 		if(newEntries.isEmpty()) {
 			System.err.println("Found no new log entries.");
