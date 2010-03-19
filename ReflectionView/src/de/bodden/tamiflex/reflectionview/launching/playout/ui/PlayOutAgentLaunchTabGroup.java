@@ -8,7 +8,7 @@
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
-package de.bodden.tamiflex.reflectionview.launching.ui;
+package de.bodden.tamiflex.reflectionview.launching.playout.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;

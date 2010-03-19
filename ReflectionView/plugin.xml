@@ -47,7 +47,6 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             extensions="refllog"
             icon="icons/sample.gif"
             id="reflectionview.editors.TraceFileViewerEditor"
@@ -58,7 +57,7 @@
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="de.bodden.tamiflex.reflectionview.launching.PlayOutLaunchDelegate"
+            delegate="de.bodden.tamiflex.reflectionview.launching.playout.PlayOutLaunchDelegate"
             delegateDescription="Launches the Java application with the Play-out Agent attached"
             delegateName="Play-Out-Agent Launcher"
             id="ReflectionView.playOutLaunchConfig"
@@ -72,7 +71,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.reflectionview.launching.ui.PlayOutAgentLaunchTabGroup"
+            class="de.bodden.tamiflex.reflectionview.launching.playout.ui.PlayOutAgentLaunchTabGroup"
             id="ReflectionView.playOutAgentLaunchTabGroup"
             type="ReflectionView.playOutLaunchConfig">
       </launchConfigurationTabGroup>

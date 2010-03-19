@@ -8,7 +8,7 @@
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
-package de.bodden.tamiflex.reflectionview.launching;
+package de.bodden.tamiflex.reflectionview.launching.playout;
 
 public interface PlayOutLaunchConstants {
 
