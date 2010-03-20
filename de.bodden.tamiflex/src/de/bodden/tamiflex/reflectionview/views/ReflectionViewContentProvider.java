@@ -69,7 +69,7 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 			
 			if (INVISIBLE_ROOT_NODE.hasChildren()) {
 				for(TreeObject o: INVISIBLE_ROOT_NODE.getChildren()) {
-					TraceFileNode n = (TraceFileNode)o;
+					TreeParent n = (TreeParent)o;
 					if(n.getName().equals(relativePath.toString())) {
 						INVISIBLE_ROOT_NODE.removeChild(n);
 						break;
