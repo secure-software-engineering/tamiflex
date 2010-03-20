@@ -45,7 +45,7 @@ public class Agent {
 			public void run() {
 				System.err.println("\n=============================================");
 				System.err.println("TamiFlex Play-In Agent Version "+Agent.class.getPackage().getImplementationVersion());
-				System.err.println("Replaced "+replacer.numInvoked+" out of "+replacer.numSuccess+" classes.");
+				System.err.println("Replaced "+replacer.numSuccess+" out of "+replacer.numInvoked+" classes.");
 			}
 		});
 		
