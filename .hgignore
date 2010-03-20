@@ -13,3 +13,5 @@ syntax: regexp
 ^PlayInAgent/bin$
 syntax: regexp
 ^ReflectionView/lib/poa\.jar$
+syntax: regexp
+^ReflectionView/lib/pia\.jar$
