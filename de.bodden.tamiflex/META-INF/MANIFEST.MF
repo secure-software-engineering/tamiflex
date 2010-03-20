@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ReflectionView
 Bundle-SymbolicName: de.bodden.tamiflex.reflectionview;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0.0
 Bundle-Activator: de.bodden.tamiflex.reflectionview.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -14,4 +14,5 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.debug.ui;bundle-version="3.4.0",
  org.eclipse.ui.ide;bundle-version="3.5.0"
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Vendor: TU Darmstadt, Software Technology Group
