@@ -22,7 +22,7 @@
             name="Reflection Log"
             icon="icons/poa.gif"
             category="ReflectionView"
-            class="de.bodden.tamiflex.reflectionview.views.ReflectionView"
+            class="de.bodden.tamiflex.views.ReflectionView"
             id="reflectionview.views.ReflectionView">
       </view>
    </extension>
@@ -52,14 +52,14 @@
             filenames="refl.log"
             icon="icons/poa.gif"
             id="reflectionview.editors.TraceFileViewerEditor"
-            launcher="de.bodden.tamiflex.reflectionview.editors.TraceFileViewerLauncher"
+            launcher="de.bodden.tamiflex.editors.TraceFileViewerLauncher"
             name="Reflection Editor">
       </editor>
    </extension>
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="de.bodden.tamiflex.reflectionview.launching.playout.PlayOutLaunchDelegate"
+            delegate="de.bodden.tamiflex.launching.playout.PlayOutLaunchDelegate"
             delegateDescription="Launches the Java application with the Play-out Agent attached"
             delegateName="Play-Out-Agent Launcher"
             id="ReflectionView.playOutLaunchConfig"
@@ -72,7 +72,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.reflectionview.launching.playout.ui.PlayOutAgentLaunchTabGroup"
+            class="de.bodden.tamiflex.launching.playout.ui.PlayOutAgentLaunchTabGroup"
             id="ReflectionView.playOutAgentLaunchTabGroup"
             type="ReflectionView.playOutLaunchConfig">
       </launchConfigurationTabGroup>
@@ -80,7 +80,7 @@
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
-            delegate="de.bodden.tamiflex.reflectionview.launching.playin.PlayInLaunchDelegate"
+            delegate="de.bodden.tamiflex.launching.playin.PlayInLaunchDelegate"
             delegateDescription="Launches the Java application with the Play-in Agent attached"
             delegateName="Play-In-Agent Launcher"
             id="ReflectionView.playInLaunchConfig"
@@ -93,7 +93,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.reflectionview.launching.playin.ui.PlayInAgentLaunchTabGroup"
+            class="de.bodden.tamiflex.launching.playin.ui.PlayInAgentLaunchTabGroup"
             id="ReflectionView.playInAgentLaunchTabGroup"
             type="ReflectionView.playInLaunchConfig">
       </launchConfigurationTabGroup>
