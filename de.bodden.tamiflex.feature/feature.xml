@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.bodden.tamiflex.feature"
+      label="TamiFlex"
+      version="1.0.0.0"
+      provider-name="TU Darmstadt, Software Technology Group">
+
+   <copyright url="http://www.example.com/copyright">
+      [Enter Copyright Description here.]
+   </copyright>
+
+   <license url="http://www.eclipse.org/legal/epl-v10.html">
+      EPL Version 1.0
+   </license>
+
+   <requires>
+      <import plugin="org.eclipse.ui"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jdt.core" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.ui" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.launching" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.core" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.debug.ui" version="3.5.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.jdt.debug.ui" version="3.4.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.ui.ide" version="3.5.0" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="de.bodden.tamiflex"
+         download-size="0"
+         install-size="0"
+         version="1.0.0.0"
+         unpack="false"/>
+
+</feature>
