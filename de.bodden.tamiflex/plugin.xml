@@ -47,7 +47,9 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            extensions="refllog"
+            default="true"
+            extensions="log"
+            filenames="refl.log"
             icon="icons/poa.gif"
             id="reflectionview.editors.TraceFileViewerEditor"
             launcher="de.bodden.tamiflex.reflectionview.editors.TraceFileViewerLauncher"
