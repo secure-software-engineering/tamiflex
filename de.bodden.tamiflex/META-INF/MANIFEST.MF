@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ReflectionView
-Bundle-SymbolicName: de.bodden.tamiflex.reflectionview;singleton:=true
+Bundle-Name: TamiFlex
+Bundle-SymbolicName: de.bodden.tamiflex;singleton:=true
 Bundle-Version: 1.0.0.0
 Bundle-Activator: de.bodden.tamiflex.reflectionview.Activator
 Require-Bundle: org.eclipse.ui,
