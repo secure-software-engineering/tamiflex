@@ -94,11 +94,7 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
-			for(TreeObject node: fileNode.getChildren()) {
-				if(!((TreeParent)node).hasChildren()) {
-					fileNode.removeChild(node);
-				} 
-			}
+			contentInserter.removeUnusedNodes();
 		}
 	}
 

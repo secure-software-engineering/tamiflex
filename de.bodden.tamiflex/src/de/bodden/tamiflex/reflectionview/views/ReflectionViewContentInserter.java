@@ -95,5 +95,13 @@ public class ReflectionViewContentInserter {
 		}
 	}
 	
+	public void removeUnusedNodes() {
+		for(TreeObject node: root.getChildren()) {
+			if(!((TreeParent)node).hasChildren()) {
+				root.removeChild(node);
+			} 
+		}
+	}
+	
 
 }

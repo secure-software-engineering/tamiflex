@@ -115,13 +115,13 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 						
 						Socket socket=null;
 						InputStream is=null;
+						final ReflectionViewContentInserter contentInserter =
+							new ReflectionViewContentInserter(socketRoot, reflView);
 						try {
 							socket = serverSocket.accept();
 							is = socket.getInputStream();
 							BufferedReader r = new BufferedReader(new InputStreamReader(is));
 							
-							final ReflectionViewContentInserter contentInserter =
-								new ReflectionViewContentInserter(socketRoot, reflView);
 							String line;
 							while((line=r.readLine())!=null) {
 								contentInserter.insertFromTraceFileLine(line);
@@ -141,6 +141,7 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 							} catch (IOException e) {
 								e.printStackTrace();
 							}
+							contentInserter.removeUnusedNodes();
 						}
 					}
 				}.start();
