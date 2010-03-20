@@ -52,7 +52,7 @@
     </target>
 
 	<target name="copy-agent-jar" depends="agent-jar">
-		<copy file="pia-${tf.version}.jar" tofile="../ReflectionView/lib/pia.jar"/>
+		<copy file="pia-${tf.version}.jar" tofile="../de.bodden.tamiflex/lib/pia.jar"/>
 	</target>
 
 </project>

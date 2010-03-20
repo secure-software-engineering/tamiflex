@@ -53,7 +53,7 @@
     </target>
 	
 	<target name="copy-agent-jar" depends="agent-jar">
-		<copy file="poa-${tf.version}.jar" tofile="../ReflectionView/lib/poa.jar"/>
+		<copy file="poa-${tf.version}.jar" tofile="../de.bodden.tamiflex/lib/poa.jar"/>
 	</target>
 
 </project>
