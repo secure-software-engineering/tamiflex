@@ -19,7 +19,7 @@ public class OnlineMonitorNode extends TreeParent {
 	private final IProject project;
 
 	public OnlineMonitorNode(IProject project, String label) {
-		super(label,TreeObject.Kind.TRACEFILE);
+		super(label,TreeObject.Kind.ONLINEMONITOR);
 		this.project = project;
 	}
 

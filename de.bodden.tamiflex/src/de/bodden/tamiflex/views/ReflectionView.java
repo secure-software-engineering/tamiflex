@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.ContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -30,12 +31,23 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+
+import de.bodden.tamiflex.views.TreeObject.Kind;
 
 
 /**
@@ -72,6 +84,8 @@ public class ReflectionView extends ViewPart {
 
 	private Set<IPath> traceFiles = new HashSet<IPath>();
 
+	private Menu contextMenu;
+
 	/*
 	 * The content provider class is responsible for
 	 * providing objects to the view. It can wrap
@@ -103,26 +117,57 @@ public class ReflectionView extends ViewPart {
 		viewer.setLabelProvider(new ReflectionViewLabelProvider());
 		viewer.setSorter(new ViewerSorter());
 		viewer.setInput(getViewSite());
+		final Tree tree = viewer.getTree();
 
+		tree.addMouseMoveListener(new MouseMoveListener() {
+			@Override
+			public void mouseMove(MouseEvent e) {
+				viewer.getControl().setMenu(null);
+				Point point = new Point (e.x, e.y);
+				TreeItem treeItem = tree.getItem (point);
+				if (treeItem != null) {
+					Object node = treeItem.getData();
+					if(node instanceof TreeParent) {
+						TreeParent parent = (TreeParent) node;
+						if(parent.getParent()==TreeObject.INVISIBLE_ROOT_NODE) {
+							viewer.getControl().setMenu(ReflectionView.this.contextMenu);
+						} 						
+					}
+				}
+			}
+		});
+		tree.addMouseListener(new MouseListener() {
+			
+			public void mouseUp(MouseEvent e) {	}
+			
+			@Override
+			public void mouseDown(MouseEvent e) {
+				viewer.getControl().setMenu(null);
+				Point point = new Point (e.x, e.y);
+				TreeItem treeItem = tree.getItem (point);
+				if (treeItem != null) tree.setSelection(treeItem);
+			}
+			
+			public void mouseDoubleClick(MouseEvent e) { }
+		});
+		
 		// Create the help context id for the viewer's control
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "ReflectionView.viewer");
 		makeActions();
-		hookContextMenu();
+		createContextMenu();
 		hookDoubleClickAction();
 		contributeToActionBars();
 	}
 
-	private void hookContextMenu() {
+	private void createContextMenu() {
 		MenuManager menuMgr = new MenuManager("#PopupMenu");
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
 				ReflectionView.this.fillContextMenu(manager);
-				viewer.setInput(getViewSite());
 			}
 		});
-		Menu menu = menuMgr.createContextMenu(viewer.getControl());
-		viewer.getControl().setMenu(menu);
+		contextMenu = menuMgr.createContextMenu(viewer.getControl());
 		getSite().registerContextMenu(menuMgr, viewer);
 	}
 
@@ -137,8 +182,31 @@ public class ReflectionView extends ViewPart {
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
-//		manager.add(hideLibMethods);
 		manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+		manager.add(new ContributionItem() {
+			@Override
+			public void fill(Menu menu, int index) {
+				super.fill(menu, index);
+				MenuItem menuItem = new MenuItem(menu,0);
+				menuItem.setText("Remove log from view");
+				menuItem.addSelectionListener(new SelectionListener() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						TreeItem[] selection = viewer.getTree().getSelection();
+						if(selection.length==1) {
+							TreeItem treeItem = selection[0];
+							TreeObject node = (TreeObject) treeItem.getData();
+							if(node.getKind()==Kind.ONLINEMONITOR||node.getKind()==Kind.TRACEFILE) {
+								contentProvider.removeRoot(node);
+							}
+						}
+					}
+					@Override
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				});
+			}			
+		});
 	}
 	
 	private void fillLocalToolBar(IToolBarManager manager) {

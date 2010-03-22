@@ -23,7 +23,7 @@ public abstract class TreeObject {
 
 	public final static TreeParent INVISIBLE_ROOT_NODE = new ResolvedMethodNode("","","");
 
-	public enum Kind {CATEGORY, TRACEFILE, CLASS, METHOD};
+	public enum Kind {CATEGORY, TRACEFILE, ONLINEMONITOR, CLASS, METHOD};
 	
 	protected String name;
 	protected TreeParent parent;
@@ -61,5 +61,9 @@ public abstract class TreeObject {
 			parent = parent.getParent();
 		}
 		return ((TreeParent)parent).getProject();
+	}
+	
+	public Kind getKind() {
+		return kind;
 	}
 }

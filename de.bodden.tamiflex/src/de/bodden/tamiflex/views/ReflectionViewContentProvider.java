@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewSite;
 
 
@@ -103,5 +104,15 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 	
 	public TreeParent getRoot() {
 		return INVISIBLE_ROOT_NODE;
+	}
+	
+	public void removeRoot(final TreeObject root) {
+		if(root.getParent()!=INVISIBLE_ROOT_NODE) throw new RuntimeException("No root node!");
+		Display.getDefault().asyncExec(new Runnable() {			
+			public void run() {
+				INVISIBLE_ROOT_NODE.removeChild(root);
+				reflectionView.refresh();
+			}
+		});
 	}
 }
