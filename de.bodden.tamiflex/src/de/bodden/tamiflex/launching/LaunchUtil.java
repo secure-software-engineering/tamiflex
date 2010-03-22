@@ -68,6 +68,8 @@ public class LaunchUtil {
 			if(resolved.getProtocol().equals("file")) {
 				cpath.append(resolved.getPath()); //$NON-NLS-1$
 				cpath.append(localPath); //$NON-NLS-1$
+			} else {
+				throw new RuntimeException("Cannot handle protocol "+resolved.getProtocol());
 			}
 		}
 
