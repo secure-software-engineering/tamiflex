@@ -55,20 +55,18 @@ public class LaunchUtil {
 		// - for Eclipse 3.0 compatibility
 		Bundle pluginBundle = Platform.getBundle(Activator.PLUGIN_ID);
 
-		String pluginLoc = null;
+		URL resolved = null;
 		// 3.0 using bundles instead of plugin descriptors
 		if (pluginBundle != null) {
 			URL installLoc = pluginBundle.getEntry("/"); //$NON-NLS-1$
-			URL resolved = null;
 			try {
 				resolved = FileLocator.resolve(installLoc);
-				pluginLoc = resolved.toExternalForm();
 			} catch (IOException e) {
 			}
 		}
-		if (pluginLoc != null) {
-			if (pluginLoc.startsWith("file:")) { //$NON-NLS-1$
-				cpath.append(pluginLoc.substring("file:".length())); //$NON-NLS-1$
+		if (resolved != null) {
+			if(resolved.getProtocol().equals("file")) {
+				cpath.append(resolved.getPath()); //$NON-NLS-1$
 				cpath.append(localPath); //$NON-NLS-1$
 			}
 		}
@@ -78,7 +76,7 @@ public class LaunchUtil {
 		// a runtime workbench. Check under the workspace directory.
 		if (new File(cpath.toString()).exists()) {
 			// File does exist under the plugins directory
-			return cpath.toString();
+			return cpath.toString();			
 		} else {
 			throw new InternalError("File "+cpath+" does not exist.");
 		}
