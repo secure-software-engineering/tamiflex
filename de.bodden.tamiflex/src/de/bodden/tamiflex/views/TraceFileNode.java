@@ -19,19 +19,25 @@ import org.eclipse.ui.PlatformUI;
 
 public class TraceFileNode extends TreeParent {
 
-	private final IPath path;
+	private final IPath relativePath;
+	private final IPath absolutePath;
 
-	public TraceFileNode(IPath file) {
-		super(file.toString(),TreeObject.Kind.TRACEFILE);
-		this.path = file;
+	public TraceFileNode(IPath relativePath, IPath absolutePath) {
+		super(relativePath.toString(),TreeObject.Kind.TRACEFILE);
+		this.relativePath = relativePath;
+		this.absolutePath = absolutePath;
 	}
 
-	public IPath getFile() {
-		return path;
+	public IPath getRelativePath() {
+		return relativePath;
+	}
+	
+	public IPath getAbsolutePath() {
+		return absolutePath;
 	}
 	
 	public IProject getProject() {
-		IResource file = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+		IResource file = ResourcesPlugin.getWorkspace().getRoot().findMember(relativePath);
 		return file.getProject();
 	}
 	
