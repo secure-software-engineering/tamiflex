@@ -111,6 +111,21 @@
             id="ReflectionView.icons.playInLaunchConfig">
       </launchConfigurationTypeImage>
    </extension>
+<extension point="org.eclipse.ui.popupMenus">
+   <objectContribution
+         adaptable="false"
+         id="de.bodden.tamiflex.objectContributions.compare"
+         nameFilter="*.log"
+         objectClass="org.eclipse.core.resources.IFile">
+      <action
+            class="de.bodden.tamiflex.action.Compare"
+            enablesFor="2"
+            id="de.bodden.tamiflex.actions.compare"
+            label="Compare Log files">
+      </action>
+   </objectContribution> 
+</extension>
+
    
 
 </plugin>
