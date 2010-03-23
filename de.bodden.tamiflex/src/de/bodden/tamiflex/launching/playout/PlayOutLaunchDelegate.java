@@ -41,7 +41,9 @@ public class PlayOutLaunchDelegate extends JavaLaunchDelegate {
 	@Override
 	public String getVMArguments(ILaunchConfiguration configuration)
 			throws CoreException {
-		StringBuilder vmArguments = new StringBuilder(super.getVMArguments(configuration));
+		String otherArgs = super.getVMArguments(configuration);
+		StringBuilder vmArguments = new StringBuilder(otherArgs);
+		if(!otherArgs.isEmpty()) vmArguments.append(" "); //make sure to separate our arguments from any others
 		
 		vmArguments.append("-javaagent:");
 		vmArguments.append(LaunchUtil.getAgentJarPath("lib/poa.jar"));		
