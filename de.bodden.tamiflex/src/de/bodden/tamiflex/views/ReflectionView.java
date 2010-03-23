@@ -196,7 +196,11 @@ public class ReflectionView extends ViewPart {
 						if(selection.length==1) {
 							TreeItem treeItem = selection[0];
 							TreeObject node = (TreeObject) treeItem.getData();
-							if(node.getKind()==Kind.ONLINEMONITOR||node.getKind()==Kind.TRACEFILE) {
+							if(node.getKind()==Kind.ONLINEMONITOR) {
+								contentProvider.removeRoot(node);
+							} else if (node.getKind()==Kind.TRACEFILE) {
+								TraceFileNode tfn = (TraceFileNode)node;
+								traceFiles.remove(tfn.getAbsolutePath());
 								contentProvider.removeRoot(node);
 							}
 						}

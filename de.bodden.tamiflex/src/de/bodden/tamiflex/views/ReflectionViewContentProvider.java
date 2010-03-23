@@ -77,7 +77,7 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 					}					
 				}
 			}
-			TraceFileNode fileNode = new TraceFileNode(relativePath);
+			TraceFileNode fileNode = new TraceFileNode(relativePath,traceFilePath);
 			INVISIBLE_ROOT_NODE.addChild(fileNode);
 			ReflectionViewContentInserter contentInserter = new ReflectionViewContentInserter(fileNode, reflectionView);
 			try {
@@ -100,6 +100,7 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		System.err.println("input changed");
 	}
 	
 	public TreeParent getRoot() {
