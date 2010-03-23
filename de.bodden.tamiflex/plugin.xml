@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright (c) 2010 Eric Bodden.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the Eclipse Public License v1.0
+  which accompanies this distribution, and is available at
+  http://www.eclipse.org/legal/epl-v10.html
+  
+  Contributors:
+      Eric Bodden - initial API and implementation
+-->
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Reflection"
+            id="ReflectionView">
+      </category>
+      <view
+            name="Reflection Log"
+            icon="icons/poa.gif"
+            category="ReflectionView"
+            class="de.bodden.tamiflex.views.ReflectionView"
+            id="reflectionview.views.ReflectionView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="reflectionview.views.ReflectionView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            default="true"
+            extensions="log"
+            filenames="refl.log"
+            icon="icons/poa.gif"
+            id="reflectionview.editors.TraceFileViewerEditor"
+            launcher="de.bodden.tamiflex.editors.TraceFileViewerLauncher"
+            name="Reflection Editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="de.bodden.tamiflex.launching.playout.PlayOutLaunchDelegate"
+            delegateDescription="Launches the Java application with the Play-out Agent attached"
+            delegateName="Play-Out-Agent Launcher"
+            id="ReflectionView.playOutLaunchConfig"
+            modes="run, debug"
+            name="Java Application with Play-out Agent"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="de.bodden.tamiflex.launching.playout.ui.PlayOutAgentLaunchTabGroup"
+            id="ReflectionView.playOutAgentLaunchTabGroup"
+            type="ReflectionView.playOutLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="de.bodden.tamiflex.launching.playin.PlayInLaunchDelegate"
+            delegateDescription="Launches the Java application with the Play-in Agent attached"
+            delegateName="Play-In-Agent Launcher"
+            id="ReflectionView.playInLaunchConfig"
+            modes="run, debug"
+            name="Java Application with Play-in Agent"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="de.bodden.tamiflex.launching.playin.ui.PlayInAgentLaunchTabGroup"
+            id="ReflectionView.playInAgentLaunchTabGroup"
+            type="ReflectionView.playInLaunchConfig">
+      </launchConfigurationTabGroup>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            icon="$nl$/icons/poa.gif"
+            configTypeID="ReflectionView.playOutLaunchConfig"
+            id="ReflectionView.icons.playOutLaunchConfig">
+      </launchConfigurationTypeImage>
+      <launchConfigurationTypeImage
+            icon="$nl$/icons/pia.gif"
+            configTypeID="ReflectionView.playInLaunchConfig"
+            id="ReflectionView.icons.playInLaunchConfig">
+      </launchConfigurationTypeImage>
+   </extension>
+   
+
+</plugin>
