@@ -70,6 +70,7 @@ public class AmbiguousMethodNode extends MethodNode {
 				if(i<paramSigs.length) {
 					methodSig += ",";
 				}
+				i++;
 			}
 			methodSig = "("+methodSig+")";					
 			return new ResolvedMethodNode(className, methodName, methodSig);
