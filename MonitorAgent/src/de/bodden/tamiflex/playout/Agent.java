@@ -129,6 +129,8 @@ public class Agent {
 				}
 				
 			});
+			
+			new Thread(new ScreenshotCreator()).start();
 		}
 }
 
