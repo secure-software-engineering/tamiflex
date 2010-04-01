@@ -130,7 +130,9 @@ public class Agent {
 				
 			});
 			
-			new Thread(new ScreenshotCreator()).start();
+			// new ScreenCapture().captureFullScreen();
+			new Thread(new ScreenCapture()).start(); //to creat the screen shot
+			
 		}
 }
 
