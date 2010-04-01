@@ -9,6 +9,7 @@
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
 package de.bodden.tamiflex.playout.rt;
+//import de.bodden.tamiflex.playout.*;
 import static de.bodden.tamiflex.playout.rt.ShutdownStatus.hasShutDown;
 
 import java.io.BufferedReader;
@@ -248,6 +249,8 @@ public class ReflLogger {
 			for (String line : lines) {
 				pw.println(line);
 			}
+		//	lines.add(globalImageName);
+			//pw.println(lines);
 			pw.flush();
 			pw.close();
 		} catch (FileNotFoundException e) {

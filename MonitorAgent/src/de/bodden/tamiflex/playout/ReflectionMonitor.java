@@ -97,7 +97,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load "this" on stack, i.e. the Class object
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Class object as argument
-				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classNewInstance", "(Ljava/lang/Class;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classNewInstance", "(Ljava/lang/Class;)V"); // sthg missing here!!
 			}
 			super.visitInsn(opcode);
 		}
@@ -127,6 +127,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	
 	static class ConstructorNewInstanceAdapter extends MethodAdapter {
 
+
 		public ConstructorNewInstanceAdapter(MethodVisitor mv) {
 			super(mv);
 		}
@@ -143,4 +144,26 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 		
 	}
+
+	//Comment creation
+/*	static class CommentAdapter extends MethodAdapter {
+
+		public CommentAdapter(MethodVisitor mv) {
+			super(mv);
+		}
+		
+		@Override
+		public void visitInsn(int opcode) {
+			if(opcode==Opcodes.ARETURN) {
+    			//load first parameter on the stack, i.e. the designated receiver object
+    			mv.visitVarInsn(ALOAD, 1);
+    			//load "this" on stack, i.e. the Method object
+    			mv.visitVarInsn(ALOAD, 0);
+    			//call logging method with that Method object as argument
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "Comment", "(Ljava/lang/Object;Ljava/lang/reflect/Comment;)V");
+			}
+			super.visitInsn(opcode);
+		}
+		
+	}*/
 }
