@@ -160,7 +160,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
     			//load "this" on stack, i.e. the Method object
     			mv.visitVarInsn(ALOAD, 0);
     			//call logging method with that Method object as argument
-				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "Comment", "(Ljava/lang/Object;Ljava/lang/reflect/Comment;)V");
+				mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "Comment", "(Ljava/lang/Object;Ljava/lang/reflect/Comment;)V"); //not sure about that!!
 			}
 			super.visitInsn(opcode);
 		}

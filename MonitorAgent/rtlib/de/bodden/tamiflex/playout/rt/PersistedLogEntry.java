@@ -21,17 +21,23 @@ public class PersistedLogEntry {
 
 	protected final Kind kind;
 	
-	protected final String targetClassOrMethod;
+	protected final String targetClassOrMethod, threadName;
 	
 	protected final int count;
 
-	public PersistedLogEntry(String containerMethod, int lineNumber, Kind kind, String targetClassOrMethod, int count) {
+	public PersistedLogEntry(String containerMethod, int lineNumber, Kind kind, String targetClassOrMethod, String threadName, int count) {
 		if(lineNumber<0) lineNumber = -1;
 		this.containerMethod = containerMethod;
 		this.lineNumber = lineNumber;
 		this.kind = kind;
 		this.targetClassOrMethod = targetClassOrMethod;
+		this.threadName = threadName;
 		this.count = count;
+		
+	}
+	
+	public String getThreadName() {
+		return threadName;
 	}
 	
 	@Override
@@ -110,7 +116,7 @@ public class PersistedLogEntry {
 		assert e1.kind.equals(e2.kind);
 		assert e1.lineNumber==e2.lineNumber;
 		assert e1.targetClassOrMethod.equals(e2.targetClassOrMethod);
-		return new PersistedLogEntry(e1.containerMethod, e1.lineNumber, e1.kind, e1.targetClassOrMethod, e1.count + e2.count);
+		return new PersistedLogEntry(e1.containerMethod, e1.lineNumber, e1.kind, e1.targetClassOrMethod, e1.getThreadName(), e1.count + e2.count);
 	}
 
 //	public static LogEntry getEntryWithHashedNames(LogEntry e) {

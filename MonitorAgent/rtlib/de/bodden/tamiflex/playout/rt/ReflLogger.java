@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -31,9 +32,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
+
+import javax.swing.text.html.HTMLDocument.Iterator;
+
+import de.bodden.tamiflex.playout.Filter;
+import de.bodden.tamiflex.playout.ScreenCapture;
 
 
 public class ReflLogger {
+	
 	
 	//holds hashed names
 	protected static Map<PersistedLogEntry,PersistedLogEntry> oldContainerMethodToEntries = new HashMap<PersistedLogEntry,PersistedLogEntry>();
@@ -46,6 +54,10 @@ public class ReflLogger {
 	
 	//is initialized by the agent
 	private static boolean doCount;
+	
+	private static ScreenCapture screenCapture;
+	
+	private static Filter filter;
 	
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
@@ -92,8 +104,15 @@ public class ReflLogger {
 			newLineWriter.println(newEntry.toString());
 			newLineWriter.flush();			
 		}
+		
+		if(previousUserEvent!=null) {
+			sameEntry.setUserEventJustBefore(previousUserEvent);
+			previousUserEvent=null;
+		}
 		return sameEntry;
 	}
+	
+	public static String previousUserEvent;
 
 	public static void classNewInstance(Class<?> c) {
 		StackTraceElement frame = getInvokingFrame();
@@ -232,32 +251,97 @@ public class ReflLogger {
 		return outerFrame;
 	}
 	
+	
 	public static synchronized void writeLogfileToDisk(boolean verbose) {
-		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog(verbose);
+		Set<RuntimeLogEntry> newLogSet = new HashSet<RuntimeLogEntry>();
+		for(Map<RuntimeLogEntry,RuntimeLogEntry> values: containerMethodToEntries.values()) {
+			newLogSet.addAll(values.keySet());
+		}
+		
+		List<RuntimeLogEntry> list = new ArrayList<RuntimeLogEntry>(newLogSet);
+		Collections.sort(list);
+		HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
+		Set<String> source = null;
+		String target = null;
+		for (RuntimeLogEntry entry : list) {
+			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
+			persistedEntry.getContainerMethod(); persistedEntry.getLineNumber(); //source
+			persistedEntry.getThreadName(); //invoking thread 
+			persistedEntry.getTargetClassOrMethod(); //target
+			String code=persistedEntry.getContainerMethod()+ persistedEntry.getLineNumber();
+			source.add(code);
+			target=persistedEntry.getTargetClassOrMethod(); 
+			
+			/*while (target.equals(persistedEntry.getTargetClassOrMethod())){
+				Set source = map.entrySet();
+			}*/
+			
+			map.put(target,source); //put q new entry into a map
+		}
+		
 		//printStatistics();
 		try {
+			//Set set = map.entrySet();
+			Iterator i = (Iterator) source.iterator();//
 			PrintWriter pw = new PrintWriter(logFile);
-
 			List<String> lines = new ArrayList<String>();
 			
-			for (PersistedLogEntry entry : mergedEntries) {
-				lines.add(entry.toString());
-			}
+			String lastName=null;
 			
-			Collections.sort(lines);
+			Set<String> fileNames = new HashSet<String>();
+			
+			for (RuntimeLogEntry entry : list) {
+				String fileName = screenCapture.getFileName(entry.getTime());
+				if(fileName!=null && !fileName.equals(lastName)) {
+					lines.add("# "+fileName);
+					fileNames.add(fileName);				
+				}
+				if(entry.getUserEventJustBefore()!=null) {
+					lines.add(entry.getUserEventJustBefore());
+				}
+				lines.add(entry.toString());
+				
+				//desplay alle the hashmap element
+				while(i.isValid()){
+					//map.entrySet() Entry setE = i.;
+					//lines.add(map.get(target)+ " : " +source+"\n");
+					//lines.add(i.next()); // added
+					printKeys(map);
+				    }
+				lastName = fileName;
+			}
 			
 			for (String line : lines) {
 				pw.println(line);
 			}
-		//	lines.add(globalImageName);
-			//pw.println(lines);
+			File outDir = logFile.getParentFile();
+			Filter only = new Filter(fileNames);	
+			for(File f: outDir.listFiles(only))
+			{
+				f.delete();
+			}
+		
+			//screenCapture.getFileName(entry.getTime());
+		//lines.add(globalImageName);
+		//pw.println("lines");
 			pw.flush();
 			pw.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			
 		}		
 	}
 	
+	
+	private static void printKeys(HashMap<String, Set<String>> m) {
+		// TODO Auto-generated method stub
+		System.out.print("Size = " + m.size() +", ");
+		System.out.print("Keys: ");
+		System.out.println(m.keySet());
+
+		
+	}
+
 	public static void setMustCount(boolean mustCount) {
 		doCount = mustCount;		
 	}
@@ -277,6 +361,7 @@ public class ReflLogger {
 			FileInputStream fis = null;
 			BufferedReader reader = null;
 			try {
+				// I made some change identify the different parts of the log file lines (split etc)
 				fis = new FileInputStream(f);
 				reader = new BufferedReader(new InputStreamReader(fis));
 				String line;
@@ -284,10 +369,11 @@ public class ReflLogger {
 					String[] split = line.split(";",-1);
 					Kind kind = Kind.kindForLabel(split[0]);
 					String target = split[1];
-					String containerMethod = split[2];
-					int lineNumber = split[3].isEmpty()?-1:Integer.parseInt(split[3]);
-					int count = (split.length<5||split[4].isEmpty()||!doCount)?0:Integer.parseInt(split[4]);
-					PersistedLogEntry entry = new PersistedLogEntry(containerMethod, lineNumber, kind, target, count);
+					String threadName=split[2]; //
+					String containerMethod = split[3]; //
+					int lineNumber = split[4].isEmpty()?-1:Integer.parseInt(split[4]);//
+					int count = (split.length<6||split[5].isEmpty()||!doCount)?0:Integer.parseInt(split[5]); //
+					PersistedLogEntry entry = new PersistedLogEntry(containerMethod, lineNumber, kind, target,threadName, count);
 					oldContainerMethodToEntries.put(entry,entry);
 				}
 			} catch (IOException e) {
@@ -348,4 +434,9 @@ public class ReflLogger {
 		
 		return merged;
 	}
+
+	public static void setScreenCapture(ScreenCapture target) {
+		screenCapture = target;
+	}
+
 }

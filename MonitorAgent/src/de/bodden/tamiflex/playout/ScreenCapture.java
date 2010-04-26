@@ -10,6 +10,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.TreeMap;
+import java.util.Map.Entry;
+
 import javax.imageio.ImageIO;
 import java.lang.Runnable;
 
@@ -18,6 +21,8 @@ public class ScreenCapture implements Runnable {
 	public void run() {
 		while(true) {
 			
+			captureFullScreen();
+
 			//wait for 1 sec
 			try {
 				Thread.sleep(1000);
@@ -25,7 +30,6 @@ public class ScreenCapture implements Runnable {
 			}
 			
 			//try {
-				new ScreenCapture().captureFullScreen();
 				
 			/*} catch (InterruptedException e) {
 			}*/
@@ -82,14 +86,22 @@ public class ScreenCapture implements Runnable {
 		 */
 		String globalImageName = null;
 		
+		String addedFile = null;
+		
+		
+		
 	 /*   public static void main(String args[]) {
 	        new ScreenCapture().captureFullScreen();
 	    } */
+		
+		TreeMap<Long,String> timeToFilename = new TreeMap<Long, String>();
 
 	    /**
 	     * Default constructor.
+	     * @param outDir 
 	     */
-	   public ScreenCapture() {
+	   public ScreenCapture(File outDir) {
+		   saveLocation =  outDir.getAbsolutePath();
 	        loadProperties(propertiesFileName);
 		}
 
@@ -146,14 +158,22 @@ public class ScreenCapture implements Runnable {
 	     */
 	    public void captureFullScreen() {
 	        try {
+//	        	System.out.println("heeeeeeeeeeeeeeela");
 				Robot robot = new Robot();
 	            Rectangle area = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
-	            File target = new File(saveLocation, imageName + "_" + System.currentTimeMillis() + "." + imageType);
-	            System.out.println("heeeeeeeeeeeeeeela");
+	            long time = System.currentTimeMillis();
+				
+	            
+	            File target = new File(saveLocation, imageName + "_" + time + "." + imageType);
+	            
+	            
 	            //System.out.println(imageName + "_" + System.currentTimeMillis() + "." + imageType);
-	            globalImageName = imageName + "_" + System.currentTimeMillis() + "." + imageType;
-	            System.out.println(globalImageName);
+	            globalImageName =imageName + "_" + time + "." + imageType;
+	           // System.out.println(globalImageName);
 	            saveImageToFile(robot.createScreenCapture(area), target);
+	            synchronized (this) {					
+	            	timeToFilename.put(time, globalImageName);
+				}
 	        } catch (AWTException e) {
 	            System.err.println("Exception while capturing screen. " + e);
 	        }
@@ -171,6 +191,25 @@ public class ScreenCapture implements Runnable {
 	        } catch (IOException e) {
 	            System.err.println(e);
 	        }
+	    }
+	    
+	    public synchronized String getFileName(long time) {
+	    	Entry<Long, String> floorEntry = timeToFilename.floorEntry(time);
+	    	if(floorEntry!=null) {
+	    		return floorEntry.getValue();
+	    	} else {
+	    		return null;
+	    	}
+	    }
+	    public void setaddedFile(String name)
+	    {
+	    	addedFile=name;
+	    	
+	    }
+	    public String getaddedFile()
+	    {
+	    	return addedFile;
+	    	
 	    }
 	
 }

@@ -17,7 +17,7 @@ import de.bodden.tamiflex.normalizer.Hasher;
 
 
 
-public abstract class RuntimeLogEntry {
+public abstract class RuntimeLogEntry implements Comparable<RuntimeLogEntry> {
 	
 	protected final String containerMethod;
 	
@@ -26,51 +26,69 @@ public abstract class RuntimeLogEntry {
 	protected final Kind kind;
 	
 	protected int count;
+	
+	protected long time;
+	
+	protected String userEventJustBefore, threadName;
+
+	public String getThreadName() {
+		return threadName;
+	}
+
+	public String getUserEventJustBefore() {
+		return userEventJustBefore;
+	}
+
+	public void setUserEventJustBefore(String userEventJustBefore) {
+		this.userEventJustBefore = userEventJustBefore;
+	}
 
 	public RuntimeLogEntry(String containerMethod, int lineNumber, Kind kind) {
 		if(lineNumber<0) lineNumber = -1;
+		this.threadName = Thread.currentThread().getName();
 		this.containerMethod = containerMethod;
 		this.lineNumber = lineNumber;
 		this.kind = kind;
 		this.count = 0;
+		this.time = System.currentTimeMillis();
 	}
 	
-	@Override
-	//does NOT take into account "count"
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((containerMethod == null) ? 0 : containerMethod.hashCode());
-		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
-		result = prime * result + lineNumber;
-		return result;
-	}
+//	@Override
+//	//does NOT take into account "count"
+//	public int hashCode() {
+//		final int prime = 31;
+//		int result = 1;
+//		result = prime * result
+//				+ ((containerMethod == null) ? 0 : containerMethod.hashCode());
+//		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
+//		result = prime * result + lineNumber;
+//		return result;
+//	}
 
-	@Override
-	//does NOT take into account "count"
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		RuntimeLogEntry other = (RuntimeLogEntry) obj;
-		if (containerMethod == null) {
-			if (other.containerMethod != null)
-				return false;
-		} else if (!containerMethod.equals(other.containerMethod))
-			return false;
-		if (kind == null) {
-			if (other.kind != null)
-				return false;
-		} else if (!kind.equals(other.kind))
-			return false;
-		if (lineNumber != other.lineNumber)
-			return false;
-		return true;
-	}
+//	@Override
+//	//does NOT take into account "count"
+//	public boolean equals(Object obj) {
+//		if (this == obj)
+//			return true;
+//		if (obj == null)
+//			return false;
+//		if (getClass() != obj.getClass())
+//			return false;
+//		RuntimeLogEntry other = (RuntimeLogEntry) obj;
+//		if (containerMethod == null) {
+//			if (other.containerMethod != null)
+//				return false;
+//		} else if (!containerMethod.equals(other.containerMethod))
+//			return false;
+//		if (kind == null) {
+//			if (other.kind != null)
+//				return false;
+//		} else if (!kind.equals(other.kind))
+//			return false;
+//		if (lineNumber != other.lineNumber)
+//			return false;
+//		return true;
+//	}
 
 	public int getCount() {
 		return count;
@@ -110,4 +128,13 @@ public abstract class RuntimeLogEntry {
 	}
 	
 	public abstract PersistedLogEntry toPersistedEntry();
+	
+	@Override
+	public int compareTo(RuntimeLogEntry o) {
+		return (int) (time - o.time);
+	}
+	
+	public long getTime() {
+		return time;
+	}
 }
