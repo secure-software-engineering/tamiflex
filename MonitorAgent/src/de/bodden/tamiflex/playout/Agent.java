@@ -106,6 +106,8 @@ public class Agent {
 			dumpLoadedClasses(inst,outDir,dontDump,verbose);
 			
 			ReflLogger.setLogFile(logFile);
+			ScreenCapture target = new ScreenCapture(outDir);
+			ReflLogger.setScreenCapture(target);
 			
 			instrumentClassesForLogging(inst);
 			
@@ -131,8 +133,10 @@ public class Agent {
 			});
 			
 			// new ScreenCapture().captureFullScreen();
-			new Thread(new ScreenCapture()).start(); //to creat the screen shot
-			
+//			Thread thread = new Thread(target);
+//			thread.setDaemon(true);
+//			target.captureFullScreen();
+//			thread.start(); //to creat the screen shot
 		}
 }
 
@@ -170,6 +174,7 @@ public class Agent {
 			System.err.println("Support library for reflection log not found on classpath.");
 			System.exit(1);
 		}
+		System.out.println(locationOfAgent);
 		String agentJarFile = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));		
 		URI uri = new URI(agentJarFile);
 		JarFile jarFile = new JarFile(new File(uri));
