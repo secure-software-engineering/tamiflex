@@ -260,76 +260,94 @@ public class ReflLogger {
 		
 		List<RuntimeLogEntry> list = new ArrayList<RuntimeLogEntry>(newLogSet);
 		Collections.sort(list);
-		HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
-		Set<String> source = null;
-		String target = null;
+		HashMap<String, Map<String, Set<String>>> sourceToThreadToTargets = new HashMap<String, Map<String, Set<String>>>();
 		for (RuntimeLogEntry entry : list) {
 			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
-			persistedEntry.getContainerMethod(); persistedEntry.getLineNumber(); //source
-			persistedEntry.getThreadName(); //invoking thread 
-			persistedEntry.getTargetClassOrMethod(); //target
-			String code=persistedEntry.getContainerMethod()+ persistedEntry.getLineNumber();
-			source.add(code);
-			target=persistedEntry.getTargetClassOrMethod(); 
+			String target = persistedEntry.getTargetClassOrMethod(); 
+			String thread = persistedEntry.getThreadName();
+			String source = persistedEntry.getContainerMethod() + ":"+ persistedEntry.getLineNumber();
 			
-			/*while (target.equals(persistedEntry.getTargetClassOrMethod())){
-				Set source = map.entrySet();
-			}*/
-			
-			map.put(target,source); //put q new entry into a map
+			Map<String, Set<String>> threadToTargets = sourceToThreadToTargets.get(source);
+			if(threadToTargets==null) {
+				threadToTargets = new HashMap<String,Set<String>>();
+				sourceToThreadToTargets.put(source, threadToTargets);				
+			}
+			Set<String> targets = threadToTargets.get(thread);
+			if(targets==null) {
+				targets = new HashSet<String>();
+				threadToTargets.put(thread, targets);
+			}
+			targets.add(target);
 		}
 		
-		//printStatistics();
-		try {
-			//Set set = map.entrySet();
-			Iterator i = (Iterator) source.iterator();//
-			PrintWriter pw = new PrintWriter(logFile);
-			List<String> lines = new ArrayList<String>();
-			
-			String lastName=null;
-			
-			Set<String> fileNames = new HashSet<String>();
-			
-			for (RuntimeLogEntry entry : list) {
-				String fileName = screenCapture.getFileName(entry.getTime());
-				if(fileName!=null && !fileName.equals(lastName)) {
-					lines.add("# "+fileName);
-					fileNames.add(fileName);				
+		for (Entry<String,Map<String, Set<String>>> entry : sourceToThreadToTargets.entrySet()) {
+			String source = entry.getKey();
+			Map<String, Set<String>> threadToTargets = entry.getValue();
+			System.err.println("Source location: "+source);
+			for(Entry<String,Set<String>> innerEntry: threadToTargets.entrySet()) {
+				String thread = innerEntry.getKey();
+				System.err.println("    Thread "+thread+" calls:");
+				Set<String> targets = innerEntry.getValue();
+				for (String target : targets) {
+					System.err.println("        "+target);
 				}
-				if(entry.getUserEventJustBefore()!=null) {
-					lines.add(entry.getUserEventJustBefore());
-				}
-				lines.add(entry.toString());
-				
-				//desplay alle the hashmap element
-				while(i.isValid()){
-					//map.entrySet() Entry setE = i.;
-					//lines.add(map.get(target)+ " : " +source+"\n");
-					//lines.add(i.next()); // added
-					printKeys(map);
-				    }
-				lastName = fileName;
 			}
-			
-			for (String line : lines) {
-				pw.println(line);
-			}
-			File outDir = logFile.getParentFile();
-			Filter only = new Filter(fileNames);	
-			for(File f: outDir.listFiles(only))
-			{
-				f.delete();
-			}
+		}
 		
-			//screenCapture.getFileName(entry.getTime());
-		//lines.add(globalImageName);
-		//pw.println("lines");
-			pw.flush();
-			pw.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			
-		}		
+		
+		
+		
+//		//printStatistics();
+//		try {
+//			//Set set = map.entrySet();
+//			Iterator i = (Iterator) source.iterator();//
+//			PrintWriter pw = new PrintWriter(logFile);
+//			List<String> lines = new ArrayList<String>();
+//			
+//			String lastName=null;
+//			
+//			Set<String> fileNames = new HashSet<String>();
+//			
+//			for (RuntimeLogEntry entry : list) {
+//				String fileName = screenCapture.getFileName(entry.getTime());
+//				if(fileName!=null && !fileName.equals(lastName)) {
+//					lines.add("# "+fileName);
+//					fileNames.add(fileName);				
+//				}
+//				if(entry.getUserEventJustBefore()!=null) {
+//					lines.add(entry.getUserEventJustBefore());
+//				}
+//				lines.add(entry.toString());
+//				
+//				//desplay alle the hashmap element
+//				while(i.isValid()){
+//					//map.entrySet() Entry setE = i.;
+//					//lines.add(map.get(target)+ " : " +source+"\n");
+//					//lines.add(i.next()); // added
+//					printKeys(sourceToTargets);
+//				    }
+//				lastName = fileName;
+//			}
+//			
+//			for (String line : lines) {
+//				pw.println(line);
+//			}
+//			File outDir = logFile.getParentFile();
+//			Filter only = new Filter(fileNames);	
+//			for(File f: outDir.listFiles(only))
+//			{
+//				f.delete();
+//			}
+//		
+//			//screenCapture.getFileName(entry.getTime());
+//		//lines.add(globalImageName);
+//		//pw.println("lines");
+//			pw.flush();
+//			pw.close();
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//			
+//		}		
 	}
 	
 	
