@@ -27,6 +27,7 @@ import java.lang.reflect.Modifier;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -260,7 +261,13 @@ public class ReflLogger {
 		
 		List<RuntimeLogEntry> list = new ArrayList<RuntimeLogEntry>(newLogSet);
 		Collections.sort(list);
-		HashMap<String, Map<String, Set<String>>> threadTosourceToTargets = new HashMap<String, Map<String, Set<String>>>();
+		
+		
+		System.err.println("===========================================================");
+		System.err.println("Grouped by source: ");
+		System.err.println("===========================================================");
+		
+		HashMap<String, Map<String, Set<String>>> sourceToThreadToTargets = new HashMap<String, Map<String, Set<String>>>();
 		
 		for (RuntimeLogEntry entry : list) {
 			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
@@ -268,10 +275,10 @@ public class ReflLogger {
 			String thread = persistedEntry.getThreadName();
 			String source = persistedEntry.getContainerMethod() + ":"+ persistedEntry.getLineNumber();
 			
-			Map<String, Set<String>> threadToTargets = threadTosourceToTargets.get(source);
+			Map<String, Set<String>> threadToTargets = sourceToThreadToTargets.get(source);
 			if(threadToTargets==null) {
 				threadToTargets = new HashMap<String,Set<String>>();
-				threadTosourceToTargets.put(source, threadToTargets);				
+				sourceToThreadToTargets.put(source, threadToTargets);				
 			}
 			Set<String> targets = threadToTargets.get(thread);
 			if(targets==null) {
@@ -281,7 +288,7 @@ public class ReflLogger {
 			targets.add(target);
 		}
 		
-		for (Entry<String,Map<String, Set<String>>> entry : threadTosourceToTargets.entrySet()) {
+		for (Entry<String,Map<String, Set<String>>> entry : sourceToThreadToTargets.entrySet()) {
 			String source = entry.getKey();
 			Map<String, Set<String>> threadToTargets = entry.getValue();
 			System.err.println("Source location: "+source);
@@ -293,11 +300,18 @@ public class ReflLogger {
 					System.err.println("        "+target);
 				}
 			}
-			
-			
+			System.err.println();
 		}
 		
-HashMap<String, Map<String, Set<String>>> threadToSourceToTargets = new HashMap<String, Map<String, Set<String>>>();
+		System.err.println();
+		System.err.println("===========================================================");
+		System.err.println("Grouped by thread: ");
+		System.err.println("===========================================================");
+
+		HashMap<String, Map<String, Set<String>>> threadToSourceToTargets = new HashMap<String, Map<String, Set<String>>>();
+		
+		HashMap<String, Integer> threadToCallCount = new HashMap<String, Integer>();
+		int totalCount=0;
 		
 		for (RuntimeLogEntry entry : list) {
 			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
@@ -308,20 +322,30 @@ HashMap<String, Map<String, Set<String>>> threadToSourceToTargets = new HashMap<
 			Map<String, Set<String>> sourceToTargets = threadToSourceToTargets.get(thread);
 			if(sourceToTargets==null) {
 				sourceToTargets = new HashMap<String,Set<String>>();
-				threadTosourceToTargets.put(thread, sourceToTargets);				
+				threadToSourceToTargets.put(thread, sourceToTargets);				
 			}
 			Set<String> targets = sourceToTargets.get(source);
 			if(targets==null) {
 				targets = new HashSet<String>();
 				sourceToTargets.put(source, targets);
 			}
-			targets.add(target);
+			
+			boolean added = targets.add(target);
+			if(added) {
+				Integer count = threadToCallCount.get(thread);
+				if(count==null) {
+					count = 0;				
+				}
+				count++;
+				threadToCallCount.put(thread, count);
+				totalCount++;
+			}
 		}
 		
 		for (Entry<String,Map<String, Set<String>>> entry : threadToSourceToTargets.entrySet()) {
 			String thread = entry.getKey();
 			Map<String, Set<String>> sourceToTargets = entry.getValue();
-			System.err.println("Thread : "+thread +" calls:");
+			System.err.println("Thread "+thread +" calls:");
 			for(Entry<String,Set<String>> innerEntry: sourceToTargets.entrySet()) {
 				String source = innerEntry.getKey();
 				System.err.println("    source "+source);
@@ -330,10 +354,20 @@ HashMap<String, Map<String, Set<String>>> threadToSourceToTargets = new HashMap<
 					System.err.println("        "+target);
 				}
 			}
-			
 		}
 		
-		
+		System.err.println();
+		System.err.println("===========================================================");
+		System.err.println("Summary statistic: ");
+		System.err.println("===========================================================");
+		for(Entry<String,Integer> entry: threadToCallCount.entrySet()) {
+			String thread = entry.getKey();
+			Integer count = entry.getValue();
+			Formatter formatter = new Formatter();
+			formatter.format("%,.2f", (double)count/totalCount*100);
+			String string = formatter.out().toString();
+			System.err.println(thread+ ": "+count+" ("+string+"%)");
+		}		
 		
 //		//printStatistics();
 //		try {
