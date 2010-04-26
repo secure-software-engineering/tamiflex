@@ -260,17 +260,18 @@ public class ReflLogger {
 		
 		List<RuntimeLogEntry> list = new ArrayList<RuntimeLogEntry>(newLogSet);
 		Collections.sort(list);
-		HashMap<String, Map<String, Set<String>>> sourceToThreadToTargets = new HashMap<String, Map<String, Set<String>>>();
+		HashMap<String, Map<String, Set<String>>> threadTosourceToTargets = new HashMap<String, Map<String, Set<String>>>();
+		
 		for (RuntimeLogEntry entry : list) {
 			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
 			String target = persistedEntry.getTargetClassOrMethod(); 
 			String thread = persistedEntry.getThreadName();
 			String source = persistedEntry.getContainerMethod() + ":"+ persistedEntry.getLineNumber();
 			
-			Map<String, Set<String>> threadToTargets = sourceToThreadToTargets.get(source);
+			Map<String, Set<String>> threadToTargets = threadTosourceToTargets.get(source);
 			if(threadToTargets==null) {
 				threadToTargets = new HashMap<String,Set<String>>();
-				sourceToThreadToTargets.put(source, threadToTargets);				
+				threadTosourceToTargets.put(source, threadToTargets);				
 			}
 			Set<String> targets = threadToTargets.get(thread);
 			if(targets==null) {
@@ -280,7 +281,7 @@ public class ReflLogger {
 			targets.add(target);
 		}
 		
-		for (Entry<String,Map<String, Set<String>>> entry : sourceToThreadToTargets.entrySet()) {
+		for (Entry<String,Map<String, Set<String>>> entry : threadTosourceToTargets.entrySet()) {
 			String source = entry.getKey();
 			Map<String, Set<String>> threadToTargets = entry.getValue();
 			System.err.println("Source location: "+source);
@@ -292,8 +293,45 @@ public class ReflLogger {
 					System.err.println("        "+target);
 				}
 			}
+			
+			
 		}
 		
+HashMap<String, Map<String, Set<String>>> threadToSourceToTargets = new HashMap<String, Map<String, Set<String>>>();
+		
+		for (RuntimeLogEntry entry : list) {
+			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
+			String target = persistedEntry.getTargetClassOrMethod(); 
+			String thread = persistedEntry.getThreadName();
+			String source = persistedEntry.getContainerMethod() + ":"+ persistedEntry.getLineNumber();
+			
+			Map<String, Set<String>> sourceToTargets = threadToSourceToTargets.get(thread);
+			if(sourceToTargets==null) {
+				sourceToTargets = new HashMap<String,Set<String>>();
+				threadTosourceToTargets.put(thread, sourceToTargets);				
+			}
+			Set<String> targets = sourceToTargets.get(source);
+			if(targets==null) {
+				targets = new HashSet<String>();
+				sourceToTargets.put(source, targets);
+			}
+			targets.add(target);
+		}
+		
+		for (Entry<String,Map<String, Set<String>>> entry : threadToSourceToTargets.entrySet()) {
+			String thread = entry.getKey();
+			Map<String, Set<String>> sourceToTargets = entry.getValue();
+			System.err.println("Thread : "+thread +" calls:");
+			for(Entry<String,Set<String>> innerEntry: sourceToTargets.entrySet()) {
+				String source = innerEntry.getKey();
+				System.err.println("    source "+source);
+				Set<String> targets = innerEntry.getValue();
+				for (String target : targets) {
+					System.err.println("        "+target);
+				}
+			}
+			
+		}
 		
 		
 		
