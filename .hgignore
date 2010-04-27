@@ -15,3 +15,5 @@ syntax: regexp
 ^ReflectionView/lib/poa\.jar$
 syntax: regexp
 ^ReflectionView/lib/pia\.jar$
+syntax: regexp
+^de\.bodden\.tamiflex/lib$
