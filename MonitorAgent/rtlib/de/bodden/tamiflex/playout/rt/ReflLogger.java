@@ -262,7 +262,7 @@ public class ReflLogger {
 		List<RuntimeLogEntry> list = new ArrayList<RuntimeLogEntry>(newLogSet);
 		Collections.sort(list);
 		
-		
+	
 		System.err.println("===========================================================");
 		System.err.println("Grouped by source: ");
 		System.err.println("===========================================================");
@@ -367,8 +367,64 @@ public class ReflLogger {
 			formatter.format("%,.2f", (double)count/totalCount*100);
 			String string = formatter.out().toString();
 			System.err.println(thread+ ": "+count+" ("+string+"%)");
-		}		
+		}	
 		
+	HashMap<String, Map<Integer, Set<PersistedLogEntry>>> sourceToLineToCalls= new HashMap<String, Map<Integer, Set<PersistedLogEntry>>>();
+		
+//		HashMap<Integer, Set<Map <String,String>>> methodeToCodeLine = new HashMap<Integer, Set<Map <String,String>>>();
+		
+		
+		for (RuntimeLogEntry entry : list) {
+			PersistedLogEntry persistedEntry = entry.toPersistedEntry();
+//			String methode = persistedEntry.getTargetClassOrMethod(); 
+			//String thread = persistedEntry.getThreadName();
+			String source = persistedEntry.getContainerMethod();
+			Integer line = persistedEntry.getLineNumber();
+			
+			Map<Integer, Set<PersistedLogEntry>> lineToCalls = sourceToLineToCalls.get(source);
+			if(lineToCalls==null) {
+				lineToCalls = new HashMap<Integer,Set<PersistedLogEntry>>();
+				sourceToLineToCalls.put(source, lineToCalls);				
+			}
+			Set<PersistedLogEntry> calls = lineToCalls.get(line);
+			if(calls==null) {
+				calls = new HashSet<PersistedLogEntry>();
+				lineToCalls.put(line,calls);
+				
+			}
+			calls.add(persistedEntry);
+		}
+				
+		PrintWriter yFile=null;
+		try {
+			yFile = new PrintWriter(new File("reflection.yml"));
+			
+			for (Entry<String, Map<Integer, Set<PersistedLogEntry>>> entry : sourceToLineToCalls.entrySet()) {
+				String sources = entry.getKey();
+				Map<Integer, Set<PersistedLogEntry>> LineToCalls = entry.getValue();
+				for(Entry<Integer,Set<PersistedLogEntry>> innerEntry: LineToCalls.entrySet()) {
+					Integer line = (Integer)innerEntry.getKey();
+					yFile.println();
+					yFile.println("-");
+					yFile.println("  method: "+sources);
+					yFile.println("  line: "+line);
+					Set<PersistedLogEntry> calls = innerEntry.getValue();
+					yFile.println("  calls: ");
+
+					for (PersistedLogEntry call : calls) {
+						yFile.println("  -");
+						yFile.println("    thread: "+call.getThreadName());
+						yFile.println("    target: \""+call.getTargetClassOrMethod()+"\""); 
+					}
+				}
+			}	
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			yFile.close();
+		}
+
 //		//printStatistics();
 //		try {
 //			//Set set = map.entrySet();
