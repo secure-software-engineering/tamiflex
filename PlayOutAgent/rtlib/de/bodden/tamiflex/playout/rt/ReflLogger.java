@@ -342,6 +342,7 @@ public class ReflLogger {
 				System.err.println(logEntry);
 			}
 		}
+		System.err.println("Log file written to: "+logFile.getAbsolutePath());
 		
 		return merged;
 	}
