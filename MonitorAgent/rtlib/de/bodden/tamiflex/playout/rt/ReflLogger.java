@@ -22,14 +22,18 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 
 public class ReflLogger {
@@ -54,6 +58,29 @@ public class ReflLogger {
 			//by default, do nothing
 		}
 	});
+	
+	private static PrintWriter yamlWriter;
+	
+	public static void initYamlWriter(PrintWriter yamlWriter) {
+		ReflLogger.yamlWriter = yamlWriter;
+		yamlWriter.println("-");
+		yamlWriter.println("  start: \""+new Date()+"\"");
+		yamlWriter.println("  env: {");
+		for(Entry<Object,Object> entry: System.getProperties().entrySet()) {
+			String key = (String) entry.getKey();
+			String val = (String) entry.getValue();
+			yamlWriter.println("    "+key+": \""+val+"\",");
+		}
+		yamlWriter.println("}");
+		try {
+			InetAddress localHost = java.net.InetAddress.getLocalHost();
+			yamlWriter.println("  hostName:  "+localHost.getHostName());
+			yamlWriter.println("  ipAddress: "+localHost.getHostAddress());
+		} catch (UnknownHostException e) {
+		}
+		yamlWriter.println("  logFile: \""+logFile.getAbsolutePath()+"\"");
+		yamlWriter.println("  calls:");
+	}
 	
 	private static void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
@@ -91,7 +118,46 @@ public class ReflLogger {
 			newLineWriter.println(newEntry.toString());
 			newLineWriter.flush();			
 		}
+		
+		addToYamlLog(newEntry);
+
 		return sameEntry;
+	}
+
+	private static void addToYamlLog(RuntimeLogEntry entry) {
+		final String PAD = "  ";
+		yamlWriter.println(PAD+"-");
+		yamlWriter.println(PAD+PAD+"kind:         "+entry.getKind());
+		yamlWriter.println(PAD+PAD+"sourceMethod: "+entry.getContainerMethod());
+		yamlWriter.println(PAD+PAD+"sourceLine:   "+entry.getLineNumber());
+		PersistedLogEntry persistedEntry = entry.toPersistedEntry();
+		yamlWriter.println(PAD+PAD+"target:       \""+persistedEntry.getTargetClassOrMethod()+"\"");
+		String thread = Thread.currentThread().getName();
+		yamlWriter.println(PAD+PAD+"thread:       "+thread);
+		String stackTrace = getStackTraceForYaml();
+		yamlWriter.println(PAD+PAD+"stackTrace:   "+stackTrace);
+	}
+
+	private static String getStackTraceForYaml() {
+		StackTraceElement[] stackTrace = new Exception().getStackTrace();
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		for (StackTraceElement frame : stackTrace) {
+			String c = frame.getClassName();
+			if(!c.equals(ReflLogger.class.getName())
+			&& !c.equals(Class.class.getName())
+			&& !c.equals(Method.class.getName())
+			&& !c.equals(Constructor.class.getName())) {
+				builder.append("\"");
+				builder.append(frame);
+				builder.append("\"");
+				builder.append(",");
+			}
+		}
+		//delete trailing ","
+		builder.deleteCharAt(builder.length()-1);
+		builder.append("]");
+		return builder.toString();
 	}
 
 	public static void classNewInstance(Class<?> c) {
@@ -252,7 +318,10 @@ public class ReflLogger {
 			pw.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}		
+		}	
+
+		yamlWriter.println("  end: \""+new Date()+"\"");
+		yamlWriter.close();
 	}
 	
 	public static void setMustCount(boolean mustCount) {

@@ -11,7 +11,9 @@
 package de.bodden.tamiflex.playout;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
@@ -38,16 +40,16 @@ public class Agent {
 		}
 		
 		if(agentArgs==null) agentArgs = "";
-		boolean dontDump = false;
-		if(agentArgs.startsWith("dontDumpClasses,")) {
-			dontDump = true;
-			agentArgs = agentArgs.substring("dontDumpClasses,".length());
-		}
-		boolean dontNormalize = false;
-		if(agentArgs.startsWith("dontNormalize,")) {
-			dontNormalize = true;
-			agentArgs = agentArgs.substring("dontNormalize,".length());
-		}
+		boolean dontDump = true;
+//		if(agentArgs.startsWith("dontDumpClasses,")) {
+//			dontDump = true;
+//			agentArgs = agentArgs.substring("dontDumpClasses,".length());
+//		}
+		boolean dontNormalize = true;
+//		if(agentArgs.startsWith("dontNormalize,")) {
+//			dontNormalize = true;
+//			agentArgs = agentArgs.substring("dontNormalize,".length());
+//		}
 		boolean count = false;
 		if(agentArgs.startsWith("count,")) {
 			count = true;
@@ -106,8 +108,26 @@ public class Agent {
 			dumpLoadedClasses(inst,outDir,dontDump,verbose);
 			
 			ReflLogger.setLogFile(logFile);
-			ScreenCapture target = new ScreenCapture(outDir);
-			ReflLogger.setScreenCapture(target);
+
+			File homeDir = new File(System.getProperty("user.home"));
+			if(!homeDir.exists() || !homeDir.isDirectory()) throw new Error("Home Directory does not exist: "+homeDir);
+			int i=1;
+			while(true) {
+				String fileName = "log"+i+".yml";
+				String fullPath = homeDir.getPath()+File.separator+fileName;
+				File yamlFile = new File(fullPath);
+				if(!yamlFile.exists()) {
+					try {
+						ReflLogger.initYamlWriter(new PrintWriter(yamlFile));
+						System.err.println(yamlFile);
+					} catch (FileNotFoundException e) {
+						throw new Error(e);
+					}
+					break;
+				}
+				i++;
+			}
+			
 			
 			instrumentClassesForLogging(inst);
 			
@@ -186,8 +206,8 @@ public class Agent {
 		System.out.println("This agent accepts the following options:");
 		System.out.println("[dontDumpClasses,][dontNormalize,][count,][verbose,]<path>");
 		System.out.println();
-		System.out.println("If 'dontDumpClasses' is given then the agent only produces a log file but dumps no classes.");
-		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
+//		System.out.println("If 'dontDumpClasses' is given then the agent only produces a log file but dumps no classes.");
+//		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
 		System.out.println("If 'count' is selected then the agent will add the number of reflective invocations");
 		System.out.println("to the end of each line of the trace file.");
 		System.out.println("If 'verbose' is selected then the agent will print out all entries that it also added");
