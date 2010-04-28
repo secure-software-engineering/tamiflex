@@ -22,7 +22,7 @@ public class TargetClassLogEntry extends RuntimeLogEntry {
 	public PersistedLogEntry toPersistedEntry() {
 		String hashedContainerMethod = replaceByHashedClassNameAndMethodName(containerMethod);
 		String hashedTargetClass = replaceByHashedClassName(targetClass);
-		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, hashedTargetClass, threadName, count);
+		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, hashedTargetClass, count);
 	}
 
 	@Override
