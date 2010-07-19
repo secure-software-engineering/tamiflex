@@ -25,8 +25,10 @@ import java.security.ProtectionDomain;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
+
+import de.bodden.tamiflex.normalizer.NameExtractor;
 
 public class ClassDumper implements ClassFileTransformer {
 
@@ -51,6 +53,9 @@ public class ClassDumper implements ClassFileTransformer {
 	}
 
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+		if(className==null) {
+			className = NameExtractor.extractName(classfileBuffer);
+		}
 		if(hasShutDown) return null;
 		if(className.startsWith(Agent.PKGNAME)) return null;
 		

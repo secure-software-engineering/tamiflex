@@ -24,11 +24,18 @@ import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import de.bodden.tamiflex.normalizer.NameExtractor;
+
 public class ReflectionMonitor implements ClassFileTransformer {
 	
-	public byte[] transform(ClassLoader loader, final String className,
+	public byte[] transform(ClassLoader loader, String className,
 		Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 		byte[] classfileBuffer) throws IllegalClassFormatException {
+		if(className==null) {
+			className = NameExtractor.extractName(classfileBuffer);
+		}
+		final String theClassName = className;
+		
 		if(!className.equals("java/lang/Class") && !className.equals("java/lang/reflect/Method") && !className.equals("java/lang/reflect/Constructor")) return null;		
 		
         try {
@@ -41,13 +48,13 @@ public class ReflectionMonitor implements ClassFileTransformer {
             	public MethodVisitor visitMethod(int access, String methodName, String desc, String signature, String[] exceptions) {
             		//delegate
             		MethodVisitor mv = cv.visitMethod(access, methodName, desc, signature, exceptions);
-            		if(className.equals("java/lang/Class") && methodName.equals("forName")) {
+            		if(theClassName.equals("java/lang/Class") && methodName.equals("forName")) {
             			mv = new ClassForNameAdapter(mv);            			
-            		} else if(className.equals("java/lang/Class") && methodName.equals("newInstance0")) {
+            		} else if(theClassName.equals("java/lang/Class") && methodName.equals("newInstance0")) {
             			mv = new ClassNewInstanceAdapter(mv);            			
-            		} else if(className.equals("java/lang/reflect/Method") && methodName.equals("invoke")) {
+            		} else if(theClassName.equals("java/lang/reflect/Method") && methodName.equals("invoke")) {
             			mv = new MethodInvokeAdapter(mv);            			
-            		} else if(className.equals("java/lang/reflect/Constructor") && methodName.equals("newInstance")) {
+            		} else if(theClassName.equals("java/lang/reflect/Constructor") && methodName.equals("newInstance")) {
             			mv = new ConstructorNewInstanceAdapter(mv);            			
             		}
 
