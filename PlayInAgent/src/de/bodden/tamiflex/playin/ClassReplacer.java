@@ -29,6 +29,7 @@ import org.objectweb.asm.ClassVisitor;
 
 import de.bodden.tamiflex.normalizer.ClassRenamer;
 import de.bodden.tamiflex.normalizer.Hasher;
+import de.bodden.tamiflex.normalizer.NameExtractor;
 
 public class ClassReplacer implements ClassFileTransformer {
 	
@@ -53,8 +54,11 @@ public class ClassReplacer implements ClassFileTransformer {
 		this.loader = createClassLoader(srcPath);		
 	}
 
-	public byte[] transform(ClassLoader ldr, final String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public byte[] transform(ClassLoader ldr, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		numInvoked++;
+		if(className==null) {
+			className = NameExtractor.extractName(classfileBuffer);
+		}
 		try{
 			if(containsGeneratedClassName(className))
 				storeClassBytesOfGeneratedClass(className, classfileBuffer);			
