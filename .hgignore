@@ -17,3 +17,7 @@ syntax: regexp
 ^ReflectionView/lib/pia\.jar$
 syntax: regexp
 ^de\.bodden\.tamiflex/lib$
+syntax: regexp
+\.jar$
+syntax: regexp
+^PlayOutAgent/poa-trunk\.jar$
