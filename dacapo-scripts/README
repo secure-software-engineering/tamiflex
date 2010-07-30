@@ -1,0 +1,8 @@
+The scripts contained in this directory allow you to do a round-tripping
+with TamiFlex and Soot on the DaCapo "bach" benchmarks:
+
+0.) Customize "settings" to your environment.
+1.) Run "dump-all" to dump classes and trace files for each DaCapo benchmark. (play-out)
+2.) Run "process-all" to process all dumped versions of the benchmarks with Soot,
+    i.e., to "sootify" the benchmarks
+3.) Run "run-all" to run all "sootified" benchmark versions. (play-in)

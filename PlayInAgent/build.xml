@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Copyright (c) 2010 Eric Bodden.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the Eclipse Public License v1.0
+  which accompanies this distribution, and is available at
+  http://www.eclipse.org/legal/epl-v10.html
+  
+  Contributors:
+      Eric Bodden - initial API and implementation
+-->
+<project name="project" default="default">
+    <property file="ant.settings"/>
+
+    <target name="default" depends="copy-agent-jar"/>
+
+	<target name="agent">
+    	<mkdir dir="bin-agent"/>
+        <javac
+            destdir="bin-agent"
+        	source="1.5"
+        	target="1.5"
+        	debug="true"
+			debuglevel="lines,vars,source"        	
+        >
+            <src path="src"/>
+            <src path="../Normalizer/src"/>
+            <classpath>
+                <pathelement location="../Normalizer/lib/asm-3.2.jar"/>
+                <pathelement location="../Normalizer/lib/asm-commons-3.2.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="agent-jar" depends="agent">
+    	<mkdir dir="META-INF"/>
+
+    	<manifest file="META-INF/MANIFEST.MF">
+           <attribute name="Premain-Class" value="de.bodden.tamiflex.playin.Agent"/>
+           <attribute name="Can-Retransform-Classes" value="true"/>
+           <attribute name="Implementation-Version" value="${tf.version}"/> 
+       </manifest>
+
+    	<jar destfile="pia-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
+            <fileset dir="bin-agent"/>
+            <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
+        </jar>
+
+    	<delete dir="bin-agent"/>
+		<delete dir="META-INF"/>
+    </target>
+
+	<target name="copy-agent-jar" depends="agent-jar">
+		<copy file="pia-${tf.version}.jar" tofile="../de.bodden.tamiflex/lib/pia.jar"/>
+	</target>
+
+</project>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tamiflex-booster" default="default">
+    <description>
+            description
+    </description>
+
+    <target name="default" depends="jar"/>
+
+    <target name="compile">
+    	<mkdir dir="bin"/>
+        <javac
+            destdir="bin"
+            debug="true"
+            deprecation="on"
+        	source="1.5"
+        	target="1.5"
+        	fork="true"
+        >
+        	<classpath>
+        		<pathelement location="lib/sootclasses-trunk.jar"/>
+        	</classpath>
+            <src path="src"/>
+        </javac>
+    </target>
+	
+	<target name="jar" depends="compile">
+    	<mkdir dir="META-INF"/>
+
+        <manifest file="META-INF/MANIFEST.MF">
+           <attribute name="Main-Class" value="ReflInliner"/>
+        </manifest>
+
+    	<jar destfile="lib/booster.jar" manifest="META-INF/MANIFEST.MF">
+            <fileset dir="bin"/>
+            <zipfileset src="lib/sootclasses-trunk.jar"/>
+        </jar>
+		<delete dir="META-INF"/>
+	</target>
+
+</project>

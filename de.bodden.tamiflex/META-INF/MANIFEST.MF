@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: TamiFlex
+Bundle-SymbolicName: de.bodden.tamiflex;singleton:=true
+Bundle-Version: 1.0.0.0
+Bundle-Activator: de.bodden.tamiflex.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jdt.core;bundle-version="3.5.0",
+ org.eclipse.jdt.ui;bundle-version="3.5.0",
+ org.eclipse.jdt.launching;bundle-version="3.5.0",
+ org.eclipse.debug.core;bundle-version="3.5.0",
+ org.eclipse.debug.ui;bundle-version="3.5.0",
+ org.eclipse.jdt.debug.ui;bundle-version="3.4.0",
+ org.eclipse.ui.ide;bundle-version="3.5.0"
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Vendor: TU Darmstadt, Software Technology Group
