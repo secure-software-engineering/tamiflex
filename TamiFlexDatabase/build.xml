@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="project" default="default">
+    <property file="ant.settings"/>
+	
+	<target name="default" depends="database-jar"/>
+
+	<target name="TamiFlexDatabase">
+    	<mkdir dir="bin-database"/>
+        <javac
+            destdir="bin-database"
+        	source="1.6"
+        	target="1.6"
+        	debug="true"
+			debuglevel="lines,vars,source"        	
+        >
+            <src path="src"/>
+            <classpath>
+            	<pathelement location="/lib/mysql-connector-java-5.1.12-bin.jar"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="database-jar" depends="TamiFlexDatabase">
+    	<mkdir dir="META-INF"/>
+
+    	<manifest file="META-INF/MANIFEST.MF">
+           <attribute name="Main-Class" value="de.bodden.tamiflex.db.DBMain"/>
+           <attribute name="Implementation-Version" value="${tf.version}"/> 
+       </manifest>
+
+        <jar destfile="lib/dbdumper-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
+            <fileset dir="bin-database"/>
+        	<zipfileset src="lib/mysql-connector-java-5.1.12-bin.jar"/>
+        </jar>
+		<delete dir="bin-database"/>
+		<delete dir="META-INF"/>
+    </target>
+	
+	<target name="copy-database-jar" depends="database-jar">
+		<copy file="database-${tf.version}.jar" tofile="../PlayOutAgent/lib/TamiFlexDatabase.jar"/>
+		<copy file="database-${tf.version}.jar" tofile="../de.bodden.tamiflex.extension/lib/TamiFlexDatabase.jar"/>
+	</target>
+</project>
