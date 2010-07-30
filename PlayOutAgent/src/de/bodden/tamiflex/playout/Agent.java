@@ -82,7 +82,7 @@ public class Agent {
 			instrumentClassesForLogging(inst);
 		} else {
 			String outPath=agentArgs;
-			if(outPath==null) {
+			if(outPath==null||outPath.isEmpty()) {
 				System.err.println("No outpath given!");
 				usage();
 			}
