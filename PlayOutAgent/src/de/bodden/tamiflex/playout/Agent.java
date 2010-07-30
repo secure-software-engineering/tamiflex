@@ -101,7 +101,7 @@ public class Agent {
 				}
 			}
 			
-			File logFile = new File(outDir,"refl.log");
+			final File logFile = new File(outDir,"refl.log");
 			
 			dumpLoadedClasses(inst,outDir,dontDump,verbose);
 			
@@ -126,6 +126,20 @@ public class Agent {
 					}
 					classDumper.writeClassesToDisk();
 					ReflLogger.writeLogfileToDisk(verboseOutput);
+					
+					String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf(File.separator));
+					String version = Agent.class.getPackage().getImplementationVersion();
+					String dbJarPath = agentJarDir+File.separator+"dbdumper-"+version+".jar";
+					
+					try {
+						File jarfile = new File(new URI(dbJarPath));
+						if(jarfile.exists()) {
+							System.out.println("Database JAR file found. Will attempt to dump log file to database.");
+							DBDumper.dumpFileToDatabase(jarfile,logFile);
+						} 
+					} catch (URISyntaxException e) {
+						e.printStackTrace();
+					}
 				}
 				
 			});
@@ -166,8 +180,8 @@ public class Agent {
 			System.err.println("Support library for reflection log not found on classpath.");
 			System.exit(1);
 		}
-		String agentJarFile = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));		
-		URI uri = new URI(agentJarFile);
+		agentJarFilePath = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));		
+		URI uri = new URI(agentJarFilePath);
 		JarFile jarFile = new JarFile(new File(uri));
 		inst.appendToBootstrapClassLoaderSearch(jarFile);
 	}
@@ -206,5 +220,6 @@ public class Agent {
 		"are made available under the terms of the Eclipse Public License v1.0\n" +
 		"which accompanies this distribution, and is available at\n" +
 		"http://www.eclipse.org/legal/epl-v10.html";
+	private static String agentJarFilePath;
 
 }
