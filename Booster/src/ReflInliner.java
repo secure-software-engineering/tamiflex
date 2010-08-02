@@ -42,6 +42,8 @@ public class ReflInliner {
 		argList.add("cg");
 		argList.add("enabled:false");
 		
+		Options.v().set_keep_line_number(true);
+		
 		G.v().out.println("TamiFlex Booster");
 		try {
 			soot.Main.main(argList.toArray(new String[0]));
