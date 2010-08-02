@@ -22,6 +22,7 @@ import soot.options.Options;
 import soot.rtlib.DefaultHandler;
 import soot.rtlib.IUnexpectedReflectiveCallHandler;
 import soot.rtlib.OpaquePredicate;
+import soot.rtlib.ReflectiveCalls;
 import soot.rtlib.SootSig;
 import soot.rtlib.UnexpectedReflectiveCall;
 
@@ -29,18 +30,20 @@ import soot.rtlib.UnexpectedReflectiveCall;
 public class ReflInliner {
 	
 	public static void main(String[] args) {
-		PackManager.v().getPack("wjpp").add(new Transform("wjpp.inlineReflCalls", new ReflectiveCallsInliner(true)));		
+		PackManager.v().getPack("wjpp").add(new Transform("wjpp.inlineReflCalls", new ReflectiveCallsInliner()));		
 		Scene.v().addBasicClass(Object.class.getName());
 		Scene.v().addBasicClass(SootSig.class.getName(),SootClass.BODIES);
 		Scene.v().addBasicClass(UnexpectedReflectiveCall.class.getName(),SootClass.BODIES);
 		Scene.v().addBasicClass(IUnexpectedReflectiveCallHandler.class.getName(),SootClass.BODIES);
 		Scene.v().addBasicClass(DefaultHandler.class.getName(),SootClass.BODIES);
 		Scene.v().addBasicClass(OpaquePredicate.class.getName(),SootClass.BODIES);
+		Scene.v().addBasicClass(ReflectiveCalls.class.getName(),SootClass.BODIES);
 		ArrayList<String> argList = new ArrayList<String>(Arrays.asList(args));
 		argList.add("-w");
 		argList.add("-p");
 		argList.add("cg");
 		argList.add("enabled:false");
+		argList.add("-app");
 		
 		Options.v().set_keep_line_number(true);
 		
