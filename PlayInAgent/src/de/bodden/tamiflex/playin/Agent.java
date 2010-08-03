@@ -10,15 +10,11 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playin;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.jar.JarFile;
 
 import de.bodden.tamiflex.normalizer.Hasher;
 
@@ -41,12 +37,8 @@ public class Agent {
 			Hasher.dontNormalize();
 		}
 		if(agentArgs.equals("")) usage();
-		
-		appendRtJarToBootClassPath(inst);
-
 		final ClassReplacer replacer = new ClassReplacer(agentArgs,verbose);
 		inst.addTransformer(replacer,true);
-		
 		
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -68,18 +60,6 @@ public class Agent {
 				}
 			}
 		}
-	}
-	
-	private static void appendRtJarToBootClassPath(Instrumentation inst) throws URISyntaxException, IOException {
-		URL locationOfAgent = Agent.class.getResource("/de/bodden/tamiflex/normalizer/Hasher.class");
-		if(locationOfAgent==null) {
-			System.err.println("Support library for reflection log not found on classpath.");
-			System.exit(1);
-		}
-		String agentJarFilePath = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));
-		URI uri = new URI(agentJarFilePath);
-		JarFile jarFile = new JarFile(new File(uri));
-		inst.appendToBootstrapClassLoaderSearch(jarFile);
 	}
 
 	private static void usage() {
