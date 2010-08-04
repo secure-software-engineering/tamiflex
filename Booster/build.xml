@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="tamiflex-booster" default="default">
+    <property file="ant.settings"/>
+
     <description>
             description
     </description>
@@ -17,7 +19,7 @@
         	fork="true"
         >
         	<classpath>
-        		<pathelement location="lib/sootclasses-trunk.jar"/>
+        		<pathelement location="lib/soot-${soot.version}.jar"/>
         	</classpath>
             <src path="src"/>
         </javac>
@@ -27,12 +29,13 @@
     	<mkdir dir="META-INF"/>
 
         <manifest file="META-INF/MANIFEST.MF">
-           <attribute name="Main-Class" value="ReflInliner"/>
+           <attribute name="Main-Class" value="de.bodden.tamiflex.booster.ReflInliner"/>
+           <attribute name="Implementation-Version" value="${tf.version}"/> 
         </manifest>
-
-    	<jar destfile="lib/booster.jar" manifest="META-INF/MANIFEST.MF">
+		
+    	<jar destfile="lib/booster-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
             <fileset dir="bin"/>
-            <zipfileset src="lib/sootclasses-trunk.jar"/>
+            <zipfileset src="lib/soot-${soot.version}.jar"/>
         </jar>
 		<delete dir="META-INF"/>
 	</target>
