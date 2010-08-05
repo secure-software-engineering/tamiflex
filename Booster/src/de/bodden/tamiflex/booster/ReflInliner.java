@@ -20,12 +20,12 @@ import soot.SootClass;
 import soot.Transform;
 import soot.jimple.toolkits.reflection.ReflectiveCallsInliner;
 import soot.options.Options;
-import soot.rtlib.DefaultHandler;
-import soot.rtlib.IUnexpectedReflectiveCallHandler;
-import soot.rtlib.OpaquePredicate;
-import soot.rtlib.ReflectiveCalls;
-import soot.rtlib.SootSig;
-import soot.rtlib.UnexpectedReflectiveCall;
+import soot.rtlib.tamiflex.DefaultHandler;
+import soot.rtlib.tamiflex.IUnexpectedReflectiveCallHandler;
+import soot.rtlib.tamiflex.OpaquePredicate;
+import soot.rtlib.tamiflex.ReflectiveCalls;
+import soot.rtlib.tamiflex.SootSig;
+import soot.rtlib.tamiflex.UnexpectedReflectiveCall;
 
 
 public class ReflInliner {
