@@ -127,9 +127,9 @@ public class Agent {
 					classDumper.writeClassesToDisk();
 					ReflLogger.writeLogfileToDisk(verboseOutput);
 					
-					String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf(File.separator));
+					String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
 					String version = Agent.class.getPackage().getImplementationVersion();
-					String dbJarPath = agentJarDir+File.separator+"dbdumper-"+version+".jar";
+					String dbJarPath = agentJarDir+'/'+"dbdumper-"+version+".jar";
 					
 					try {
 						File jarfile = new File(new URI(dbJarPath));
