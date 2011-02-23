@@ -22,13 +22,17 @@ public class ReflLogger {
 	private static PrintWriter logger;
 	private static File logFile;
 	private static int entriesWritten = 0;
-	
-	public static void classNewInstance(Class<?> c) {
+
+	public static void classNewInstance(boolean entering, Class<?> c) {
 		StackTraceElement frame = getInvokingFrame();
-		log(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
+		log(entering, frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
 	}
 
-	private static void log(Object... toPrint) {
+	private static void log(boolean entering, Object... toPrint) {
+		logAttemptOrSuccess(entering);
+		
+		logCurrentThread();
+
 		int i = 0;
 		for (Object object : toPrint) {
 			logger.print(object);
@@ -41,20 +45,38 @@ public class ReflLogger {
 		entriesWritten++;
 	}
 
-	public static void classForName(String typeName) {
-		StackTraceElement frame = getInvokingFrame();
-		log(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
+	private static void logAttemptOrSuccess(boolean entering) {
+		String prefix = entering ? "ATTEMPT" : "SUCCEDED";
+		logger.print(prefix);
+		logger.print(";");
 	}
 
-	public static void constructorNewInstance(Constructor<?> c) {		
+	private static void logCurrentThread() {
+		logger.print(Thread.currentThread().getId());
+		logger.print("-");
+		logger.print(Thread.currentThread().getName());
+		logger.print(";");
+	}
+
+	public static void classForName(boolean entering, String typeName) {
+		StackTraceElement frame = getInvokingFrame();
+		log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
+	}
+
+	public static void classForNameWithClassLoader(boolean entering, String typeName) {
+		StackTraceElement frame = getInvokingFrame();
+		log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForNameWithClassLoader,handleArrayTypes(typeName));
+	}
+
+	public static void constructorNewInstance(boolean entering, Constructor<?> c) {		
 		StackTraceElement frame = getInvokingFrame();
 		
 		String paramTypes = classesToTypeNames(c.getParameterTypes());
 		
-		log(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,"void "+c.getDeclaringClass().getName()+".<init>"+paramTypes);
+		log(entering, frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,"void "+c.getDeclaringClass().getName()+".<init>"+paramTypes);
 	}
 
-	public static void methodInvoke(Object receiver, Method m) {
+	public static void methodInvoke(boolean entering, Object receiver, Method m) {
 		Class<?> receiverClass = Modifier.isStatic(m.getModifiers()) ? m.getDeclaringClass() : receiver.getClass();
 		try {
 			//resolve virtual call
@@ -74,7 +96,7 @@ public class ReflLogger {
 			
 			StackTraceElement frame = getInvokingFrame();
 			String paramTypes = classesToTypeNames(resolved.getParameterTypes());
-			log(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,getTypeName(resolved.getReturnType())+" "+resolved.getDeclaringClass().getName()+"."+resolved.getName()+paramTypes);
+			log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,getTypeName(resolved.getReturnType())+" "+resolved.getDeclaringClass().getName()+"."+resolved.getName()+paramTypes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
