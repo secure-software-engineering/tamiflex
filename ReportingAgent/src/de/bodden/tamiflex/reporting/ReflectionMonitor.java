@@ -14,9 +14,6 @@ import static org.objectweb.asm.Opcodes.ICONST_0;
 import static org.objectweb.asm.Opcodes.ICONST_1;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
@@ -66,17 +63,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
             	            	
             };
             creader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            byte[] byteArray = writer.toByteArray();
-            if(className.equals("java/lang/reflect/Constructor")) {
-            	try {
-					FileOutputStream fos = new FileOutputStream("Constructor.class");
-					fos.write(byteArray);
-					fos.close();
-				} catch (FileNotFoundException e) {
-				} catch (IOException e) {
-				}
-            }
-			return byteArray;
+            return writer.toByteArray();
 		} catch (IllegalStateException e) {
             throw new IllegalClassFormatException("Error: " + e.getMessage() +
                 " on class " + className);
