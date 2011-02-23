@@ -21,7 +21,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.jar.JarFile;
 
-import de.bodden.tamiflex.normalizer.Hasher;
 import de.bodden.tamiflex.playout.rt.ReflLogger;
 import de.bodden.tamiflex.playout.rt.ShutdownStatus;
 
@@ -35,27 +34,10 @@ public class Agent {
 		}
 		
 		if(agentArgs==null) agentArgs = "";
-		boolean dontNormalize = false;
-		if(agentArgs.startsWith("dontNormalize,")) {
-			dontNormalize = true;
-			agentArgs = agentArgs.substring("dontNormalize,".length());
-		}
-		boolean count = false;
-		if(agentArgs.startsWith("count,")) {
-			count = true;
-			agentArgs = agentArgs.substring("count,".length());
-		}
-		boolean verbose = false;
-		if(agentArgs.startsWith("verbose,")) {
-			verbose = true;
-			agentArgs = agentArgs.substring("verbose,".length());
-		}
+
 		if(agentArgs.equals("")) usage();
 		
 		appendRtJarToBootClassPath(inst);
-
-		ReflLogger.setMustCount(count);		
-		if(dontNormalize) Hasher.dontNormalize();
 
 		String outPath=agentArgs;
 		if(outPath==null||outPath.isEmpty()) {
@@ -83,13 +65,12 @@ public class Agent {
 		
 		instrumentClassesForLogging(inst);
 		
-		final boolean verboseOutput = verbose;
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
 			@Override
 			public void run() {
 				ShutdownStatus.hasShutDown = true;
-				ReflLogger.writeLogfileToDisk(verboseOutput);
+				ReflLogger.closeLogger();
 			}
 			
 		});

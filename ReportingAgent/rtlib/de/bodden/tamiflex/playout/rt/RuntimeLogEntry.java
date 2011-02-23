@@ -10,10 +10,6 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.rt;
 
-
-
-
-
 public abstract class RuntimeLogEntry {
 	
 	protected final String containerMethod;
