@@ -10,9 +10,6 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.rt;
 
-import static de.bodden.tamiflex.normalizer.Hasher.dotted;
-import static de.bodden.tamiflex.normalizer.Hasher.slashed;
-import de.bodden.tamiflex.normalizer.Hasher;
 
 
 
@@ -90,23 +87,6 @@ public abstract class RuntimeLogEntry {
 
 	public void incrementCounter() {
 		count++;
-	}
-	
-	protected static String replaceByHashedClassNameAndMethodName(String classNameAndMethodName) {
-		assert classNameAndMethodName.contains("."): "String should have format Class.Name.methodName: "+classNameAndMethodName;
-		int divider = classNameAndMethodName.lastIndexOf('.');
-		String className = classNameAndMethodName.substring(0,divider);
-		String methodName = classNameAndMethodName.substring(divider+1);
-		String hashedName = replaceByHashedClassName(className);
-		return hashedName + "." + methodName; 
-	}
-
-	protected static String replaceByHashedClassName(String className) {
-		String slashedClassName = slashed(className);		
-		String hashedName = Hasher.containsGeneratedClassName(slashedClassName) ?
-			Hasher.hashedClassNameForGeneratedClassName(slashedClassName) : 
-			slashedClassName;
-		return dotted(hashedName);
 	}
 	
 	public abstract PersistedLogEntry toPersistedEntry();

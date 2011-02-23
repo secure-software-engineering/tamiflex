@@ -28,18 +28,8 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 	}
 
 	public PersistedLogEntry toPersistedEntry() {
-		String hashedContainerMethod = replaceByHashedClassNameAndMethodName(containerMethod);
-		String hashedDeclaringClass = replaceByHashedClassName(declaringClass);
-		String hashedReturnType = replaceByHashedClassName(returnType);
-		String[] hashedParamTypes = new String[paramTypes.length];
-		int i=0;
-		for (String paramType : paramTypes) {
-			hashedParamTypes[i] = replaceByHashedClassName(paramType);
-			i++;
-		}
-			
-		String sootSignature = sootSignature(hashedDeclaringClass, hashedReturnType, name, hashedParamTypes);
-		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, count);
+		String sootSignature = sootSignature(declaringClass, returnType, name, paramTypes);
+		return new PersistedLogEntry(containerMethod, lineNumber, kind, sootSignature, count);
 	}
 	
 	private static String sootSignature(String declaringClass, String returnType, String name, String... paramTypes) {
