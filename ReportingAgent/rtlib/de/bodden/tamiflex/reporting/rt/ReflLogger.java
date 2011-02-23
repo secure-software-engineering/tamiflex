@@ -46,7 +46,7 @@ public class ReflLogger {
 	}
 
 	private static void logAttemptOrSuccess(boolean entering) {
-		String prefix = entering ? "ATTEMPT" : "SUCCEDED";
+		String prefix = entering ? "ATTEMPT" : "SUCCESS";
 		logger.print(prefix);
 		logger.print(";");
 	}
