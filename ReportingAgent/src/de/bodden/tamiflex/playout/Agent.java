@@ -16,7 +16,6 @@ import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -29,7 +28,6 @@ import de.bodden.tamiflex.playout.rt.ShutdownStatus;
 public class Agent {
 	
 	public final static String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
-	private static Socket socket;
 	
 	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
 		if(!inst.isRetransformClassesSupported()) {
@@ -52,11 +50,6 @@ public class Agent {
 			verbose = true;
 			agentArgs = agentArgs.substring("verbose,".length());
 		}
-		boolean useSocket = false;
-		if(agentArgs.startsWith("socket,")) {
-			useSocket = true;
-			agentArgs = agentArgs.substring("socket,".length());
-		}
 		if(agentArgs.equals("")) usage();
 		
 		appendRtJarToBootClassPath(inst);
@@ -64,62 +57,43 @@ public class Agent {
 		ReflLogger.setMustCount(count);		
 		if(dontNormalize) Hasher.dontNormalize();
 
-		if(useSocket) {
-			//online mode; no need to create any files; just insert instrumentation...
-			String hostColonPort = agentArgs;
-			if(!hostColonPort.contains(":")) throw new IllegalArgumentException("Wrong destination "+hostColonPort+" ! Format is host:port.");
-			String[] split = hostColonPort.split(":");
-			String host = split[0];
-			int port = Integer.parseInt(split[1]);
-			socket = new Socket(host, port);
-			ReflLogger.setSocket(socket);
-			instrumentClassesForLogging(inst);
-		} else {
-			String outPath=agentArgs;
-			if(outPath==null||outPath.isEmpty()) {
-				System.err.println("No outpath given!");
+		String outPath=agentArgs;
+		if(outPath==null||outPath.isEmpty()) {
+			System.err.println("No outpath given!");
+			usage();
+		}
+		
+		File outDir = new File(outPath);
+		if(outDir.exists()) {
+			if(!outDir.isDirectory()) {
+				System.err.println(outDir+ "is not a directory");
 				usage();
 			}
+		} else {
+			boolean res = outDir.mkdirs();
+			if(!res) {
+				System.err.println("Cannot create directory "+outDir);
+				usage();
+			}
+		}
+		
+		final File logFile = new File(outDir,"refl.log");
+				
+		ReflLogger.setLogFile(logFile);
+		
+		instrumentClassesForLogging(inst);
+		
+		final boolean verboseOutput = verbose;
+		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
-			File outDir = new File(outPath);
-			if(outDir.exists()) {
-				if(!outDir.isDirectory()) {
-					System.err.println(outDir+ "is not a directory");
-					usage();
-				}
-			} else {
-				boolean res = outDir.mkdirs();
-				if(!res) {
-					System.err.println("Cannot create directory "+outDir);
-					usage();
-				}
+			@Override
+			public void run() {
+				ShutdownStatus.hasShutDown = true;
+				ReflLogger.writeLogfileToDisk(verboseOutput);
 			}
 			
-			final File logFile = new File(outDir,"refl.log");
-					
-			ReflLogger.setLogFile(logFile);
-			
-			instrumentClassesForLogging(inst);
-			
-			final boolean verboseOutput = verbose;
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				
-				@Override
-				public void run() {
-					ShutdownStatus.hasShutDown = true;
-					if(socket!=null) {
-						try {
-							socket.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					ReflLogger.writeLogfileToDisk(verboseOutput);
-				}
-				
-			});
-		}
-}
+		});
+	}
 
 
 	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
