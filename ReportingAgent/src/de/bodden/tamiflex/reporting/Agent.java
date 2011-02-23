@@ -8,7 +8,7 @@
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout;
+package de.bodden.tamiflex.reporting;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +21,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.jar.JarFile;
 
-import de.bodden.tamiflex.playout.rt.ReflLogger;
-import de.bodden.tamiflex.playout.rt.ShutdownStatus;
+import de.bodden.tamiflex.reporting.rt.ReflLogger;
+import de.bodden.tamiflex.reporting.rt.ShutdownStatus;
 
 public class Agent {
 	
@@ -89,7 +89,7 @@ public class Agent {
 	}
 
 	private static void appendRtJarToBootClassPath(Instrumentation inst) throws URISyntaxException, IOException {
-		URL locationOfAgent = Agent.class.getResource("/de/bodden/tamiflex/playout/rt/ReflLogger.class");
+		URL locationOfAgent = Agent.class.getResource("/de/bodden/tamiflex/reporting/rt/ReflLogger.class");
 		if(locationOfAgent==null) {
 			System.err.println("Support library for reflection log not found on classpath.");
 			System.exit(1);

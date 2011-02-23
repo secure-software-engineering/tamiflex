@@ -37,7 +37,7 @@
     	<mkdir dir="META-INF"/>
 
     	<manifest file="META-INF/MANIFEST.MF">
-           <attribute name="Premain-Class" value="de.bodden.tamiflex.playout.Agent"/>
+           <attribute name="Premain-Class" value="de.bodden.tamiflex.reporting.Agent"/>
            <attribute name="Can-Retransform-Classes" value="true"/>
            <attribute name="Implementation-Version" value="${tf.version}"/> 
        </manifest>

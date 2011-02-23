@@ -8,9 +8,12 @@
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.rt;
+package de.bodden.tamiflex.reporting.rt;
 
-public abstract class RuntimeLogEntry {
+
+
+
+public class PersistedLogEntry {
 	
 	protected final String containerMethod;
 	
@@ -18,16 +21,24 @@ public abstract class RuntimeLogEntry {
 
 	protected final Kind kind;
 	
-	protected int count;
+	protected final String targetClassOrMethod;
+	
+	protected final int count;
 
-	public RuntimeLogEntry(String containerMethod, int lineNumber, Kind kind) {
+	public PersistedLogEntry(String containerMethod, int lineNumber, Kind kind, String targetClassOrMethod, int count) {
 		if(lineNumber<0) lineNumber = -1;
 		this.containerMethod = containerMethod;
 		this.lineNumber = lineNumber;
 		this.kind = kind;
-		this.count = 0;
+		this.targetClassOrMethod = targetClassOrMethod;
+		this.count = count;
 	}
 	
+	@Override
+	public String toString() {
+		return kind.label() + ";" + targetClassOrMethod + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
+	}
+
 	@Override
 	//does NOT take into account "count"
 	public int hashCode() {
@@ -37,6 +48,10 @@ public abstract class RuntimeLogEntry {
 				+ ((containerMethod == null) ? 0 : containerMethod.hashCode());
 		result = prime * result + ((kind == null) ? 0 : kind.hashCode());
 		result = prime * result + lineNumber;
+		result = prime
+				* result
+				+ ((targetClassOrMethod == null) ? 0 : targetClassOrMethod
+						.hashCode());
 		return result;
 	}
 
@@ -49,7 +64,7 @@ public abstract class RuntimeLogEntry {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		RuntimeLogEntry other = (RuntimeLogEntry) obj;
+		PersistedLogEntry other = (PersistedLogEntry) obj;
 		if (containerMethod == null) {
 			if (other.containerMethod != null)
 				return false;
@@ -61,6 +76,11 @@ public abstract class RuntimeLogEntry {
 		} else if (!kind.equals(other.kind))
 			return false;
 		if (lineNumber != other.lineNumber)
+			return false;
+		if (targetClassOrMethod == null) {
+			if (other.targetClassOrMethod != null)
+				return false;
+		} else if (!targetClassOrMethod.equals(other.targetClassOrMethod))
 			return false;
 		return true;
 	}
@@ -81,9 +101,27 @@ public abstract class RuntimeLogEntry {
 		return kind;
 	}
 
-	public void incrementCounter() {
-		count++;
+	public String getTargetClassOrMethod() {
+		return targetClassOrMethod;
 	}
+
+	public static PersistedLogEntry merge(PersistedLogEntry e1, PersistedLogEntry e2) {
+		assert e1.containerMethod.equals(e2.containerMethod);
+		assert e1.kind.equals(e2.kind);
+		assert e1.lineNumber==e2.lineNumber;
+		assert e1.targetClassOrMethod.equals(e2.targetClassOrMethod);
+		return new PersistedLogEntry(e1.containerMethod, e1.lineNumber, e1.kind, e1.targetClassOrMethod, e1.count + e2.count);
+	}
+
+//	public static LogEntry getEntryWithHashedNames(LogEntry e) {
+//		LogEntry res = new LogEntry(
+//				dotted(findAndReplaceGeneratedClassNames(slashed(e.containerMethod))),
+//				e.lineNumber,
+//				e.kind,
+//				dotted(findAndReplaceGeneratedClassNames(slashed(e.targetClassOrMethod)))
+//			);
+//		res.initializeCounter(e.count);
+//		return res;
+//	}
 	
-	public abstract PersistedLogEntry toPersistedEntry();
 }

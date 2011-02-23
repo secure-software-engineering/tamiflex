@@ -8,7 +8,7 @@
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.rt;
+package de.bodden.tamiflex.reporting.rt;
 
 public enum Kind {
 	
