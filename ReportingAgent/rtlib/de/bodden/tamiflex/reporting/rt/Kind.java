@@ -14,6 +14,7 @@ public enum Kind {
 	
 
 	ClassForName("Class.forName"),
+	ClassForNameWithClassLoader("Class.forNameWithClassLoader"),
 	ClassNewInstance("Class.newInstance"),
 	ConstructorNewInstance("Constructor.newInstance"),
 	MethodInvoke("Method.invoke");
