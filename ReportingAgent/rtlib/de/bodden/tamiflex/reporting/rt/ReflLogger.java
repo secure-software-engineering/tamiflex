@@ -12,50 +12,80 @@ package de.bodden.tamiflex.reporting.rt;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class ReflLogger {
 	
 	private static PrintWriter logger;
 	private static File logFile;
-	private static int entriesWritten = 0;
+	
+	private static class ThreadLocalState {
+		List<Entry> logEntries = new LinkedList<Entry>();
+		int stackDepth = 0;
+	}
+	
+	private static List<ThreadLocalState> perThreadStates = Collections.synchronizedList(new LinkedList<ReflLogger.ThreadLocalState>());
 
+	private static ThreadLocal<ThreadLocalState> threadLocalState = new ThreadLocal<ReflLogger.ThreadLocalState>() {
+		protected ThreadLocalState initialValue() {
+			ThreadLocalState state = new ThreadLocalState();
+			perThreadStates.add(state);
+			return state;
+		}
+	};
+	
 	public static void classNewInstance(boolean entering, Class<?> c) {
 		StackTraceElement frame = getInvokingFrame();
 		log(entering, frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
 	}
 
 	private static void log(boolean entering, Object... toPrint) {
-		logAttemptOrSuccess(entering);
-		
-		logCurrentThread();
+		ThreadLocalState state = threadLocalState.get();
+		List<Entry> entries = state.logEntries;
 
+		if(entering) {
+			state.stackDepth++;
+			Entry entry = new Entry(entries.size(),state.stackDepth,flatten(toPrint));
+			entries.add(entry);
+		} else {
+			Entry entry = new Entry(entries.size(),state.stackDepth,flatten(toPrint));
+			boolean found = false;
+			for(int i = entries.size()-1; i>=0; i--) {
+				Entry other = entries.get(i);
+				if(entry.matchesEarlierEntry(other)) {
+					other.markAsSucceeded();
+					found = true;
+					state.stackDepth = other.getStackDepth()-1;
+					break;
+				} else {
+					if(other.successUnknown())
+						other.markAsFailed();
+				}				
+			}
+			if(!found) {
+				throw new IllegalStateException("closing entry without matching opening entry:" +entry);
+			} 
+		}
+		
+	}
+
+	private static String flatten(Object[] toPrint) {
+		StringWriter sw = new StringWriter();
 		int i = 0;
-		for (Object object : toPrint) {
-			logger.print(object);
-			if(i<toPrint.length) {
-				logger.print(";");
-			}						
+		for(Object o: toPrint) {
+			sw.append(o.toString());
+			if(i<toPrint.length)
+				sw.append(";");
 			i++;
 		}
-		logger.println();
-		entriesWritten++;
-	}
-
-	private static void logAttemptOrSuccess(boolean entering) {
-		String prefix = entering ? "ATTEMPT" : "SUCCESS";
-		logger.print(prefix);
-		logger.print(";");
-	}
-
-	private static void logCurrentThread() {
-		logger.print(Thread.currentThread().getId());
-		logger.print("-");
-		logger.print(Thread.currentThread().getName());
-		logger.print(";");
+		return sw.toString();
 	}
 
 	public static void classForName(boolean entering, String typeName) {
@@ -63,9 +93,10 @@ public class ReflLogger {
 		log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
 	}
 
-	public static void classForNameWithClassLoader(boolean entering, String typeName) {
+	public static void classForName(boolean entering, String typeName, boolean initialize, ClassLoader classLoader) {
 		StackTraceElement frame = getInvokingFrame();
-		log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForNameWithClassLoader,handleArrayTypes(typeName));
+		String classLoaderClassName = classLoader==null ? "null" : classLoader.getClass().getName();
+		log(entering,frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForNameWithClassLoader,handleArrayTypes(typeName),initialize,classLoaderClassName);
 	}
 
 	public static void constructorNewInstance(boolean entering, Constructor<?> c) {		
@@ -198,11 +229,23 @@ public class ReflLogger {
 	}
 	
 	public static synchronized void closeLogger() {
+		int entriesWritten = 0;
+		int threads = 0;
+		for(ThreadLocalState state : perThreadStates) {
+			for(Entry entry: state.logEntries) {
+				if(entry.successUnknown()) entry.markAsFailed();				
+				logger.println(entry);
+			}
+			entriesWritten += state.logEntries.size();
+			threads++;
+			logger.println();
+		}
+		
 		logger.flush();
 		logger.close();
 		System.err.println("\n=============================================");
 		System.err.println("TamiFlex Reporting Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
-		System.err.println("Found "+entriesWritten+" entries.");
+		System.err.println("Found "+entriesWritten+" entries in "+threads+" threads.");
 		System.err.println("Log file written to: "+logFile.getAbsolutePath());
 	}
 	

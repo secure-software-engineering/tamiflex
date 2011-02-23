@@ -49,7 +49,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
             		//delegate
             		MethodVisitor mv = cv.visitMethod(access, methodName, desc, signature, exceptions);
             		if(theClassName.equals("java/lang/Class") && methodName.equals("forName")) {
-            			mv = new ClassForNameAdapter(mv,signature.contains("ClassLoader"));    
+            			if(signature.contains("ClassLoader")) 
+            				mv = new ClassForNameWithClassloaderAdapter(mv);
+            			else
+            				mv = new ClassForNameAdapter(mv);
             		} else if(theClassName.equals("java/lang/Class") && methodName.equals("newInstance0")) {
             			mv = new ClassNewInstanceAdapter(mv);            			
             		} else if(theClassName.equals("java/lang/reflect/Method") && methodName.equals("invoke")) {
@@ -75,21 +78,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	
 	static class ClassForNameAdapter extends ReportingMethodAdapter {
 
-		private final boolean hasClassLoaderArgument;
-
-		public ClassForNameAdapter(MethodVisitor mv, boolean hasClassLoaderArgument) {
+		public ClassForNameAdapter(MethodVisitor mv) {
 			super(mv);
-			this.hasClassLoaderArgument = hasClassLoaderArgument;
 		}
 		
 		protected void insertCall(boolean beginningOfMethod) {
-			String methodToCall;
-			if(hasClassLoaderArgument) {
-				methodToCall = "classForNameWithClassLoader";
-			} else {
-				methodToCall = "classForName";     				
-			}
-			 			
 			//at the method entry, we pass "true" as first argument, later-on "false" 
 			mv.visitInsn(beginningOfMethod ? ICONST_1 : ICONST_0);    			
 			
@@ -97,7 +90,32 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			mv.visitVarInsn(ALOAD, 0);
 			
 			//call logging method with that Class object as argument
-			mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/reporting/rt/ReflLogger", methodToCall, "(ZLjava/lang/String;)V");
+			mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/reporting/rt/ReflLogger", "classForName", "(ZLjava/lang/String;)V");
+		}
+		
+	}
+	
+	static class ClassForNameWithClassloaderAdapter extends ReportingMethodAdapter {
+
+		public ClassForNameWithClassloaderAdapter(MethodVisitor mv) {
+			super(mv);
+		}
+		
+		protected void insertCall(boolean beginningOfMethod) {
+			//at the method entry, we pass "true" as first argument, later-on "false" 
+			mv.visitInsn(beginningOfMethod ? ICONST_1 : ICONST_0);    			
+			
+			//load first argument on stack, i.e. the name of the class to be loaded
+			mv.visitVarInsn(ALOAD, 0);
+			
+			//load second argument on stack, i.e. the boolean indicating whether to initialize the class
+			mv.visitVarInsn(ALOAD, 1);
+
+			//load third argument on stack, i.e. the ClassLoader
+			mv.visitVarInsn(ALOAD, 2);
+			
+			//call logging method with that Class object as argument
+			mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/reporting/rt/ReflLogger", "classForName", "(ZLjava/lang/String;ZLjava/lang/ClassLoader;)V");
 		}
 		
 	}
