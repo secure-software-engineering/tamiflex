@@ -51,7 +51,6 @@ public class ReflLogger {
 		List<Entry> entries = state.logEntries;
 
 		if(entering) {
-			state.stackDepth++;
 			Entry entry = new Entry(entries.size(),state.stackDepth,flatten(toPrint));
 			entries.add(entry);
 		} else {
@@ -62,7 +61,6 @@ public class ReflLogger {
 				if(entry.matchesEarlierEntry(other)) {
 					other.markAsSucceeded();
 					found = true;
-					state.stackDepth = other.getStackDepth()-1;
 					break;
 				} else {
 					if(other.successUnknown())
@@ -213,6 +211,7 @@ public class ReflLogger {
 
 	private static StackTraceElement getInvokingFrame() {
 		StackTraceElement[] stackTrace = new Exception().getStackTrace();
+		threadLocalState.get().stackDepth = stackTrace.length;
 		StackTraceElement outerFrame = null;
 		for (StackTraceElement frame : stackTrace) {
 			String c = frame.getClassName();
