@@ -20,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.Socket;
@@ -76,6 +77,17 @@ public class ReflLogger {
 				entry.incrementCounter();		
 		}
 	}
+
+    private static void logAndIncrementTargetFieldEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String fieldType, String name) {
+        if(hasShutDown) return;
+        TargetFieldLogEntry newEntry = new TargetFieldLogEntry(containerMethod, lineNumber, kind, declaringClass, fieldType, name);
+        RuntimeLogEntry entry;
+        synchronized (ReflLogger.class) {
+            entry = pullOrCreateEntry(containerMethod, newEntry);
+            if(doCount)
+                entry.incrementCounter();       
+        }
+    }
 
 	private static RuntimeLogEntry pullOrCreateEntry(String containerMethod, RuntimeLogEntry newEntry) {
 		Map<RuntimeLogEntry,RuntimeLogEntry> entries = containerMethodToEntries.get(containerMethod);
@@ -147,6 +159,36 @@ public class ReflLogger {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void fieldSet(Field f) {
+	    try {
+	        StackTraceElement frame = getInvokingFrame();
+	        logAndIncrementTargetFieldEntry(
+	                frame.getClassName()+"."+frame.getMethodName(),
+	                frame.getLineNumber(),
+	                Kind.FieldSet,
+	                f.getDeclaringClass().getName(),
+	                f.getType().getName(),
+	                f.getName());
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+    public static void fieldGet(Field f) {
+        try {
+            StackTraceElement frame = getInvokingFrame();
+            logAndIncrementTargetFieldEntry(
+                    frame.getClassName()+"."+frame.getMethodName(),
+                    frame.getLineNumber(),
+                    Kind.FieldGet,
+                    f.getDeclaringClass().getName(),
+                    f.getType().getName(),
+                    f.getName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	
     protected static String handleArrayTypes(String className) {
         
@@ -222,6 +264,7 @@ public class ReflLogger {
 			if(!c.equals(ReflLogger.class.getName())
 			&& !c.equals(Class.class.getName())
 			&& !c.equals(Method.class.getName())
+			&& !c.equals(Field.class.getName())
 			&& !c.equals(Constructor.class.getName())) {
 			
 				outerFrame = frame;

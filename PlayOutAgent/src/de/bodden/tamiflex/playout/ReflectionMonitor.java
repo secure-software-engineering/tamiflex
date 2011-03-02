@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *     Eric Bodden - initial API and implementation
+ *     Andreas Sewe - coverage of reflective field accesses
  ******************************************************************************/
 package de.bodden.tamiflex.playout;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -15,6 +16,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.List;
 
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
@@ -36,7 +39,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 		final String theClassName = className;
 		
-		if(!className.equals("java/lang/Class") && !className.equals("java/lang/reflect/Method") && !className.equals("java/lang/reflect/Constructor")) return null;		
+		if(!className.equals("java/lang/Class") && !className.equals("java/lang/reflect/Method") && !className.equals("java/lang/reflect/Constructor") && !className.equals("java/lang/reflect/Field")) return null;		
 		
         try {
         	// scan class binary format to find fields for toString() method
@@ -56,8 +59,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
             			mv = new MethodInvokeAdapter(mv);            			
             		} else if(theClassName.equals("java/lang/reflect/Constructor") && methodName.equals("newInstance")) {
             			mv = new ConstructorNewInstanceAdapter(mv);            			
-            		}
-
+            		} else if(theClassName.equals("java/lang/reflect/Field") && fieldSets.contains(methodName)) {
+                        mv = new FieldSetAdapter(mv);
+                    } else if(theClassName.equals("java/lang/reflect/Field") && fieldGets.contains(methodName)) {
+                        mv = new FieldGetAdapter(mv);
+                    }
             		return mv;
             	};
             	
@@ -72,6 +78,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			throw e;
 		}
 	}
+	
+	private static List<String> fieldSets = Arrays.asList("set", "setBoolean", "setByte", "setChar", "setInt", "setLong", "setFloat", "setDouble", "setShort");
+	
+	   private static List<String> fieldGets = Arrays.asList("get", "getBoolean", "getByte", "getChar", "getInt", "getLong", "getFloat", "getDouble", "getShort");
 	
 	static class ClassForNameAdapter extends MethodAdapter {
 
@@ -150,4 +160,40 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 		
 	}
+	
+	static class FieldSetAdapter extends MethodAdapter {
+	    
+	    public FieldSetAdapter(MethodVisitor mv) {
+	        super(mv);
+	    }
+	    
+	    @Override
+	    public void visitInsn(int opcode) {
+	        if(opcode==Opcodes.RETURN) {
+                //load "this" on stack, i.e. the Field object
+                mv.visitVarInsn(ALOAD, 0);
+                //call logging method with that Field object as argument
+                mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "fieldSet", "(Ljava/lang/reflect/Field;)V");
+	        }
+	        super.visitInsn(opcode);
+	    }
+	}
+	
+    static class FieldGetAdapter extends MethodAdapter {
+        
+        public FieldGetAdapter(MethodVisitor mv) {
+            super(mv);
+        }
+        
+        @Override
+        public void visitInsn(int opcode) {
+            if(opcode==Opcodes.ARETURN || opcode==Opcodes.IRETURN || opcode==Opcodes.LRETURN || opcode==Opcodes.FRETURN || opcode==Opcodes.DRETURN) {
+                //load "this" on stack, i.e. the Field object
+                mv.visitVarInsn(ALOAD, 0);
+                //call logging method with that Field object as argument
+                mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "fieldGet", "(Ljava/lang/reflect/Field;)V");
+            }
+            super.visitInsn(opcode);
+        }
+    }
 }

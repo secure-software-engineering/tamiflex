@@ -35,7 +35,7 @@ public class ClassDumper implements ClassFileTransformer {
 	protected final File outDir; 
 	
 	/**
-	 * It is important that this be a <i>linked</i> has map because we need to generate hash numbers
+	 * It is important that this be a <i>linked</i> hash map because we need to generate hash numbers
 	 * for the classes in the order in which they are loaded. This is because a generated class <i>a</i> may reference
 	 * other generated classes, and when determining a hash code for <i>a</i>, the hash code for those
 	 * referenced classes must already have been computed.

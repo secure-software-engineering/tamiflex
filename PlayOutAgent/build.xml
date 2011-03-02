@@ -46,8 +46,6 @@
 
         <jar destfile="poa-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
             <fileset dir="bin-agent"/>
-            <zipfileset src="lib/ant.jar"/>
-            <zipfileset src="lib/ant-launcher.jar"/>
             <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
             <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
         </jar>

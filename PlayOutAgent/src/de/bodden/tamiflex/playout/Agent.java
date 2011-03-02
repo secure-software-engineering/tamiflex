@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.URI;
@@ -168,7 +169,7 @@ public class Agent {
 		inst.addTransformer(reflMonitor, true /* can retransform */);				
 
 		//make sure that these classes are instrumented
-		inst.retransformClasses(Class.class,Method.class,Constructor.class);
+		inst.retransformClasses(Class.class,Method.class,Constructor.class,Field.class);
 		
 		//remove transformer again
 		inst.removeTransformer(reflMonitor);
