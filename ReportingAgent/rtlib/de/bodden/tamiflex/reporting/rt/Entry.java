@@ -28,10 +28,7 @@ public class Entry {
 	
 	@Override
 	public String toString() {
-		String padding = "";
-		for(int i=0;i<stackDepth;i++)
-			padding += "  ";		
-		return padding + status + ";" + thread.getId()+"-"+thread.getName() + ";" + payload;
+		return status + ";" + thread.getId()+"-"+thread.getName() + ";" + payload;
 	}
 	
 	public boolean matchesEarlierEntry(Entry earlierEntry) {
@@ -40,7 +37,7 @@ public class Entry {
 		if(earlierEntry.thread != thread) {
 			throw new IllegalArgumentException("not an earlier entry! (different threads)");
 		}
-		return earlierEntry.status == ATTEMPTED && payload.equals(earlierEntry.payload); 
+		return earlierEntry.status == ATTEMPTED && stackDepth == earlierEntry.stackDepth && payload.equals(earlierEntry.payload); 
 	}
 
 	public void markAsSucceeded() {
