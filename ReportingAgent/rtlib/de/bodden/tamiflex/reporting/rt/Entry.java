@@ -16,11 +16,11 @@ public class Entry {
 
 	private final int perThreadTimeStamp;
 
-	private final int stackDepth;
+	private final StackTraceElement[] stackTrace;
 	
-	public Entry(int perThreadTimeStamp, int stackDepth, String payload) {
+	public Entry(int perThreadTimeStamp, StackTraceElement[] stackTrace, String payload) {
 		this.perThreadTimeStamp = perThreadTimeStamp;
-		this.stackDepth = stackDepth;
+		this.stackTrace = stackTrace;
 		this.payload = payload;
 		this.thread = Thread.currentThread();
 		this.status = ATTEMPTED;
@@ -37,7 +37,7 @@ public class Entry {
 		if(earlierEntry.thread != thread) {
 			throw new IllegalArgumentException("not an earlier entry! (different threads)");
 		}
-		return earlierEntry.status == ATTEMPTED && stackDepth == earlierEntry.stackDepth && payload.equals(earlierEntry.payload); 
+		return earlierEntry.status == ATTEMPTED && stackTrace.length == earlierEntry.stackTrace.length && payload.equals(earlierEntry.payload); 
 	}
 
 	public void markAsSucceeded() {
@@ -55,6 +55,10 @@ public class Entry {
 	}
 
 	public int getStackDepth() {
-		return stackDepth;
+		return stackTrace.length;
+	}
+	
+	public StackTraceElement[] getStackTrace() {
+		return stackTrace;
 	}
 }

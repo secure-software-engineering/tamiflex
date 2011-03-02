@@ -5,22 +5,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Reporter {
+	
+	private final static boolean PRINT_STACK_TRACES = false; 
+	private final static int NUM_STACK_FRAMES = 7; 
 
 	static class Data {
 		Set<String> threadIDs = new HashSet<String>();
 		int numSuccessfulCalls, numFailedCalls;
 		Map<String,Set<String>> kindToArguments = new HashMap<String, Set<String>>();
+		Set<List<String>> stackTraces = new HashSet<List<String>>();
 		
 		@Override
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
+			if(PRINT_STACK_TRACES)
+				for(List<String> trace: stackTraces) {
+					for(String frame: trace) {
+						sb.append(frame+"\n");
+					}
+					sb.append("\n");
+				}
 			sb.append("Thread IDs:   "+threadIDs+"\n");
-			sb.append("Success rate: "+(numSuccessfulCalls+0.0)/(numSuccessfulCalls+numFailedCalls)+"% ("+numSuccessfulCalls+" succeeded, "+numFailedCalls+ " failed)\n");
+			sb.append("Success rate: "+(numSuccessfulCalls+0.0)/(numSuccessfulCalls+numFailedCalls)*100+"% ("+numSuccessfulCalls+" succeeded, "+numFailedCalls+ " failed)\n");
 			for(Map.Entry<String,Set<String>> entry: kindToArguments.entrySet()) {
 				sb.append(entry.getKey());
 				sb.append("\n");
@@ -65,6 +77,16 @@ public class Reporter {
 			
 			String args = payload.substring(payload.lastIndexOf(kind)+kind.length());
 			arguments.add(args);
+			
+			StackTraceElement[] stackTrace = entry.getStackTrace();
+			List<String> partialTrace = new LinkedList<String>(); 
+			for(int i=1;i<NUM_STACK_FRAMES;i++) {
+				if(i<stackTrace.length) {
+					StackTraceElement frame = stackTrace[i];
+					partialTrace.add("    " + frame.getClassName()+"."+frame.getMethodName()+":"+frame.getLineNumber());
+				}				
+			}
+			data.stackTraces.add(partialTrace);
 		}	
 		
 		List<String> callSites = new ArrayList<String>(callSiteToData.keySet());
