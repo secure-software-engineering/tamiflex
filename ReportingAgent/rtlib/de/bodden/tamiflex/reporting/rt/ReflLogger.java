@@ -11,6 +11,7 @@
 package de.bodden.tamiflex.reporting.rt;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
@@ -230,10 +231,12 @@ public class ReflLogger {
 	public static synchronized void closeLogger() {
 		int entriesWritten = 0;
 		int threads = 0;
+		List<Entry> allEntries = new LinkedList<Entry>();
 		for(ThreadLocalState state : perThreadStates) {
 			for(Entry entry: state.logEntries) {
 				if(entry.successUnknown()) entry.markAsFailed();				
 				logger.println(entry);
+				allEntries.add(entry);
 			}
 			entriesWritten += state.logEntries.size();
 			threads++;
@@ -246,8 +249,19 @@ public class ReflLogger {
 		System.err.println("TamiFlex Reporting Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
 		System.err.println("Found "+entriesWritten+" entries in "+threads+" threads.");
 		System.err.println("Log file written to: "+logFile.getAbsolutePath());
+		
+		File reportFile = new File(logFile.getParent(),"report.txt");
+		PrintWriter out;
+		try {
+			out = new PrintWriter(new FileOutputStream(reportFile));
+			Reporter.generateReport(allEntries, out);
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}		
 	}
 	
+
 	public static void setLogFile(File f) {
 		logFile = f;
 		try {
