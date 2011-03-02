@@ -36,6 +36,8 @@ public class TargetFieldLogEntry extends RuntimeLogEntry {
         StringBuilder b = new StringBuilder();
         b.append("<");
         b.append(declaringClass);
+        b.append(".");
+        b.append(name);
         b.append(": ");
         b.append(fieldType);
         b.append(")>");
