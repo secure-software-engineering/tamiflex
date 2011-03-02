@@ -29,7 +29,7 @@ public class ReflLogger {
 	
 	private static class ThreadLocalState {
 		List<Entry> logEntries = new LinkedList<Entry>();
-		int stackDepth = 0;
+		StackTraceElement[] stackTrace;
 	}
 	
 	private static List<ThreadLocalState> perThreadStates = Collections.synchronizedList(new LinkedList<ReflLogger.ThreadLocalState>());
@@ -52,10 +52,10 @@ public class ReflLogger {
 		List<Entry> entries = state.logEntries;
 
 		if(entering) {
-			Entry entry = new Entry(entries.size(),state.stackDepth,flatten(toPrint));
+			Entry entry = new Entry(entries.size(),state.stackTrace,flatten(toPrint));
 			entries.add(entry);
 		} else {
-			Entry entry = new Entry(entries.size(),state.stackDepth,flatten(toPrint));
+			Entry entry = new Entry(entries.size(),state.stackTrace,flatten(toPrint));
 			boolean found = false;
 			for(int i = entries.size()-1; i>=0; i--) {
 				Entry other = entries.get(i);
@@ -212,19 +212,24 @@ public class ReflLogger {
 
 	private static StackTraceElement getInvokingFrame() {
 		StackTraceElement[] stackTrace = new Exception().getStackTrace();
-		threadLocalState.get().stackDepth = stackTrace.length;
 		StackTraceElement outerFrame = null;
+		int i=0;
 		for (StackTraceElement frame : stackTrace) {
 			String c = frame.getClassName();
 			if(!c.equals(ReflLogger.class.getName())
 			&& !c.equals(Class.class.getName())
 			&& !c.equals(Method.class.getName())
 			&& !c.equals(Constructor.class.getName())) {
-			
 				outerFrame = frame;
 				break;
 			}
+			i++;
 		}
+		
+		StackTraceElement[] truncated = new StackTraceElement[stackTrace.length-i];
+		System.arraycopy(stackTrace, i, truncated, 0, stackTrace.length-i);		
+		threadLocalState.get().stackTrace = truncated;
+		
 		return outerFrame;
 	}
 	
