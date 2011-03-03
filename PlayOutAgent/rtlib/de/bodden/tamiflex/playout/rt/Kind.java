@@ -36,7 +36,7 @@ public enum Kind {
 				return k;
 			}
 		}
-		throw new RuntimeException("unknown kind");
+		throw new RuntimeException("unknown kind: "+label);
 	}
 	
 	@Override
