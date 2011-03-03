@@ -167,8 +167,8 @@ public class ReflLogger {
 	                frame.getClassName()+"."+frame.getMethodName(),
 	                frame.getLineNumber(),
 	                Kind.FieldSet,
-	                f.getDeclaringClass().getName(),
-	                f.getType().getName(),
+	                getTypeName(f.getDeclaringClass()),
+	                getTypeName(f.getType()),
 	                f.getName());
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -182,8 +182,8 @@ public class ReflLogger {
                     frame.getClassName()+"."+frame.getMethodName(),
                     frame.getLineNumber(),
                     Kind.FieldGet,
-                    f.getDeclaringClass().getName(),
-                    f.getType().getName(),
+	                getTypeName(f.getDeclaringClass()),
+                    getTypeName(f.getType()),
                     f.getName());
         } catch (Exception e) {
             e.printStackTrace();
