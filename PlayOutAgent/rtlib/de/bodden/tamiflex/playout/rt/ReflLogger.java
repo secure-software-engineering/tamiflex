@@ -210,23 +210,23 @@ public class ReflLogger {
         
 
         if("B".equals(className))
-            className= Byte.class.getName();
+            className= byte.class.getName();
         if("C".equals(className))
-            className= Character.class.getName();
+            className= char.class.getName();
         if("D".equals(className))
-            className= Double.class.getName();
+            className= double.class.getName();
         if("F".equals(className))
-            className= Float.class.getName();
+            className= float.class.getName();
         if("I".equals(className))
-        	className = Integer.class.getName();
+        	className = int.class.getName();
         if("J".equals(className))
-        	className = Long.class.getName();
+        	className = long.class.getName();
         if("S".equals(className))
-        	className = Short.class.getName();
+        	className = short.class.getName();
         if("Z".equals(className))
-        	className = Boolean.class.getName();
+        	className = boolean.class.getName();
         if("V".equals(className))
-            className= Void.class.getName();
+            className= void.class.getName();
 
         for(int i=0; i<arrDepth; i++) {
         	className += "[]";
