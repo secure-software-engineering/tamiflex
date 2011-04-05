@@ -258,11 +258,13 @@ public class ReflLogger {
 
 	private static StackTraceElement getInvokingFrame() {
 		StackTraceElement[] stackTrace = new Exception().getStackTrace();
-		StackTraceElement outerFrame = null;
+		StackTraceElement outerFrame = null;		
 		for (StackTraceElement frame : stackTrace) {
 			String c = frame.getClassName();
+			String m = frame.getMethodName();
+			//here we are filtering out frames from Class, Method, etc. because we want to get the *caller* frame 			
 			if(!c.equals(ReflLogger.class.getName())
-			&& !c.equals(Class.class.getName())
+			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance, not others for Class
 			&& !c.equals(Method.class.getName())
 			&& !c.equals(Field.class.getName())
 			&& !c.equals(Constructor.class.getName())) {
