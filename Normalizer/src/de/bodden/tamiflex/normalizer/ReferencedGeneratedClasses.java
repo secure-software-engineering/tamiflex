@@ -31,7 +31,7 @@ public class ReferencedGeneratedClasses {
 		
 		Set<String> res = namesOfGeneratedClassesReferenced(classBytes);
         if(res.isEmpty()) return null;
-        if(res.size()>1) throw new RuntimeException("Class "+className+"references more than one other generated class: "+res);
+        if(res.size()>1) throw new RuntimeException("Class "+className+"references more than one other generated class: "+res+"\n (Current known limitation of TamiFlex.)");
         
         //know that res has exactly one element
         String ref = res.iterator().next();
