@@ -23,7 +23,7 @@ public class ReferencedGeneratedClasses {
 	protected static Map<String,String> generatedClassNameToReferencedGeneratedClassName = new HashMap<String, String>();
 	
 	/**
-	 * Returnes the slashed class names of all referenced generated classes, except for the declaring class itself.
+	 * Returns the slashed class names of all referenced generated classes, except for the declaring class itself.
 	 */
 	public synchronized static String nameOfGeneratedClassReferenced(String className, byte[] classBytes) {
 		String cached = generatedClassNameToReferencedGeneratedClassName.get(className);
