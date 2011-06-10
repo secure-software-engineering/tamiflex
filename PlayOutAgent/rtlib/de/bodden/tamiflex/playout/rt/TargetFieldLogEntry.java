@@ -85,7 +85,7 @@ public class TargetFieldLogEntry extends RuntimeLogEntry {
 
     @Override
     public String toString() {
-        String targetMethod = sootSignature(declaringClass, fieldType, name);
-        return kind.label() + ";" + targetMethod + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
+        String targetField = sootSignature(declaringClass, fieldType, name);
+        return kind.label() + ";" + targetField + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
     }
 }
