@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,6 +39,7 @@ public class Agent {
 			throw new RuntimeException("retransformation not supported");
 		}
 		
+		//TODO improve this, also make usage message consistent
 		if(agentArgs==null) agentArgs = "";
 		boolean dontDump = false;
 		if(agentArgs.startsWith("dontDumpClasses,")) {
@@ -169,7 +171,7 @@ public class Agent {
 		inst.addTransformer(reflMonitor, true /* can retransform */);				
 
 		//make sure that these classes are instrumented
-		inst.retransformClasses(Class.class,Method.class,Constructor.class,Field.class);
+		inst.retransformClasses(Class.class,Method.class,Constructor.class,Array.class,Field.class);
 		
 		//remove transformer again
 		inst.removeTransformer(reflMonitor);

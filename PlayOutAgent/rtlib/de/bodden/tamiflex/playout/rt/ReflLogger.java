@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -74,10 +75,21 @@ public class ReflLogger {
 		synchronized (ReflLogger.class) {
 			entry = pullOrCreateEntry(containerMethod, newEntry);
 			if(doCount)
-				entry.incrementCounter();		
+				entry.incrementCounter();
 		}
 	}
-
+	
+    private static void logAndIncrementTargetArrayEntry(String containerMethod, int lineNumber, Kind kind, String componentType, int... dimensions) {
+        if(hasShutDown) return;
+        TargetArrayLogEntry newEntry = new TargetArrayLogEntry(containerMethod, lineNumber, kind, componentType, dimensions);
+        RuntimeLogEntry entry;
+        synchronized (ReflLogger.class) {
+            entry = pullOrCreateEntry(containerMethod, newEntry);
+            if(doCount)
+                entry.incrementCounter();
+        }
+    }
+    
     private static void logAndIncrementTargetFieldEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String fieldType, String name) {
         if(hasShutDown) return;
         TargetFieldLogEntry newEntry = new TargetFieldLogEntry(containerMethod, lineNumber, kind, declaringClass, fieldType, name);
@@ -159,6 +171,34 @@ public class ReflLogger {
 			e.printStackTrace();
 		}
 	}
+	
+   public static void arrayNewInstance(Class<?> componentType, int dimension) {
+        try {
+            StackTraceElement frame = getInvokingFrame();
+            logAndIncrementTargetArrayEntry(
+                    frame.getClassName()+"."+frame.getMethodName(),
+                    frame.getLineNumber(),
+                    Kind.ArrayNewInstance,
+                    getTypeName(componentType),
+                    dimension);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+   
+   public static void arrayMultiNewInstance(Class<?> componentType, int... dimensions) {
+       try {
+           StackTraceElement frame = getInvokingFrame();
+           logAndIncrementTargetArrayEntry(
+                   frame.getClassName()+"."+frame.getMethodName(),
+                   frame.getLineNumber(),
+                   Kind.ArrayNewInstance,
+                   getTypeName(componentType),
+                   dimensions);
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+   }
 	
 	public static void fieldSet(Field f) {
 	    try {
@@ -266,6 +306,7 @@ public class ReflLogger {
 			if(!c.equals(ReflLogger.class.getName())
 			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance, not others for Class
 			&& !c.equals(Method.class.getName())
+			&& !c.equals(Array.class.getName())
 			&& !c.equals(Field.class.getName())
 			&& !c.equals(Constructor.class.getName())) {
 			

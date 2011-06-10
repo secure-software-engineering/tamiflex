@@ -7,11 +7,11 @@
  * 
  * Contributors:
  *     Eric Bodden - initial API and implementation
- *     Andreas Sewe - coverage of reflective field accesses
+ *     Andreas Sewe - coverage of array creation and reflective field accesses
  ******************************************************************************/
 package de.bodden.tamiflex.playout;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+
+import static org.objectweb.asm.Opcodes.*;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
@@ -39,7 +39,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 		final String theClassName = className;
 		
-		if(!className.equals("java/lang/Class") && !className.equals("java/lang/reflect/Method") && !className.equals("java/lang/reflect/Constructor") && !className.equals("java/lang/reflect/Field")) return null;		
+		if(!className.equals("java/lang/Class") && !className.equals("java/lang/reflect/Method") && !className.equals("java/lang/reflect/Constructor") && !className.equals("java/lang/reflect/Array") && !className.equals("java/lang/reflect/Field")) return null;		
 		
         try {
         	// scan class binary format to find fields for toString() method
@@ -59,7 +59,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
             			mv = new MethodInvokeAdapter(mv);            			
             		} else if(theClassName.equals("java/lang/reflect/Constructor") && methodName.equals("newInstance")) {
             			mv = new ConstructorNewInstanceAdapter(mv);            			
-            		} else if(theClassName.equals("java/lang/reflect/Field") && fieldSets.contains(methodName)) {
+            		} else if(theClassName.equals("java/lang/reflect/Array") && methodName.equals("newInstance") && desc.equals("(Ljava/lang/Class;I)Ljava/lang/Object;")) {
+                        mv = new ArrayNewInstanceAdapter(mv);
+                    } else if(theClassName.equals("java/lang/reflect/Array") && methodName.equals("newInstance") && desc.equals("(Ljava/lang/Class;[I)Ljava/lang/Object;")) {
+                        mv = new ArrayMultiNewInstanceAdapter(mv);
+                    }else if(theClassName.equals("java/lang/reflect/Field") && fieldSets.contains(methodName)) {
                         mv = new FieldSetAdapter(mv);
                     } else if(theClassName.equals("java/lang/reflect/Field") && fieldGets.contains(methodName)) {
                         mv = new FieldGetAdapter(mv);
@@ -81,7 +85,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	
 	private static List<String> fieldSets = Arrays.asList("set", "setBoolean", "setByte", "setChar", "setInt", "setLong", "setFloat", "setDouble", "setShort");
 	
-	   private static List<String> fieldGets = Arrays.asList("get", "getBoolean", "getByte", "getChar", "getInt", "getLong", "getFloat", "getDouble", "getShort");
+	private static List<String> fieldGets = Arrays.asList("get", "getBoolean", "getByte", "getChar", "getInt", "getLong", "getFloat", "getDouble", "getShort");
 	
 	static class ClassForNameAdapter extends MethodAdapter {
 
@@ -160,6 +164,48 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 		
 	}
+	
+	static class ArrayNewInstanceAdapter extends MethodAdapter {
+
+	    public ArrayNewInstanceAdapter(MethodVisitor mv) {
+            super(mv);
+        }
+        
+        @Override
+        public void visitInsn(int opcode) {
+            if(opcode==Opcodes.ARETURN) {
+                //load the class object on stack
+                mv.visitVarInsn(ALOAD, 0);
+                //load dimension on stack
+                mv.visitVarInsn(ILOAD, 1);
+                //call logging method
+                mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "arrayNewInstance", "(Ljava/lang/Class;I)V");
+            }
+            super.visitInsn(opcode);
+        }
+        
+    }
+	
+   static class ArrayMultiNewInstanceAdapter extends MethodAdapter {
+
+        public ArrayMultiNewInstanceAdapter(MethodVisitor mv) {
+            super(mv);
+        }
+        
+        @Override
+        public void visitInsn(int opcode) {
+            if(opcode==Opcodes.ARETURN) {
+                //load the class object on stack
+                mv.visitVarInsn(ALOAD, 0);
+                //load dimension array on stack
+                mv.visitVarInsn(ALOAD, 1);
+                //call logging method
+                mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "arrayMultiNewInstance", "(Ljava/lang/Class;[I)V");
+            }
+            super.visitInsn(opcode);
+        }
+        
+    }
 	
 	static class FieldSetAdapter extends MethodAdapter {
 	    

@@ -17,6 +17,7 @@ public enum Kind {
 	ClassNewInstance("Class.newInstance"),
 	ConstructorNewInstance("Constructor.newInstance"),
 	MethodInvoke("Method.invoke"),
+	ArrayNewInstance("Array.newInstance"),
 	FieldSet("Field.set*"),
 	FieldGet("Field.get*");
 
