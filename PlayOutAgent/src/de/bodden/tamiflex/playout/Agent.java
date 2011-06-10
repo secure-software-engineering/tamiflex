@@ -22,6 +22,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import de.bodden.tamiflex.normalizer.Hasher;
@@ -31,6 +32,9 @@ import de.bodden.tamiflex.playout.rt.ShutdownStatus;
 public class Agent {
 	
 	public final static String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
+	
+	private static final boolean CAN_RETRANSFORM = true;
+	
 	private static ClassDumper classDumper;
 	private static Socket socket;
 	
@@ -112,7 +116,7 @@ public class Agent {
 			
 			instrumentClassesForLogging(inst);
 			
-			inst.addTransformer(classDumper,true /* can retransform */);		
+			inst.addTransformer(classDumper, CAN_RETRANSFORM);
 			
 			final boolean verboseOutput = verbose;
 			Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -152,7 +156,7 @@ public class Agent {
 	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
 			throws UnmodifiableClassException {
 		classDumper = new ClassDumper(outDir,dontReallyDump,verbose);
-		inst.addTransformer(classDumper,true /* can retransform */);			
+		inst.addTransformer(classDumper, CAN_RETRANSFORM);
 		//dump all classes that are already loaded
 		for (Class<?> c : inst.getAllLoadedClasses()) {
 			if(inst.isModifiableClass(c)) {
@@ -168,12 +172,11 @@ public class Agent {
 
 	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
 		ReflectionMonitor reflMonitor = new ReflectionMonitor();
-		inst.addTransformer(reflMonitor, true /* can retransform */);				
-
-		//make sure that these classes are instrumented
-		inst.retransformClasses(Class.class,Method.class,Constructor.class,Array.class,Field.class);
+		inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
 		
-		//remove transformer again
+		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
+		inst.retransformClasses(affectedClasses.toArray(new Class<?>[affectedClasses.size()]));
+		
 		inst.removeTransformer(reflMonitor);
 	}
 
