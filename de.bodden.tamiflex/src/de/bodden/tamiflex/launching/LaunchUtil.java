@@ -12,6 +12,7 @@ package de.bodden.tamiflex.launching;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.eclipse.core.resources.IContainer;
@@ -62,12 +63,18 @@ public class LaunchUtil {
 			try {
 				resolved = FileLocator.resolve(installLoc);
 			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 		if (resolved != null) {
 			if(resolved.getProtocol().equals("file")) {
-				cpath.append(resolved.getPath()); //$NON-NLS-1$
-				cpath.append(localPath); //$NON-NLS-1$
+				try {
+					cpath.append(new File(resolved.toURI()).getAbsolutePath());
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				}
+				cpath.append(File.separatorChar);
+				cpath.append(localPath);
 			} else {
 				throw new RuntimeException("Cannot handle protocol "+resolved.getProtocol());
 			}
