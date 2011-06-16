@@ -242,17 +242,13 @@ public class PlayOutAgentLaunchTab extends AbstractLaunchConfigurationTab {
     private boolean validateOutputFolder() {
 		if (isToFolder()) {
 			String path = fOutputFolderText.getText().trim();
-			if(path.isEmpty()) {
+			if(path==null || path.isEmpty()) {
 				setErrorMessage("No output folder set"); 
 				return false;
 			}
 			IContainer container = getContainer(path);
 			if (container == null) {
-				if (path==null) {
-					setErrorMessage("No output folder set"); 
-				} else {
-					setErrorMessage("Output folder does not exist");
-				}
+				setErrorMessage("Output folder does not exist");
 				return false;
 			}
 		}
