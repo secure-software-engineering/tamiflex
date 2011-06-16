@@ -24,8 +24,6 @@ import org.eclipse.ui.PartInitException;
 
 import de.bodden.tamiflex.Activator;
 
-
-
 public class ResolvedMethodNode extends MethodNode {
 
 	private final String signature;
