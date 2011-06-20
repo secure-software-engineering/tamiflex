@@ -21,7 +21,6 @@ import java.util.List;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
 import de.bodden.tamiflex.playout.transformation.*;
@@ -59,8 +58,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			ClassVisitor visitor = writer;
 			
 			for (Transformation transformation : transformations)
-				if (className.equals(Type.getInternalName(transformation.getAffectedClass())))
-					visitor = transformation.getClassVisitor(visitor);
+				visitor = transformation.getClassVisitor(className, visitor);
 			
 			creader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 			return writer.toByteArray();

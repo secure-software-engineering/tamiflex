@@ -3,6 +3,7 @@ package de.bodden.tamiflex.playout.transformation;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
 public abstract class Transformation {
 	
@@ -16,7 +17,10 @@ public abstract class Transformation {
 		return affectedClass;
 	}
 	
-	public ClassVisitor getClassVisitor(ClassVisitor parent) {
+	public ClassVisitor getClassVisitor(String name, ClassVisitor parent) {
+		if (!name.equals(Type.getInternalName(affectedClass)))
+			return parent;
+		
 		return new ClassAdapter(parent) {
 			
 			@Override
