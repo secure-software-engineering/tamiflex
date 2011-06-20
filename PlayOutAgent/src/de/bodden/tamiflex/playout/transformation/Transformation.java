@@ -10,17 +10,24 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
 public abstract class Transformation {
 	
-	private Class<?> affectedClass;
+	private final Class<?> affectedClass;
 	
-	public Transformation(Class<?> affectedClass) {
+	private final List<Method> affectedMethods;
+	
+	public Transformation(Class<?> affectedClass, Method... affectedMethods) {
 		this.affectedClass = affectedClass;
+		this.affectedMethods = Arrays.asList(affectedMethods);
 	}
 	
 	public Class<?> getAffectedClass() {
@@ -35,11 +42,15 @@ public abstract class Transformation {
 			
 			@Override
 			public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-				MethodVisitor parent = super.visitMethod(access, name, desc, signature, exceptions);
-				return getTransformationVisitor(name, desc, parent);
+				final MethodVisitor parent = super.visitMethod(access, name, desc, signature, exceptions);
+				
+				if (!affectedMethods.contains(new Method(name, desc)))
+					return parent;
+				
+				return getMethodVisitor(parent);
 			}
 		};
 	}
 	
-	protected abstract MethodVisitor getTransformationVisitor(String name, String desc, MethodVisitor parent);
+	protected abstract MethodVisitor getMethodVisitor(MethodVisitor parent);
 }
