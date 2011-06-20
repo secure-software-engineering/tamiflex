@@ -167,17 +167,13 @@ public class PlayInAgentLaunchTab extends AbstractLaunchConfigurationTab {
 	
     private boolean validateInputFolder() {
 		String path = fInputFolderText.getText().trim();
-		if(path.isEmpty()) {
+		if(path==null || path.isEmpty()) {
 			setErrorMessage("No input folder set"); 
 			return false;
 		}
 		IContainer container = getContainer(path);
 		if (container == null) {
-			if (path==null) {
-				setErrorMessage("No input folder set"); 
-			} else {
-				setErrorMessage("Input folder does not exist");
-			}
+			setErrorMessage("Input folder does not exist");
 			return false;
 		}
 		return true;		
