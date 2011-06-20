@@ -100,7 +100,6 @@ public class ReflectionViewContentProvider implements IStructuredContentProvider
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		System.err.println("input changed");
 	}
 	
 	public TreeParent getRoot() {
