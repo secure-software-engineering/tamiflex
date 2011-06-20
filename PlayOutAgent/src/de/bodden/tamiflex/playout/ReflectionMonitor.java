@@ -1,0 +1,72 @@
+/*******************************************************************************
+ * Copyright (c) 2010 Eric Bodden.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Eric Bodden - initial API and implementation
+ *     Andreas Sewe - coverage of array creation and reflective field accesses
+ ******************************************************************************/
+package de.bodden.tamiflex.playout;
+
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
+import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+
+import de.bodden.tamiflex.normalizer.NameExtractor;
+import de.bodden.tamiflex.playout.transformation.*;
+
+public class ReflectionMonitor implements ClassFileTransformer {
+	
+	private List<Transformation> transformations = Arrays.<Transformation>asList(
+			new ClassForNameTransformation(),
+			new ClassNewInstanceTransformation(),
+			new MethodInvokeTransformation(),
+			new ConstructorNewInstanceTransformation(),
+			new ArrayNewInstanceTransformation(),
+			new ArrayMultiNewInstanceTransformation(),
+			new FieldGetTransformation(),
+			new FieldSetTransformation());
+	
+	public List<Class<?>> getAffectedClasses() {
+		List<Class<?>> affectedClasses = new ArrayList<Class<?>>();
+		
+		for (Transformation transformation : transformations)
+			affectedClasses.add(transformation.getAffectedClass());
+		
+		return affectedClasses;
+	}
+	
+	public byte[] transform(ClassLoader loader, String className,
+			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
+			byte[] classfileBuffer) throws IllegalClassFormatException {
+		if(className==null)
+			className = NameExtractor.extractName(classfileBuffer);
+		
+		try {
+			final ClassReader creader = new ClassReader(classfileBuffer);
+			final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+			ClassVisitor visitor = writer;
+			
+			for (Transformation transformation : transformations)
+				visitor = transformation.getClassVisitor(className, visitor);
+			
+			creader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+			return writer.toByteArray();
+		} catch (IllegalStateException e) {
+			throw new IllegalClassFormatException("Error: " + e.getMessage() + " on class " + className);
+		} catch(RuntimeException e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+}
