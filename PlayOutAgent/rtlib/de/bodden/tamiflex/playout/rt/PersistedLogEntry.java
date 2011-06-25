@@ -25,7 +25,10 @@ public class PersistedLogEntry {
 	
 	protected final int count;
 
-	public PersistedLogEntry(String containerMethod, int lineNumber, Kind kind, String targetClassOrMethod, int count) {
+	protected final String metadata;
+
+	public PersistedLogEntry(String containerMethod, int lineNumber, Kind kind, String targetClassOrMethod, String metadata, int count) {
+		this.metadata = metadata;
 		if(lineNumber<0) lineNumber = -1;
 		this.containerMethod = containerMethod;
 		this.lineNumber = lineNumber;
@@ -36,7 +39,7 @@ public class PersistedLogEntry {
 	
 	@Override
 	public String toString() {
-		return kind.label() + ";" + targetClassOrMethod + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + (count>0?count:"");
+		return kind.label() + ";" + targetClassOrMethod + ";" + containerMethod + ";" + (lineNumber>-1?lineNumber:"") + ";" + metadata + ";" + (count>0?count:"");
 	}
 
 	@Override
@@ -51,6 +54,10 @@ public class PersistedLogEntry {
 		result = prime
 				* result
 				+ ((targetClassOrMethod == null) ? 0 : targetClassOrMethod
+						.hashCode());
+		result = prime
+				* result
+				+ ((metadata == null) ? 0 : metadata
 						.hashCode());
 		return result;
 	}
@@ -82,6 +89,11 @@ public class PersistedLogEntry {
 				return false;
 		} else if (!targetClassOrMethod.equals(other.targetClassOrMethod))
 			return false;
+		if (metadata == null) {
+			if (other.metadata != null)
+				return false;
+		} else if (!metadata.equals(other.metadata))
+			return false;
 		return true;
 	}
 
@@ -100,6 +112,10 @@ public class PersistedLogEntry {
 	public Kind getKind() {
 		return kind;
 	}
+	
+	public String getMetadata() {
+		return metadata;
+	}
 
 	public String getTargetClassOrMethod() {
 		return targetClassOrMethod;
@@ -110,7 +126,8 @@ public class PersistedLogEntry {
 		assert e1.kind.equals(e2.kind);
 		assert e1.lineNumber==e2.lineNumber;
 		assert e1.targetClassOrMethod.equals(e2.targetClassOrMethod);
-		return new PersistedLogEntry(e1.containerMethod, e1.lineNumber, e1.kind, e1.targetClassOrMethod, e1.count + e2.count);
+		assert e1.metadata.equals(e2.metadata);
+		return new PersistedLogEntry(e1.containerMethod, e1.lineNumber, e1.kind, e1.targetClassOrMethod, e1.metadata, e1.count + e2.count);
 	}
 
 //	public static LogEntry getEntryWithHashedNames(LogEntry e) {
