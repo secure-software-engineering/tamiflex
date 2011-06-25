@@ -18,12 +18,14 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 	protected final String returnType;
 	protected final String name;
 	protected final String[] paramTypes;
+	protected final boolean isAccessible;
 
-	public TargetMethodLogEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
+	public TargetMethodLogEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, boolean isAccessible, String... paramTypes) {
 		super(containerMethod, lineNumber, kind);
 		this.declaringClass = declaringClass;
 		this.returnType = returnType;
 		this.name = name;
+		this.isAccessible = isAccessible;
 		this.paramTypes = paramTypes;
 	}
 
@@ -39,7 +41,7 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 		}
 			
 		String sootSignature = sootSignature(hashedDeclaringClass, hashedReturnType, name, hashedParamTypes);
-		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, ""/*no metdata*/, count);
+		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, "isAccessible="+Boolean.toString(isAccessible), count);
 	}
 	
 	private static String sootSignature(String declaringClass, String returnType, String name, String... paramTypes) {
@@ -71,6 +73,7 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 				+ ((declaringClass == null) ? 0 : declaringClass.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + Arrays.hashCode(paramTypes);
+		result = prime * result + (isAccessible ? 1231 : 1237);
 		result = prime * result
 				+ ((returnType == null) ? 0 : returnType.hashCode());
 		return result;
@@ -101,6 +104,8 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 			if (other.returnType != null)
 				return false;
 		} else if (!returnType.equals(other.returnType))
+			return false;
+		if (isAccessible != other.isAccessible)
 			return false;
 		return true;
 	}

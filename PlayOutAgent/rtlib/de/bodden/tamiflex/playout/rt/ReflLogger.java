@@ -68,9 +68,9 @@ public class ReflLogger {
 		}
 	}
 
-	private static void logAndIncrementTargetMethodEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, String... paramTypes) {
+	private static void logAndIncrementTargetMethodEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String returnType, String name, boolean isAccessible, String... paramTypes) {
 		if(hasShutDown) return;
-		TargetMethodLogEntry newEntry = new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, paramTypes);
+		TargetMethodLogEntry newEntry = new TargetMethodLogEntry(containerMethod, lineNumber, kind, declaringClass, returnType, name, isAccessible, paramTypes);
 		RuntimeLogEntry entry;
 		synchronized (ReflLogger.class) {
 			entry = pullOrCreateEntry(containerMethod, newEntry);
@@ -133,7 +133,7 @@ public class ReflLogger {
 		
 		String[] paramTypes = classesToTypeNames(c.getParameterTypes());
 		
-		logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,c.getDeclaringClass().getName(),"void","<init>",paramTypes);
+		logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
 	}
 
 	private static String[] classesToTypeNames(Class<?>[] params) {
@@ -166,7 +166,7 @@ public class ReflLogger {
 			
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(),paramTypes);
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
