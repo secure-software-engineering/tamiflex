@@ -304,6 +304,7 @@ public class ReflLogger {
 		for (StackTraceElement frame : stackTrace) {
 			String c = frame.getClassName();
 			String m = frame.getMethodName();
+			//FIXME this should also refer to general Transformations instead, just as the agent does
 			//here we are filtering out frames from Class, Method, etc. because we want to get the *caller* frame 			
 			if(!c.equals(ReflLogger.class.getName())
 			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance and forName,
