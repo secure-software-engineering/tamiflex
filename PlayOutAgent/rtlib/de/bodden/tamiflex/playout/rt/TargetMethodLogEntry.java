@@ -39,7 +39,7 @@ public class TargetMethodLogEntry extends RuntimeLogEntry {
 		}
 			
 		String sootSignature = sootSignature(hashedDeclaringClass, hashedReturnType, name, hashedParamTypes);
-		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, count);
+		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, ""/*no metdata*/, count);
 	}
 	
 	private static String sootSignature(String declaringClass, String returnType, String name, String... paramTypes) {

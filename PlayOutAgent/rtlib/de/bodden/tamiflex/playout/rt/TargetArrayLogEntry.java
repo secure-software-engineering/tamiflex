@@ -30,7 +30,7 @@ public class TargetArrayLogEntry extends RuntimeLogEntry {
 		String hashedComponentType = replaceByHashedClassName(componentType);
 			
 		String sootSignature = sootSignature(hashedComponentType, dimensions);
-		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, count);
+		return new PersistedLogEntry(hashedContainerMethod, lineNumber, kind, sootSignature, ""/*no metdata*/, count);
 	}
 	
 	private static String sootSignature(String componentType, int... dimensions) {

@@ -90,9 +90,9 @@ public class ReflLogger {
         }
     }
     
-    private static void logAndIncrementTargetFieldEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String fieldType, String name) {
+    private static void logAndIncrementTargetFieldEntry(String containerMethod, int lineNumber, Kind kind, String declaringClass, String fieldType, String name, boolean isAccessible) {
         if(hasShutDown) return;
-        TargetFieldLogEntry newEntry = new TargetFieldLogEntry(containerMethod, lineNumber, kind, declaringClass, fieldType, name);
+        TargetFieldLogEntry newEntry = new TargetFieldLogEntry(containerMethod, lineNumber, kind, declaringClass, fieldType, name, isAccessible);
         RuntimeLogEntry entry;
         synchronized (ReflLogger.class) {
             entry = pullOrCreateEntry(containerMethod, newEntry);
@@ -209,7 +209,8 @@ public class ReflLogger {
 	                Kind.FieldSet,
 	                getTypeName(f.getDeclaringClass()),
 	                getTypeName(f.getType()),
-	                f.getName());
+	                f.getName(),
+	                f.isAccessible());
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
@@ -224,7 +225,8 @@ public class ReflLogger {
                     Kind.FieldGet,
 	                getTypeName(f.getDeclaringClass()),
                     getTypeName(f.getType()),
-                    f.getName());
+                    f.getName(),
+                    f.isAccessible());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -304,7 +306,8 @@ public class ReflLogger {
 			String m = frame.getMethodName();
 			//here we are filtering out frames from Class, Method, etc. because we want to get the *caller* frame 			
 			if(!c.equals(ReflLogger.class.getName())
-			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance, not others for Class
+			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance and forName,
+			&& !(c.equals(Class.class.getName()) && m.equals("forName"))     //not others for Class
 			&& !c.equals(Method.class.getName())
 			&& !c.equals(Array.class.getName())
 			&& !c.equals(Field.class.getName())
@@ -369,8 +372,9 @@ public class ReflLogger {
 					String target = split[1];
 					String containerMethod = split[2];
 					int lineNumber = split[3].isEmpty()?-1:Integer.parseInt(split[3]);
-					int count = (split.length<5||split[4].isEmpty()||!doCount)?0:Integer.parseInt(split[4]);
-					PersistedLogEntry entry = new PersistedLogEntry(containerMethod, lineNumber, kind, target, count);
+					String metadata = split[4];
+					int count = (split.length<6||split[5].isEmpty()||!doCount)?0:Integer.parseInt(split[5]);
+					PersistedLogEntry entry = new PersistedLogEntry(containerMethod, lineNumber, kind, target, metadata, count);
 					oldContainerMethodToEntries.put(entry,entry);
 				}
 			} catch (IOException e) {
