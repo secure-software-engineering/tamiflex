@@ -11,6 +11,7 @@
 package de.bodden.tamiflex.playout.transformation;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.objectweb.asm.ClassAdapter;
@@ -32,6 +33,10 @@ public abstract class Transformation {
 	
 	public Class<?> getAffectedClass() {
 		return affectedClass;
+	}
+	
+	public List<Method> getAffectedMethods() {
+		return Collections.unmodifiableList(affectedMethods);
 	}
 	
 	public ClassVisitor getClassVisitor(String name, ClassVisitor parent) {

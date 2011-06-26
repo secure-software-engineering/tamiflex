@@ -208,13 +208,16 @@ public class Agent {
 		System.out.println("");
 		System.out.println("For instance, the following command will cause the agent to dump class files into");
 		System.out.println("the directory /tmp/out, counting reflective invocations:");
-		System.out.println("java -javaagent:agent.jar=count,outpath=/tmp/out ...");
+		System.out.println("java -javaagent:agent.jar=count,outpath=/tmp/out ...\n\n");
+		System.out.println("The agent is currently configured to instrument the following methods:\n");
+		System.out.println(new ReflectionMonitor().listTransformations());
+		System.out.println("\n");
 		System.out.println(DISCLAIMER);
 		System.exit(1);
 	}
 	
 	private final static String DISCLAIMER=
-		"Copyright (c) 2010 Eric Bodden.\n" +
+		"Copyright (c) 2010-2011 Eric Bodden and others.\n" +
 		"\n" +
 		"DISCLAIMER: USE OF THIS SOFTWARE IS AT OWN RISK.\n" +
 		"\n" +

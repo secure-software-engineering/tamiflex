@@ -21,6 +21,7 @@ import java.util.List;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
 import de.bodden.tamiflex.playout.transformation.ArrayMultiNewInstanceTransformation;
@@ -51,25 +52,25 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	private List<Transformation> transformations = Arrays.<Transformation>asList(
 			new ClassForNameTransformation(),
 			new ClassNewInstanceTransformation(),
-			new MethodGetDeclaringClassTransformation(),
-			new MethodGetModifiersTransformation(),
-			new MethodGetNameTransformation(),
-			new MethodInvokeTransformation(),
-			new MethodToGenericStringTransformation(),
-			new MethodToStringTransformation(),
+			new ArrayNewInstanceTransformation(),
+			new ArrayMultiNewInstanceTransformation(),
 			new ConstructorGetModifiersTransformation(),
 			new ConstructorNewInstanceTransformation(),
 			new ConstructorToGenericStringTransformation(),
 			new ConstructorToStringTransformation(),
-			new ArrayNewInstanceTransformation(),
-			new ArrayMultiNewInstanceTransformation(),
 			new FieldGetDeclaringClassTransformation(),
 			new FieldGetModifiersTransformation(),
 			new FieldGetNameTransformation(),
 			new FieldGetTransformation(),
 			new FieldSetTransformation(),
 			new FieldToGenericStringTransformation(),
-			new FieldToStringTransformation());
+			new FieldToStringTransformation(),
+			new MethodGetDeclaringClassTransformation(),
+			new MethodGetModifiersTransformation(),
+			new MethodGetNameTransformation(),
+			new MethodInvokeTransformation(),
+			new MethodToGenericStringTransformation(),
+			new MethodToStringTransformation());
 	
 	public List<Class<?>> getAffectedClasses() {
 		List<Class<?>> affectedClasses = new ArrayList<Class<?>>();
@@ -102,5 +103,15 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	public String listTransformations() {
+		StringBuilder sb = new StringBuilder();
+		for (Transformation t : transformations) {
+			for(Method m: t.getAffectedMethods()) {
+				sb.append(t.getAffectedClass().getName()+"."+m.getName()+m.getDescriptor()+"\n");
+			}
+		}
+		return sb.toString();
 	}
 }
