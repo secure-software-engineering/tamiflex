@@ -25,11 +25,13 @@ public enum Kind {
 	ClassGetModifiers("Class.getModifiers"),
 	ConstructorNewInstance("Constructor.newInstance"),
 	ConstructorGetModifiers("Constructor.getModifiers"),
+	ConstructorToGenericString("Constructor.toGenericString"),
 	ConstructorToString("Constructor.toString"),
 	MethodInvoke("Method.invoke"),
 	MethodGetName("Method.getName"),
 	MethodGetDeclaringClass("Method.getDeclaringClass"),
 	MethodGetModifiers("Method.getModifiers"),
+	MethodToGenericString("Method.toGenericString"),
 	MethodToString("Method.toString"),
 	ArrayNewInstance("Array.newInstance"),
 	FieldSet("Field.set*"),
@@ -37,6 +39,7 @@ public enum Kind {
 	FieldGetName("Field.getName"),
 	FieldGetDeclaringClass("Field.getDeclaringClass"),
 	FieldGetModifiers("Field.getModifiers"),
+	FieldToGenericString("Field.toGenericString"),
 	FieldToString("Field.toString");
 	
 	private final String output;
