@@ -30,17 +30,20 @@ import de.bodden.tamiflex.playout.transformation.ClassNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.Transformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorGetModifiersTransformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToGenericStringTransformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToStringTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetDeclaringClassTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetModifiersTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetNameTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldSetTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldToGenericStringTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldToStringTransformation;
 import de.bodden.tamiflex.playout.transformation.method.MethodGetDeclaringClassTransformation;
 import de.bodden.tamiflex.playout.transformation.method.MethodGetModifiersTransformation;
 import de.bodden.tamiflex.playout.transformation.method.MethodGetNameTransformation;
 import de.bodden.tamiflex.playout.transformation.method.MethodInvokeTransformation;
+import de.bodden.tamiflex.playout.transformation.method.MethodToGenericStringTransformation;
 import de.bodden.tamiflex.playout.transformation.method.MethodToStringTransformation;
 
 public class ReflectionMonitor implements ClassFileTransformer {
@@ -52,9 +55,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			new MethodGetModifiersTransformation(),
 			new MethodGetNameTransformation(),
 			new MethodInvokeTransformation(),
+			new MethodToGenericStringTransformation(),
 			new MethodToStringTransformation(),
 			new ConstructorGetModifiersTransformation(),
 			new ConstructorNewInstanceTransformation(),
+			new ConstructorToGenericStringTransformation(),
 			new ConstructorToStringTransformation(),
 			new ArrayNewInstanceTransformation(),
 			new ArrayMultiNewInstanceTransformation(),
@@ -63,6 +68,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			new FieldGetNameTransformation(),
 			new FieldGetTransformation(),
 			new FieldSetTransformation(),
+			new FieldToGenericStringTransformation(),
 			new FieldToStringTransformation());
 	
 	public List<Class<?>> getAffectedClasses() {
