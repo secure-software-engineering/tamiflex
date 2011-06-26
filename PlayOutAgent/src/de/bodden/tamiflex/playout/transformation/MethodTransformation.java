@@ -10,16 +10,23 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.RETURN;
 
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
-public class MethodInvokeTransformation extends Transformation {
+import de.bodden.tamiflex.playout.rt.Kind;
+
+public abstract class MethodTransformation extends Transformation {
 	
-	public MethodInvokeTransformation() {
-		super(java.lang.reflect.Method.class, new Method("invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"));
+	public MethodTransformation(Method... methods) {
+		super(java.lang.reflect.Method.class, methods);
 	}
 	
 	@Override
@@ -28,13 +35,21 @@ public class MethodInvokeTransformation extends Transformation {
 			
 			@Override
 			public void visitInsn(int opcode) {
-				if (opcode == ARETURN) {
+				if (IRETURN <= opcode && opcode <= RETURN) {
 					mv.visitVarInsn(ALOAD, 1); // Load designated receiver
 					mv.visitVarInsn(ALOAD, 0); // Load Method instance
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "methodInvoke", "(Ljava/lang/Object;Ljava/lang/reflect/Method;)V");
+					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					mv.visitMethodInsn(
+						INVOKESTATIC,
+						"de/bodden/tamiflex/playout/rt/ReflLogger",
+						"methodMethodInvoke",
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+					);
 				}
 				super.visitInsn(opcode);
 			}
 		};
 	}
+	
+	protected abstract Kind methodKind();
 }

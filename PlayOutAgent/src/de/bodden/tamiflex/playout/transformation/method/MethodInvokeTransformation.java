@@ -6,24 +6,26 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Andreas Sewe - initial implementation
+ *     Eric Bodden - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation.field;
+package de.bodden.tamiflex.playout.transformation.method;
 
-import static de.bodden.tamiflex.playout.rt.Kind.MethodToString;
+import static de.bodden.tamiflex.playout.rt.Kind.MethodInvoke;
 
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
-import de.bodden.tamiflex.playout.transformation.FieldTransformation;
+import de.bodden.tamiflex.playout.transformation.MethodTransformation;
 
-public class FieldToStringTransformation extends FieldTransformation {
+public class MethodInvokeTransformation extends MethodTransformation {
 	
-	public FieldToStringTransformation() {
-		super( new Method("toString", "()Ljava/lang/String;"));
+	public MethodInvokeTransformation() {
+		super(new Method("invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"));
 	}
-	
+
+	@Override
 	protected Kind methodKind() {
-		return MethodToString;
+		return MethodInvoke;
 	}
+	
 }
