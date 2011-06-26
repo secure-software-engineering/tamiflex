@@ -126,21 +126,34 @@ public class ReflLogger {
 	}
 
 	public static void classNewInstance(Class<?> c) {
-		StackTraceElement frame = getInvokingFrame();
-		logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
+		if(isReentrant()) return;
+		try {
+			StackTraceElement frame = getInvokingFrame();
+			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
+		} finally {
+			insideLogger.set(false);
+		}
 	}
 
 	public static void classForName(String typeName) {
-		StackTraceElement frame = getInvokingFrame();
-		logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
+		if(isReentrant()) return;
+		try {
+			StackTraceElement frame = getInvokingFrame();
+			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
+		} finally {
+			insideLogger.set(false);
+		}
 	}
 
 	public static void constructorNewInstance(Constructor<?> c) {		
-		StackTraceElement frame = getInvokingFrame();
-		
-		String[] paramTypes = classesToTypeNames(c.getParameterTypes());
-		
-		logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
+		if(isReentrant()) return;
+		try {
+			StackTraceElement frame = getInvokingFrame();
+			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
+		} finally {
+			insideLogger.set(false);
+		}
 	}
 
 	private static String[] classesToTypeNames(Class<?>[] params) {
@@ -153,8 +166,21 @@ public class ReflLogger {
 		return paramTypes;
 	}
 	
-	public static void methodInvoke(Object receiver, Method m) {
-		Class<?> receiverClass = Modifier.isStatic(m.getModifiers()) ? m.getDeclaringClass() : receiver.getClass();
+	public static void methodMethodInvoke(Object receiver, Method m, Kind methodKind) {
+		if(isReentrant()) return;
+		StackTraceElement frame = getInvokingFrame();
+				
+		//There appears to be a call to Method.getModifiers() issued by the
+		//VM in order to call the program's main method.
+		//For this call there is no calling context and hence no frame.
+		//We here simply ignore this call, returning early in this case.
+		if(frame==null) {
+			insideLogger.set(false);
+			return;		
+		}
+		
+		Class<?> receiverClass = methodKind!=Kind.MethodInvoke || Modifier.isStatic(m.getModifiers())
+		  ? m.getDeclaringClass() : receiver.getClass();
 		try {
 			//resolve virtual call
 			Method resolved = null;
@@ -171,11 +197,12 @@ public class ReflLogger {
 				error.printStackTrace();
 			}
 			
-			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.MethodInvoke,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),methodKind,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			insideLogger.set(false);
 		}
 	}
 	
@@ -316,8 +343,9 @@ public class ReflLogger {
 			//FIXME this should also refer to general Transformations instead, just as the agent does
 			//here we are filtering out frames from Class, Method, etc. because we want to get the *caller* frame 			
 			if(!c.equals(ReflLogger.class.getName())
-			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) //only filter out calls from newInstance and forName,
-			&& !(c.equals(Class.class.getName()) && m.equals("forName"))     //not others for Class
+			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) 	//only filter out calls from newInstance and forName,
+			&& !(c.equals(Class.class.getName()) && m.equals("forName"))     	//not others for Class
+			&& !(c.equals(Class.class.getName()) && m.equals("searchMethods"))	//
 			&& !c.equals(Method.class.getName())
 			&& !c.equals(Array.class.getName())
 			&& !c.equals(Field.class.getName())
