@@ -27,8 +27,10 @@ import de.bodden.tamiflex.playout.transformation.ArrayMultiNewInstanceTransforma
 import de.bodden.tamiflex.playout.transformation.ArrayNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.ClassForNameTransformation;
 import de.bodden.tamiflex.playout.transformation.ClassNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.ConstructorNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.Transformation;
+import de.bodden.tamiflex.playout.transformation.constructor.ConstructorGetModifiersTransformation;
+import de.bodden.tamiflex.playout.transformation.constructor.ConstructorNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToStringTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetDeclaringClassTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetModifiersTransformation;
 import de.bodden.tamiflex.playout.transformation.field.FieldGetNameTransformation;
@@ -51,7 +53,9 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			new MethodGetNameTransformation(),
 			new MethodInvokeTransformation(),
 			new MethodToStringTransformation(),
+			new ConstructorGetModifiersTransformation(),
 			new ConstructorNewInstanceTransformation(),
+			new ConstructorToStringTransformation(),
 			new ArrayNewInstanceTransformation(),
 			new ArrayMultiNewInstanceTransformation(),
 			new FieldGetDeclaringClassTransformation(),

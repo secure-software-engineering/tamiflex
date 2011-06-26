@@ -11,7 +11,6 @@
 package de.bodden.tamiflex.playout.rt;
 
 public enum Kind {
-	
 
 	ClassForName("Class.forName"),
 	ClassNewInstance("Class.newInstance"),

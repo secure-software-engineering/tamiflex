@@ -145,12 +145,12 @@ public class ReflLogger {
 		}
 	}
 
-	public static void constructorNewInstance(Constructor<?> c) {		
+	public static void constructorMethodInvoke(Constructor<?> c, Kind constructorMethodKind) {		
 		if(isReentrant()) return;
 		try {
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ConstructorNewInstance,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
 		} finally {
 			insideLogger.set(false);
 		}
