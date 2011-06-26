@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 public class ReflLogger {
 	
 	//holds hashed names
@@ -56,6 +55,14 @@ public class ReflLogger {
 			//by default, do nothing
 		}
 	});
+	
+	/** This field is used to guard against infinite recursion during logging. */
+	private static ThreadLocal<Boolean> insideLogger = new ThreadLocal<Boolean>() {
+		@Override
+		protected Boolean initialValue() {
+			return false;
+		}
+	};
 	
 	private static void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
@@ -200,39 +207,41 @@ public class ReflLogger {
        }
    }
 	
-	public static void fieldSet(Field f) {
+	/**
+	 * This method will be invoked by Tamiflex's instrumentation whenever
+	 * different calls to the class Field occur. The kind of the
+	 * call is described by the fieldMethodKind.
+	 */
+	public static void fieldMethodInvoke(Field f, Kind fieldMethodKind) {
+		if(isReentrant()) return;
 	    try {
 	        StackTraceElement frame = getInvokingFrame();
 	        logAndIncrementTargetFieldEntry(
 	                frame.getClassName()+"."+frame.getMethodName(),
 	                frame.getLineNumber(),
-	                Kind.FieldSet,
+	                fieldMethodKind,
 	                getTypeName(f.getDeclaringClass()),
 	                getTypeName(f.getType()),
 	                f.getName(),
 	                f.isAccessible());
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	    }
+	    } finally {
+	    	insideLogger.set(false);
+	    }	    
 	}
-	
-    public static void fieldGet(Field f) {
-        try {
-            StackTraceElement frame = getInvokingFrame();
-            logAndIncrementTargetFieldEntry(
-                    frame.getClassName()+"."+frame.getMethodName(),
-                    frame.getLineNumber(),
-                    Kind.FieldGet,
-	                getTypeName(f.getDeclaringClass()),
-                    getTypeName(f.getType()),
-                    f.getName(),
-                    f.isAccessible());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-	
-    protected static String handleArrayTypes(String className) {
+		
+    private static boolean isReentrant() {
+    	boolean reentrant = insideLogger.get();
+    	if(reentrant){
+    		return true;
+    	} else {
+	    	insideLogger.set(true);
+	    	return false;
+    	}
+	}
+
+	protected static String handleArrayTypes(String className) {
         
         int arrDepth = 0;
         for(int i=0;i<className.length();i++) {
