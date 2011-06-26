@@ -23,7 +23,19 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
-import de.bodden.tamiflex.playout.transformation.*;
+import de.bodden.tamiflex.playout.transformation.ArrayMultiNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.ArrayNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.ClassForNameTransformation;
+import de.bodden.tamiflex.playout.transformation.ClassNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.ConstructorNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.MethodInvokeTransformation;
+import de.bodden.tamiflex.playout.transformation.Transformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldGetDeclaringClassTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldGetModifiersTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldGetNameTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldGetTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldSetTransformation;
+import de.bodden.tamiflex.playout.transformation.field.FieldToStringTransformation;
 
 public class ReflectionMonitor implements ClassFileTransformer {
 	
@@ -34,8 +46,12 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			new ConstructorNewInstanceTransformation(),
 			new ArrayNewInstanceTransformation(),
 			new ArrayMultiNewInstanceTransformation(),
+			new FieldGetDeclaringClassTransformation(),
+			new FieldGetModifiersTransformation(),
+			new FieldGetNameTransformation(),
 			new FieldGetTransformation(),
-			new FieldSetTransformation());
+			new FieldSetTransformation(),
+			new FieldToStringTransformation());
 	
 	public List<Class<?>> getAffectedClasses() {
 		List<Class<?>> affectedClasses = new ArrayList<Class<?>>();
