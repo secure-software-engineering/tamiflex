@@ -15,12 +15,31 @@ public enum Kind {
 
 	ClassForName("Class.forName"),
 	ClassNewInstance("Class.newInstance"),
+	ClassGetDeclaredField("Class.getDeclaredField"),
+	ClassGetDeclaredFields("Class.getDeclaredFields"),
+	ClassGetDeclaredMethod("Class.getDeclaredMethod"),
+	ClassGetDeclaredMethods("Class.getDeclaredMethods"),
+	ClassGetField("Class.getField"),
+	ClassGetFields("Class.getFields"),
+	ClassGetMethod("Class.getMethod"),
+	ClassGetMethods("Class.getMethods"),
+	ClassGetModifiers("Class.getModifiers"),
 	ConstructorNewInstance("Constructor.newInstance"),
+	ConstructorGetModifiers("Constructor.getModifiers"),
+	ConstructorToString("Constructor.toString"),
 	MethodInvoke("Method.invoke"),
+	MethodGetName("Method.getName"),
+	MethodGetDeclaringClass("Method.getDeclaringClass"),
+	MethodGetModifiers("Method.getModifiers"),
+	MethodToString("Method.toString"),
 	ArrayNewInstance("Array.newInstance"),
 	FieldSet("Field.set*"),
-	FieldGet("Field.get*");
-
+	FieldGet("Field.get*"),
+	FieldGetName("Field.getName"),
+	FieldGetDeclaringClass("Field.getDeclaringClass"),
+	FieldGetModifiers("Field.getModifiers"),
+	FieldToString("Field.toString");
+	
 	private final String output;
 
 	Kind(String output) {
