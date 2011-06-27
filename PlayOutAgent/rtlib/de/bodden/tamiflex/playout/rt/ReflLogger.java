@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -348,23 +347,23 @@ public class ReflLogger {
 		return type.getName();
 	}
 
+	/**
+	 * Returns the stack frame two frames above any frame related
+	 * to this class. (The frame just above is the call we are tracing,
+	 * but we want to return the invoking frame, hence two frames above.)
+	 */
 	private static StackTraceElement getInvokingFrame() {
 		StackTraceElement[] stackTrace = new Exception().getStackTrace();
 		StackTraceElement outerFrame = null;		
+		boolean outside = false;
 		for (StackTraceElement frame : stackTrace) {
 			String c = frame.getClassName();
-			String m = frame.getMethodName();
-			//FIXME this should also refer to general Transformations instead, just as the agent does
-			//here we are filtering out frames from Class, Method, etc. because we want to get the *caller* frame 			
-			if(!c.equals(ReflLogger.class.getName())
-			&& !(c.equals(Class.class.getName()) && m.equals("newInstance")) 	//only filter out calls from newInstance and forName,
-			&& !(c.equals(Class.class.getName()) && m.equals("forName"))     	//not others for Class
-			&& !(c.equals(Class.class.getName()) && m.equals("searchMethods"))	//
-			&& !c.equals(Method.class.getName())
-			&& !c.equals(Array.class.getName())
-			&& !c.equals(Field.class.getName())
-			&& !c.equals(Constructor.class.getName())) {
-			
+			if(!outside) {
+				if (!c.equals(ReflLogger.class.getName())) {
+					outside = true;
+					continue;
+				}
+			} else {
 				outerFrame = frame;
 				break;
 			}
