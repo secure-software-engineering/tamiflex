@@ -125,11 +125,11 @@ public class ReflLogger {
 		return sameEntry;
 	}
 
-	public static void classNewInstance(Class<?> c) {
+	public static void classMethodInvoke(Class<?> c, Kind classMethodKind) {
 		if(isReentrant()) return;
 		try {
 			StackTraceElement frame = getInvokingFrame();
-			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassNewInstance,c.getName());
+			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),classMethodKind,c.getName());
 		} finally {
 			insideLogger.set(false);
 		}

@@ -27,8 +27,17 @@ import de.bodden.tamiflex.normalizer.NameExtractor;
 import de.bodden.tamiflex.playout.transformation.ArrayMultiNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.ArrayNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.ClassForNameTransformation;
-import de.bodden.tamiflex.playout.transformation.ClassNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.Transformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldsTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredMethodTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredMethodsTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetFieldTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetFieldsTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetMethodTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetMethodsTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassGetModifiersTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorGetModifiersTransformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorNewInstanceTransformation;
 import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToGenericStringTransformation;
@@ -51,6 +60,15 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	
 	private List<Transformation> transformations = Arrays.<Transformation>asList(
 			new ClassForNameTransformation(),
+			new ClassGetDeclaredFieldsTransformation(),
+			new ClassGetDeclaredFieldTransformation(),
+			new ClassGetDeclaredMethodsTransformation(),
+			new ClassGetDeclaredMethodTransformation(),
+			new ClassGetFieldTransformation(),
+			new ClassGetFieldsTransformation(),
+			new ClassGetMethodsTransformation(),
+			new ClassGetMethodTransformation(),
+			new ClassGetModifiersTransformation(),
 			new ClassNewInstanceTransformation(),
 			new ArrayNewInstanceTransformation(),
 			new ArrayMultiNewInstanceTransformation(),
