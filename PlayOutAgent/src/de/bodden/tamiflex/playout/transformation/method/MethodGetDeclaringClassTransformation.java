@@ -15,7 +15,6 @@ import static de.bodden.tamiflex.playout.rt.Kind.MethodGetDeclaringClass;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
-import de.bodden.tamiflex.playout.transformation.MethodTransformation;
 
 public class MethodGetDeclaringClassTransformation extends MethodTransformation {
 	

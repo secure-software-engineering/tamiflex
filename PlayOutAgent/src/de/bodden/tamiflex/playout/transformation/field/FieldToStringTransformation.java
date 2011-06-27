@@ -15,7 +15,6 @@ import static de.bodden.tamiflex.playout.rt.Kind.MethodToString;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
-import de.bodden.tamiflex.playout.transformation.FieldTransformation;
 
 public class FieldToStringTransformation extends FieldTransformation {
 	

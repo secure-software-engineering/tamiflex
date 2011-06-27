@@ -8,7 +8,7 @@
  * Contributors:
  *     Eric Bodden - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation;
+package de.bodden.tamiflex.playout.transformation.method;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
@@ -16,18 +16,18 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import java.lang.reflect.Constructor;
-
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
+import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
+import de.bodden.tamiflex.playout.transformation.Transformation;
 
-public abstract class ConstructorTransformation extends Transformation {
+public abstract class MethodTransformation extends Transformation {
 	
-	public ConstructorTransformation(Method... methods) {
-		super(Constructor.class, methods);
+	public MethodTransformation(Method... methods) {
+		super(java.lang.reflect.Method.class, methods);
 	}
 	
 	@Override
@@ -37,13 +37,15 @@ public abstract class ConstructorTransformation extends Transformation {
 			@Override
 			public void visitInsn(int opcode) {
 				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Constructor instance
+					mv.visitVarInsn(ALOAD, 1); // Load designated receiver
+					mv.visitVarInsn(ALOAD, 0); // Load Method instance
 					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
 					mv.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
-						"constructorMethodInvoke",
-						"(Ljava/lang/reflect/Constructor;Lde/bodden/tamiflex/playout/rt/Kind;)V");
+						"methodMethodInvoke",
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+					);
 				}
 				super.visitInsn(opcode);
 			}

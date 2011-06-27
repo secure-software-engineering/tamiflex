@@ -8,21 +8,28 @@
  * Contributors:
  *     Eric Bodden - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation;
+package de.bodden.tamiflex.playout.transformation.constructor;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.RETURN;
 
 import java.lang.reflect.Constructor;
 
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
-public class ConstructorNewInstanceTransformation extends Transformation {
+import de.bodden.tamiflex.playout.rt.Kind;
+import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
+import de.bodden.tamiflex.playout.transformation.Transformation;
+
+public abstract class ConstructorTransformation extends Transformation {
 	
-	public ConstructorNewInstanceTransformation() {
-		super(Constructor.class, new Method("newInstance", "([Ljava/lang/Object;)Ljava/lang/Object;"));
+	public ConstructorTransformation(Method... methods) {
+		super(Constructor.class, methods);
 	}
 	
 	@Override
@@ -31,12 +38,19 @@ public class ConstructorNewInstanceTransformation extends Transformation {
 			
 			@Override
 			public void visitInsn(int opcode) {
-				if (opcode == ARETURN) {
+				if (IRETURN <= opcode && opcode <= RETURN) {
 					mv.visitVarInsn(ALOAD, 0); // Load Constructor instance
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "constructorNewInstance", "(Ljava/lang/reflect/Constructor;)V");
+					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					mv.visitMethodInsn(
+						INVOKESTATIC,
+						"de/bodden/tamiflex/playout/rt/ReflLogger",
+						"constructorMethodInvoke",
+						"(Ljava/lang/reflect/Constructor;Lde/bodden/tamiflex/playout/rt/Kind;)V");
 				}
 				super.visitInsn(opcode);
 			}
 		};
 	}
+	
+	protected abstract Kind methodKind();
 }

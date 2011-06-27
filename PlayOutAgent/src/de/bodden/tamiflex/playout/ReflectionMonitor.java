@@ -24,10 +24,10 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
-import de.bodden.tamiflex.playout.transformation.ArrayMultiNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.ArrayNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.ClassForNameTransformation;
 import de.bodden.tamiflex.playout.transformation.Transformation;
+import de.bodden.tamiflex.playout.transformation.array.ArrayMultiNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.array.ArrayNewInstanceTransformation;
+import de.bodden.tamiflex.playout.transformation.clazz.ClassForNameTransformation;
 import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldTransformation;
 import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldsTransformation;
 import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredMethodTransformation;
