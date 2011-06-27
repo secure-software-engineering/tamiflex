@@ -14,12 +14,15 @@ import static org.objectweb.asm.Opcodes.*;
 
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
-public class ClassNewInstanceTransformation extends Transformation {
+import de.bodden.tamiflex.playout.rt.Kind;
+
+public abstract class ClassTransformation extends Transformation {
 	
-	public ClassNewInstanceTransformation() {
-		super(Class.class, new Method("newInstance", "()Ljava/lang/Object;"));
+	public ClassTransformation(Method... methods) {
+		super(Class.class, methods);
 	}
 	
 	@Override
@@ -28,12 +31,15 @@ public class ClassNewInstanceTransformation extends Transformation {
 			
 			@Override
 			public void visitInsn(int opcode) {
-				if (opcode == ARETURN) {
+				if (IRETURN <= opcode && opcode <= RETURN) {
 					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classNewInstance", "(Ljava/lang/Class;)V");
+					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classMethodInvoke", "(Ljava/lang/Class;Lde/bodden/tamiflex/playout/rt/Kind;)V");
 				}
 				super.visitInsn(opcode);
 			}
 		};
 	}
+	
+	protected abstract Kind methodKind();
 }
