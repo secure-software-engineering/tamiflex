@@ -19,6 +19,8 @@ import de.bodden.tamiflex.playout.transformation.ClassTransformation;
 
 public class ClassGetModifiersTransformation extends ClassTransformation {
 	
+	//FIXME this is not working because getModifiers is native!
+	
 	public ClassGetModifiersTransformation() {
 		super(new Method("getModifiers", "()I"));
 	}
