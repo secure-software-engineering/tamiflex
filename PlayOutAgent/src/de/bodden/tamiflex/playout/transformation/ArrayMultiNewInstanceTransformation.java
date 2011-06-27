@@ -20,11 +20,12 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import java.lang.reflect.Array;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
 
@@ -36,7 +37,7 @@ public class ArrayMultiNewInstanceTransformation extends Transformation {
 	
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
+		return new RecursionAvoidingMethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {

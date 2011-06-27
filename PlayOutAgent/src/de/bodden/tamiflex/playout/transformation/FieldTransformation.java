@@ -18,7 +18,6 @@ import static org.objectweb.asm.Opcodes.RETURN;
 
 import java.lang.reflect.Field;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -33,7 +32,7 @@ public abstract class FieldTransformation extends Transformation {
 
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
+		return new RecursionAvoidingMethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {

@@ -16,11 +16,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import java.lang.reflect.Constructor;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
-
-import de.bodden.tamiflex.playout.transformation.Transformation;
 
 public class ConstructorNewInstanceTransformation extends Transformation {
 	
@@ -30,7 +27,7 @@ public class ConstructorNewInstanceTransformation extends Transformation {
 	
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
+		return new RecursionAvoidingMethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {
