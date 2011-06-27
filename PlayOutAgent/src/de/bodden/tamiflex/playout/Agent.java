@@ -173,8 +173,6 @@ public class Agent {
 		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
 		inst.retransformClasses(affectedClasses.toArray(new Class<?>[affectedClasses.size()]));
 		
-		ReflLogger.setAffectedClasses(affectedClasses);
-		
 		inst.removeTransformer(reflMonitor);
 	}
 
