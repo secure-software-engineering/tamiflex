@@ -214,20 +214,7 @@ public class ReflLogger {
 	}
 	
    public static void arrayNewInstance(Class<?> componentType, int dimension) {
-		if(isReentrant()) return;
-        try {
-            StackTraceElement frame = getInvokingFrame();
-            logAndIncrementTargetArrayEntry(
-                    frame.getClassName()+"."+frame.getMethodName(),
-                    frame.getLineNumber(),
-                    Kind.ArrayNewInstance,
-                    getTypeName(componentType),
-                    dimension);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-        	leavingReflectionAPI();
-        }
+		arrayMultiNewInstance(componentType, dimension);
     }
    
    public static void arrayMultiNewInstance(Class<?> componentType, int... dimensions) {
