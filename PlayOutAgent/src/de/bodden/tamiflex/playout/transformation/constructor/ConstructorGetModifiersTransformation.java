@@ -15,7 +15,6 @@ import static de.bodden.tamiflex.playout.rt.Kind.ConstructorGetModifiers;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
-import de.bodden.tamiflex.playout.transformation.ConstructorTransformation;
 
 public class ConstructorGetModifiersTransformation extends ConstructorTransformation {
 	

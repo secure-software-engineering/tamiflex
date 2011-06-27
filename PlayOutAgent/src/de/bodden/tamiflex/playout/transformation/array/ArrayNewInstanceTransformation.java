@@ -6,25 +6,25 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Eric Bodden - initial implementation
+ *     Andreas Sewe - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation.method;
-
-import static de.bodden.tamiflex.playout.rt.Kind.MethodGetModifiers;
+package de.bodden.tamiflex.playout.transformation.array;
 
 import org.objectweb.asm.commons.Method;
 
-import de.bodden.tamiflex.playout.rt.Kind;
-
-public class MethodGetModifiersTransformation extends MethodTransformation {
+public class ArrayNewInstanceTransformation extends ArrayTransformation {
 	
-	public MethodGetModifiersTransformation() {
-		super( new Method("getModifiers", "()I"));
+	public ArrayNewInstanceTransformation() {
+		super(new Method("newInstance", "(Ljava/lang/Class;I)Ljava/lang/Object;"));
+	}
+	
+	@Override
+	protected String methodName() {
+		return "arrayNewInstance";
 	}
 
 	@Override
-	protected Kind methodKind() {
-		return MethodGetModifiers;
+	protected String methodSignature() {
+		return "(Ljava/lang/Class;I)V";
 	}
-	
 }

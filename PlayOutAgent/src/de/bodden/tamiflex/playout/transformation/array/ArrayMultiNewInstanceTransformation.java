@@ -18,36 +18,23 @@
  * Contributors:
  *     Andreas Sewe - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation;
+package de.bodden.tamiflex.playout.transformation.array;
 
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-
-import java.lang.reflect.Array;
-
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
 
-public class ArrayMultiNewInstanceTransformation extends Transformation {
+public class ArrayMultiNewInstanceTransformation extends ArrayTransformation {
 	
 	public ArrayMultiNewInstanceTransformation() {
-		super(Array.class, new Method("newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;"));
+		super(new Method("newInstance", "(Ljava/lang/Class;[I)Ljava/lang/Object;"));
 	}
-	
+
 	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new RecursionAvoidingMethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (opcode == ARETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitVarInsn(ALOAD, 1); // Load dimension array
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "arrayMultiNewInstance", "(Ljava/lang/Class;[I)V");
-				}
-				super.visitInsn(opcode);
-			}
-		};
+	protected String methodName() {
+		return "arrayMultiNewInstance";
+	}
+
+	@Override
+	protected String methodSignature() {
+		return "(Ljava/lang/Class;[I)V";
 	}
 }

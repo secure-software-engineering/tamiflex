@@ -6,9 +6,9 @@
  * http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors:
- *     Andreas Sewe - initial implementation
+ *     Eric Bodden - initial implementation
  ******************************************************************************/
-package de.bodden.tamiflex.playout.transformation;
+package de.bodden.tamiflex.playout.transformation.clazz;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
@@ -16,20 +16,20 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import java.lang.reflect.Field;
-
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
+import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
+import de.bodden.tamiflex.playout.transformation.Transformation;
 
-public abstract class FieldTransformation extends Transformation {
+public abstract class ClassTransformation extends Transformation {
 	
-	public FieldTransformation(Method... affectedMethods) {
-		super(Field.class, affectedMethods);
+	public ClassTransformation(Method... methods) {
+		super(Class.class, methods);
 	}
-
+	
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
 		return new RecursionAvoidingMethodAdapter(parent) {
@@ -37,17 +37,14 @@ public abstract class FieldTransformation extends Transformation {
 			@Override
 			public void visitInsn(int opcode) {
 				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Field instance
+					mv.visitVarInsn(ALOAD, 0); // Load Class instance
 					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(INVOKESTATIC,
-							"de/bodden/tamiflex/playout/rt/ReflLogger",
-							"fieldMethodInvoke",
-							"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V");
+					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classMethodInvoke", "(Ljava/lang/Class;Lde/bodden/tamiflex/playout/rt/Kind;)V");
 				}
 				super.visitInsn(opcode);
 			}
 		};
 	}
-
+	
 	protected abstract Kind methodKind();
 }
