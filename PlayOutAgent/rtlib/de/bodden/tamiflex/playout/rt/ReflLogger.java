@@ -57,12 +57,20 @@ public class ReflLogger {
 	});
 	
 	/** This field is used to guard against infinite recursion during logging. */
-	private static ThreadLocal<Boolean> insideLogger = new ThreadLocal<Boolean>() {
+	private static ThreadLocal<Integer> nestingDepth = new ThreadLocal<Integer>() {
 		@Override
-		protected Boolean initialValue() {
-			return false;
+		protected Integer initialValue() {
+			return 0;
 		}
 	};
+	
+	public static void enteringReflectionAPI() {
+		nestingDepth.set(nestingDepth.get()+1);
+	}
+
+	private static void leavingReflectionAPI() {
+		nestingDepth.set(nestingDepth.get()-1);
+	}
 	
 	private static void logAndIncrementTargetClassEntry(String containerMethod, int lineNumber, Kind kind, String targetClass) {
 		if(hasShutDown) return;
@@ -131,7 +139,7 @@ public class ReflLogger {
 			StackTraceElement frame = getInvokingFrame();
 			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),classMethodKind,c.getName());
 		} finally {
-			insideLogger.set(false);
+			leavingReflectionAPI();
 		}
 	}
 
@@ -141,7 +149,7 @@ public class ReflLogger {
 			StackTraceElement frame = getInvokingFrame();
 			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),Kind.ClassForName,handleArrayTypes(typeName));
 		} finally {
-			insideLogger.set(false);
+			leavingReflectionAPI();
 		}
 	}
 
@@ -152,7 +160,7 @@ public class ReflLogger {
 			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
 			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
 		} finally {
-			insideLogger.set(false);
+			leavingReflectionAPI();
 		}
 	}
 
@@ -175,7 +183,7 @@ public class ReflLogger {
 		//For this call there is no calling context and hence no frame.
 		//We here simply ignore this call, returning early in this case.
 		if(frame==null) {
-			insideLogger.set(false);
+			leavingReflectionAPI();
 			return;		
 		}
 		
@@ -202,11 +210,12 @@ public class ReflLogger {
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			insideLogger.set(false);
+			leavingReflectionAPI();
 		}
 	}
 	
    public static void arrayNewInstance(Class<?> componentType, int dimension) {
+		if(isReentrant()) return;
         try {
             StackTraceElement frame = getInvokingFrame();
             logAndIncrementTargetArrayEntry(
@@ -217,10 +226,13 @@ public class ReflLogger {
                     dimension);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+        	leavingReflectionAPI();
         }
     }
    
    public static void arrayMultiNewInstance(Class<?> componentType, int... dimensions) {
+	   if(isReentrant()) return;
        try {
            StackTraceElement frame = getInvokingFrame();
            logAndIncrementTargetArrayEntry(
@@ -231,6 +243,8 @@ public class ReflLogger {
                    dimensions);
        } catch (Exception e) {
            e.printStackTrace();
+       } finally {
+    	   leavingReflectionAPI();
        }
    }
 	
@@ -254,17 +268,17 @@ public class ReflLogger {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    } finally {
-	    	insideLogger.set(false);
+			leavingReflectionAPI();
 	    }	    
 	}
 		
     private static boolean isReentrant() {
-    	boolean reentrant = insideLogger.get();
-    	if(reentrant){
+    	Integer depth = nestingDepth.get();
+    	if(depth>1) {
+    		leavingReflectionAPI();
     		return true;
     	} else {
-	    	insideLogger.set(true);
-	    	return false;
+    		return false;
     	}
 	}
 
