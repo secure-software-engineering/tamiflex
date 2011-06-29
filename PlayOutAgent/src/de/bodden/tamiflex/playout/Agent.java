@@ -11,7 +11,10 @@
 package de.bodden.tamiflex.playout;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.Socket;
@@ -19,6 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.Properties;
 import java.util.jar.JarFile;
 
 import de.bodden.tamiflex.normalizer.Hasher;
@@ -32,41 +36,25 @@ public class Agent {
 	private static final boolean CAN_RETRANSFORM = true;
 	
 	private static ClassDumper classDumper;
+	private static boolean dontDump = false;
+	private static boolean dontNormalize = false;
+	private static boolean count = false;
+	private static boolean verbose = false;
+	private static boolean useSocket = false;
+	private static String socketString = null;
+	private static String outPath = "out";
+	private static String instruments = "";
 	private static Socket socket;
 	
-	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
+	public static void premain(String agentArgss, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
 		if(!inst.isRetransformClassesSupported()) {
 			throw new RuntimeException("retransformation not supported");
 		}
 		
-		//TODO improve this, also make usage message consistent
-		if(agentArgs==null) agentArgs = "";
-		boolean dontDump = false;
-		if(agentArgs.startsWith("dontDumpClasses,")) {
-			dontDump = true;
-			agentArgs = agentArgs.substring("dontDumpClasses,".length());
-		}
-		boolean dontNormalize = false;
-		if(agentArgs.startsWith("dontNormalize,")) {
-			dontNormalize = true;
-			agentArgs = agentArgs.substring("dontNormalize,".length());
-		}
-		boolean count = false;
-		if(agentArgs.startsWith("count,")) {
-			count = true;
-			agentArgs = agentArgs.substring("count,".length());
-		}
-		boolean verbose = false;
-		if(agentArgs.startsWith("verbose,")) {
-			verbose = true;
-			agentArgs = agentArgs.substring("verbose,".length());
-		}
-		boolean useSocket = false;
-		if(agentArgs.startsWith("socket,")) {
-			useSocket = true;
-			agentArgs = agentArgs.substring("socket,".length());
-		}
-		if(agentArgs.equals("")) usage();
+		System.out.println("============================================================");
+		System.out.println("TamiFlex Play-Out Agent Version "+Agent.class.getPackage().getImplementationVersion());
+
+		loadProperties();		
 		
 		appendRtJarToBootClassPath(inst);
 
@@ -75,7 +63,7 @@ public class Agent {
 
 		if(useSocket) {
 			//online mode; no need to create any files; just insert instrumentation...
-			String hostColonPort = agentArgs;
+			String hostColonPort = socketString;
 			if(!hostColonPort.contains(":")) throw new IllegalArgumentException("Wrong destination "+hostColonPort+" ! Format is host:port.");
 			String[] split = hostColonPort.split(":");
 			String host = split[0];
@@ -84,23 +72,21 @@ public class Agent {
 			ReflLogger.setSocket(socket);
 			instrumentClassesForLogging(inst);
 		} else {
-			String outPath=agentArgs;
 			if(outPath==null||outPath.isEmpty()) {
-				System.err.println("No outpath given!");
-				usage();
+				System.err.println("No outDir given!");
 			}
 			
 			File outDir = new File(outPath);
 			if(outDir.exists()) {
 				if(!outDir.isDirectory()) {
 					System.err.println(outDir+ "is not a directory");
-					usage();
+					System.exit(1);
 				}
 			} else {
 				boolean res = outDir.mkdirs();
 				if(!res) {
 					System.err.println("Cannot create directory "+outDir);
-					usage();
+					System.exit(1);
 				}
 			}
 			
@@ -147,7 +133,63 @@ public class Agent {
 				
 			});
 		}
-}
+		
+		System.out.println("============================================================");		
+	}
+
+	private static void loadProperties() {
+		String propFileName = "poa.properties";
+		String[] paths = { propFileName, System.getProperty("user.home")+File.separator+".tamiflex"+File.separator+propFileName };
+		InputStream is = null;
+		File foundFile= null;
+		for (String path : paths) {
+			File file = new File(path);
+			if(file.exists() && file.canRead()) {
+				try {
+					is = new FileInputStream(file);
+					foundFile = file;
+					break;
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}
+			} 
+		}
+		if(is==null) {
+			is = Agent.class.getClassLoader().getResourceAsStream(propFileName);
+			if(is==null) {
+				throw new InternalError("No default properties file found in agent JAR file!");
+			}
+		}
+		
+		Properties props =  new Properties();
+		try {
+			props.load(is);
+
+			if(!props.containsKey("quiet") || !props.get("quiet").equals("true")) {
+				String path = (foundFile!=null) ? foundFile.getAbsolutePath() : "<JAR FILE>!/"+propFileName;
+				System.out.println("Loaded properties from "+path);
+			}
+			if(props.get("count").equals("true"))
+				count = true;
+			if(props.get("dontDumpClasses").equals("true"))
+				dontDump = true;
+			if(props.get("dontNormalize").equals("true"))
+				dontNormalize = true;
+			if(props.get("verbose").equals("true"))
+				verbose = true;
+			if(props.containsKey("socket")) {
+				useSocket = true;
+				socketString = (String) props.get("socket");
+			}
+			if(props.containsKey("outDir"))
+				outPath = (String) props.get("outDir"); 
+			if(props.containsKey("instruments"))
+				instruments = (String) props.get("instruments"); 
+
+		} catch (IOException e) {
+			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
+		}		
+	}
 
 	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
 			throws UnmodifiableClassException {
@@ -167,7 +209,7 @@ public class Agent {
 	}
 
 	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
-		ReflectionMonitor reflMonitor = new ReflectionMonitor();
+		ReflectionMonitor reflMonitor = new ReflectionMonitor(instruments, verbose);
 		inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
 		
 		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
@@ -187,37 +229,21 @@ public class Agent {
 		JarFile jarFile = new JarFile(new File(uri));
 		inst.appendToBootstrapClassLoaderSearch(jarFile);
 	}
+	
+	public static void main(String[] args) {
+		usage();
+	}
 
 	private static void usage() {
-		System.out.println("TamiFlex version "+Agent.class.getPackage().getImplementationVersion()+", Play-Out Agent \n");
-		System.out.println("This agent accepts the following options:");
-		System.out.println("[dontDumpClasses,][dontNormalize,][count,][verbose,]<path>");
-		System.out.println();
-		System.out.println("If 'dontDumpClasses' is given then the agent only produces a log file but dumps no classes.");
-		System.out.println("If 'dontNormalize' is given then the agent will not normalize randomized class names.");
-		System.out.println("If 'count' is selected then the agent will add the number of reflective invocations");
-		System.out.println("to the end of each line of the trace file.");
-		System.out.println("If 'verbose' is selected then the agent will print out all entries that it also added");
-		System.out.println("to the log file for the current run.");
-		System.out.println("");
-		System.out.println("The 'path' points to the output directory. The agent will write all class files");
-		System.out.println("into this directory. In addition, the agent will write a log file 'refl.log'. If this");
-		System.out.println("file already exists in the 'outpath' directory then the agent will add to the log,");
-		System.out.println("incrementing the respective counts, etc.");
-		System.out.println("");
-		System.out.println("");
-		System.out.println("For instance, the following command will cause the agent to dump class files into");
-		System.out.println("the directory /tmp/out, counting reflective invocations:");
-		System.out.println("java -javaagent:agent.jar=count,outpath=/tmp/out ...\n\n");
-		System.out.println("The agent is currently configured to instrument the following methods:\n");
-		System.out.println(new ReflectionMonitor().listTransformations());
-		System.out.println("\n");
+		System.out.println("============================================================");
+		System.out.println("TamiFlex Play-Out Agent Version "+Agent.class.getPackage().getImplementationVersion());
 		System.out.println(DISCLAIMER);
+		System.out.println("============================================================");
 		System.exit(1);
 	}
 	
 	private final static String DISCLAIMER=
-		"Copyright (c) 2010-2011 Eric Bodden and others.\n" +
+		"\n\nCopyright (c) 2010-2011 Eric Bodden and others.\n" +
 		"\n" +
 		"DISCLAIMER: USE OF THIS SOFTWARE IS AT OWN RISK.\n" +
 		"\n" +

@@ -457,20 +457,21 @@ public class ReflLogger {
 		Set<PersistedLogEntry> newEntries = new HashSet<PersistedLogEntry>(merged);
 		newEntries.removeAll(oldContainerMethodToEntries.keySet());
 		
-		System.err.println("\n=============================================");
-		System.err.println("TamiFlex Play-Out Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
+		System.out.println("\n============================================================");
+		System.out.println("TamiFlex Play-Out Agent Version "+ReflLogger.class.getPackage().getImplementationVersion());
 		if(newEntries.isEmpty()) {
-			System.err.println("Found no new log entries.");
+			System.out.println("Found no new log entries.");
 		} else {
-			System.err.println("Found "+newEntries.size()+" new log entries.");
+			System.out.println("Found "+newEntries.size()+" new log entries.");
 		}
 		if(verbose) {
-			System.err.println("New Entries: ");
+			System.out.println("New Entries: ");
 			for (PersistedLogEntry logEntry : newEntries) {
-				System.err.println(logEntry);
+				System.out.println(logEntry);
 			}
 		}
-		System.err.println("Log file written to: "+logFile.getAbsolutePath());
+		System.out.println("Log file written to: "+logFile.getAbsolutePath());
+		System.out.println("============================================================");
 		
 		return merged;
 	}
