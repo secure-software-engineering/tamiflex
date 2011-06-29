@@ -10,22 +10,50 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation;
 
-import static de.bodden.tamiflex.playout.rt.Kind.ClassGetDeclaredMethod;
+import static de.bodden.tamiflex.playout.rt.Kind.ClassGetMethod;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.RETURN;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
 
-public class ClassGetMethodTransformation extends AbstractClassGetXMethodTransformation {
+public class ClassGetMethodTransformation extends AbstractTransformation {
 	
 	public ClassGetMethodTransformation() {
-		super(new Method("getDeclaredMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;"));
+		super(Class.class, new Method("getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;"));
 	}
 
 	@Override
-	protected Kind methodKind() {
-		return ClassGetDeclaredMethod;
+	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+		return new RecursionAvoidingMethodAdapter(parent) {
+			
+			@Override
+			public void visitInsn(int opcode) {
+				if (IRETURN <= opcode && opcode <= RETURN) {
+					mv.visitInsn(DUP); 			//duplicate return value (the Method instance)
+					mv.visitInsn(ACONST_NULL); 	//no receiver
+					mv.visitInsn(Opcodes.SWAP); //null constant must go first
+					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetMethod.name(), Type.getDescriptor(Kind.class));
+					mv.visitVarInsn(ALOAD, 0); // Load Class instance
+					mv.visitMethodInsn(
+						INVOKESTATIC,
+						"de/bodden/tamiflex/playout/rt/ReflLogger",
+						"methodMethodInvoke",
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;Ljava/lang/Class;)V"
+					);
+				}
+				super.visitInsn(opcode);
+			}
+		};
 	}
-
 
 }

@@ -45,7 +45,10 @@ public class ReflLogger {
 	
 	//is initialized by the agent
 	private static boolean doCount;
-	
+
+	//is initialized by the agent
+	private static boolean preventVirtualization = true;
+
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
 		
@@ -173,7 +176,12 @@ public class ReflLogger {
 		return paramTypes;
 	}
 	
+
 	public static void methodMethodInvoke(Object receiver, Method m, Kind methodKind) {
+		methodMethodInvoke(receiver, m, methodKind, null);
+	}
+	
+	public static void methodMethodInvoke(Object receiver, Method m, Kind methodKind, Class<?> getMethodReceiverClass) {
 		if(isReentrant()) return;
 		StackTraceElement frame = getInvokingFrame();
 				
@@ -185,7 +193,7 @@ public class ReflLogger {
 			leavingReflectionAPI();
 			return;		
 		}
-		
+				
 		Class<?> receiverClass = methodKind!=Kind.MethodInvoke || Modifier.isStatic(m.getModifiers())
 		  ? m.getDeclaringClass() : receiver.getClass();
 		try {
@@ -205,7 +213,17 @@ public class ReflLogger {
 			}
 			
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),methodKind,resolved.getDeclaringClass().getName(),getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
+			
+			String className = resolved.getDeclaringClass().getName();
+			if (preventVirtualization) {
+				if (methodKind==Kind.MethodInvoke && !Modifier.isStatic(m.getModifiers()))
+					className = receiver.getClass().getName();
+				else if(methodKind==Kind.ClassGetMethod) {
+					className = getMethodReceiverClass.getName();
+				}
+			} 
+			
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),methodKind,className,getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -234,20 +252,20 @@ public class ReflLogger {
        }
    }
 	
-	/**
-	 * This method will be invoked by Tamiflex's instrumentation whenever
-	 * different calls to the class Field occur. The kind of the
-	 * call is described by the fieldMethodKind.
-	 */
 	public static void fieldMethodInvoke(Field f, Kind fieldMethodKind) {
+		fieldMethodInvoke(f, fieldMethodKind, null);
+	}
+	
+	public static void fieldMethodInvoke(Field f, Kind fieldMethodKind, Class<?> getFieldReceiverClass) {
 		if(isReentrant()) return;
 	    try {
 	        StackTraceElement frame = getInvokingFrame();
-	        logAndIncrementTargetFieldEntry(
+	        Class<?> fieldClass = (preventVirtualization && getFieldReceiverClass!=null) ? getFieldReceiverClass : f.getDeclaringClass();
+			logAndIncrementTargetFieldEntry(
 	                frame.getClassName()+"."+frame.getMethodName(),
 	                frame.getLineNumber(),
 	                fieldMethodKind,
-	                getTypeName(f.getDeclaringClass()),
+	                getTypeName(fieldClass),
 	                getTypeName(f.getType()),
 	                f.getName(),
 	                f.isAccessible());
