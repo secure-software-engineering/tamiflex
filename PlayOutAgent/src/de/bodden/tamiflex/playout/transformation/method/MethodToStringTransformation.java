@@ -10,7 +10,7 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation.method;
 
-import static de.bodden.tamiflex.playout.rt.Kind.MethodGetName;
+import static de.bodden.tamiflex.playout.rt.Kind.MethodToString;
 
 import org.objectweb.asm.commons.Method;
 
@@ -24,7 +24,7 @@ public class MethodToStringTransformation extends MethodTransformation {
 
 	@Override
 	protected Kind methodKind() {
-		return MethodGetName;
+		return MethodToString;
 	}
 	
 }
