@@ -39,12 +39,14 @@ public class Agent {
 	private static boolean dontDump = false;
 	private static boolean dontNormalize = false;
 	private static boolean count = false;
+	private static boolean preventVirtualization;
 	private static boolean verbose = false;
 	private static boolean useSocket = false;
 	private static String socketString = null;
 	private static String outPath = "out";
 	private static String instruments = "";
 	private static Socket socket;
+
 	
 	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
 		if(!inst.isRetransformClassesSupported()) {
@@ -59,6 +61,7 @@ public class Agent {
 		appendRtJarToBootClassPath(inst);
 
 		ReflLogger.setMustCount(count);		
+		ReflLogger.setPreventVirtualization(preventVirtualization);		
 		if(dontNormalize) Hasher.dontNormalize();
 
 		if(useSocket) {
@@ -169,14 +172,16 @@ public class Agent {
 				String path = (foundFile!=null) ? foundFile.getAbsolutePath() : "<JAR FILE>!/"+propFileName;
 				System.out.println("Loaded properties from "+path);
 			}
-			if(props.get("count").equals("true"))
+			if(props.containsKey("count") && props.get("count").equals("true"))
 				count = true;
-			if(props.get("dontDumpClasses").equals("true"))
+			if(props.containsKey("dontDumpClasses") && props.get("dontDumpClasses").equals("true"))
 				dontDump = true;
-			if(props.get("dontNormalize").equals("true"))
+			if(props.containsKey("dontNormalize") && props.get("dontNormalize").equals("true"))
 				dontNormalize = true;
-			if(props.get("verbose").equals("true"))
+			if(props.containsKey("verbose") && props.get("verbose").equals("true"))
 				verbose = true;
+			if(props.containsKey("preventVirtualization") && props.get("preventVirtualization").equals("true"))
+				preventVirtualization = true;
 			if(props.containsKey("socket")) {
 				useSocket = true;
 				socketString = (String) props.get("socket");

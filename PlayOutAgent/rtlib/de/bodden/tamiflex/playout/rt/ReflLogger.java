@@ -47,7 +47,7 @@ public class ReflLogger {
 	private static boolean doCount;
 
 	//is initialized by the agent
-	private static boolean preventVirtualization = true;
+	private static boolean preventVirtualization;;
 
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
@@ -260,7 +260,8 @@ public class ReflLogger {
 		if(isReentrant()) return;
 	    try {
 	        StackTraceElement frame = getInvokingFrame();
-	        Class<?> fieldClass = (preventVirtualization && getFieldReceiverClass!=null) ? getFieldReceiverClass : f.getDeclaringClass();
+	        Class<?> fieldClass = (preventVirtualization && fieldMethodKind==Kind.ClassGetField) ?
+	        		getFieldReceiverClass : f.getDeclaringClass();
 			logAndIncrementTargetFieldEntry(
 	                frame.getClassName()+"."+frame.getMethodName(),
 	                frame.getLineNumber(),
@@ -410,6 +411,10 @@ public class ReflLogger {
 	
 	public static void setSocket(Socket s) throws IOException {
 		newLineWriter = new PrintWriter(s.getOutputStream());
+	}
+	
+	public static void setPreventVirtualization(boolean on) {
+		preventVirtualization = on;
 	}
 
 	//is called by the agent

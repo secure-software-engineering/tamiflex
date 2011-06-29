@@ -11,21 +11,44 @@
 package de.bodden.tamiflex.playout.transformation;
 
 import static de.bodden.tamiflex.playout.rt.Kind.ClassGetDeclaredField;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.RETURN;
 
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
 
-public class ClassGetDeclaredFieldTransformation extends AbstractClassGetXFieldTransformation {
+public class ClassGetDeclaredFieldTransformation extends AbstractTransformation {
 	
 	public ClassGetDeclaredFieldTransformation() {
-		super(new Method("getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;"));
+		super(Class.class, new Method("getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;"));
 	}
 
 	@Override
-	protected Kind methodKind() {
-		return ClassGetDeclaredField;
+	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+		return new RecursionAvoidingMethodAdapter(parent) {
+			
+			@Override
+			public void visitInsn(int opcode) {
+				if (IRETURN <= opcode && opcode <= RETURN) {
+					mv.visitInsn(Opcodes.DUP); 	//duplicate return value (the Field instance)
+					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetDeclaredField.name(), Type.getDescriptor(Kind.class));
+					mv.visitMethodInsn(
+						INVOKESTATIC,
+						"de/bodden/tamiflex/playout/rt/ReflLogger",
+						"fieldMethodInvoke",
+						"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+					);
+				}
+				super.visitInsn(opcode);
+			}
+
+		};
 	}
-
-
+	
 }
