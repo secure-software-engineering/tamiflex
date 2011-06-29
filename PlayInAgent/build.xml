@@ -36,6 +36,7 @@
     	<mkdir dir="META-INF"/>
 
     	<manifest file="META-INF/MANIFEST.MF">
+           <attribute name="Main-Class" value="de.bodden.tamiflex.playin.Agent"/>
            <attribute name="Premain-Class" value="de.bodden.tamiflex.playin.Agent"/>
            <attribute name="Can-Retransform-Classes" value="true"/>
            <attribute name="Implementation-Version" value="${tf.version}"/> 
@@ -43,6 +44,7 @@
 
     	<jar destfile="pia-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
             <fileset dir="bin-agent"/>
+    		<fileset file="pia.properties"/>
             <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
             <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
         </jar>
