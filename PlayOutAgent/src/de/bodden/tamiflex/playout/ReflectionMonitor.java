@@ -16,6 +16,8 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.objectweb.asm.ClassReader;
@@ -24,75 +26,44 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
-import de.bodden.tamiflex.playout.transformation.Transformation;
-import de.bodden.tamiflex.playout.transformation.array.ArrayMultiNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.array.ArrayNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassForNameTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredFieldsTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredMethodTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetDeclaredMethodsTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetFieldTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetFieldsTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetMethodTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassGetMethodsTransformation;
-import de.bodden.tamiflex.playout.transformation.clazz.ClassNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.constructor.ConstructorGetModifiersTransformation;
-import de.bodden.tamiflex.playout.transformation.constructor.ConstructorNewInstanceTransformation;
-import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToGenericStringTransformation;
-import de.bodden.tamiflex.playout.transformation.constructor.ConstructorToStringTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldGetDeclaringClassTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldGetModifiersTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldGetNameTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldGetTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldSetTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldToGenericStringTransformation;
-import de.bodden.tamiflex.playout.transformation.field.FieldToStringTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodGetDeclaringClassTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodGetModifiersTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodGetNameTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodInvokeTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodToGenericStringTransformation;
-import de.bodden.tamiflex.playout.transformation.method.MethodToStringTransformation;
+import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
 
 public class ReflectionMonitor implements ClassFileTransformer {
 	
-	private List<Transformation> transformations = Arrays.<Transformation>asList(
-			new ClassForNameTransformation(),
-			new ClassGetDeclaredFieldsTransformation(),
-			new ClassGetDeclaredFieldTransformation(),
-			new ClassGetDeclaredMethodsTransformation(),
-			new ClassGetDeclaredMethodTransformation(),
-			new ClassGetFieldTransformation(),
-			new ClassGetFieldsTransformation(),
-			new ClassGetMethodsTransformation(),
-			new ClassGetMethodTransformation(),
-			//new ClassGetModifiersTransformation(), //TODO native method!
-			new ClassNewInstanceTransformation(),
-			new ArrayNewInstanceTransformation(),
-			new ArrayMultiNewInstanceTransformation(),
-			new ConstructorGetModifiersTransformation(),
-			new ConstructorNewInstanceTransformation(),
-			new ConstructorToGenericStringTransformation(),
-			new ConstructorToStringTransformation(),
-			new FieldGetDeclaringClassTransformation(),
-			new FieldGetModifiersTransformation(),
-			new FieldGetNameTransformation(),
-			new FieldGetTransformation(),
-			new FieldSetTransformation(),
-			new FieldToGenericStringTransformation(),
-			new FieldToStringTransformation(),
-			new MethodGetDeclaringClassTransformation(),
-			new MethodGetModifiersTransformation(),
-			new MethodGetNameTransformation(),
-			new MethodInvokeTransformation(),
-			new MethodToGenericStringTransformation(),
-			new MethodToStringTransformation());
+	private List<AbstractTransformation> transformations = new LinkedList<AbstractTransformation>();
 	
+	public ReflectionMonitor(String instruments, boolean verbose) {
+		List<String> split = new ArrayList<String>(Arrays.asList(instruments.split("[ ]+")));
+		Collections.sort(split);
+		if(verbose) {
+			System.out.println("\nActive instruments:");
+		}
+		for (String string : split) {
+			string = string.trim();
+			try {				
+				String className = "de.bodden.tamiflex.playout.transformation."+string+"Transformation";
+				@SuppressWarnings("unchecked")
+				Class<AbstractTransformation> c = (Class<AbstractTransformation>) Class.forName(className);
+				AbstractTransformation transform = c.newInstance();
+				transformations.add(transform);
+				if(verbose) {
+					System.out.print(string);
+					System.out.println(": ");
+					for(Method m: transform.getAffectedMethods()) {
+						System.out.print("    ");
+						System.out.print(transform.getAffectedClass().getName()+"."+m.getName()+m.getDescriptor()+"\n");
+					}
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("There was an error instantiating the instrument "+string, e);
+			}
+		}
+	}
+
 	public List<Class<?>> getAffectedClasses() {
 		List<Class<?>> affectedClasses = new ArrayList<Class<?>>();
 		
-		for (Transformation transformation : transformations)
+		for (AbstractTransformation transformation : transformations)
 			affectedClasses.add(transformation.getAffectedClass());
 		
 		return affectedClasses;
@@ -109,7 +80,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			ClassVisitor visitor = writer;
 			
-			for (Transformation transformation : transformations)
+			for (AbstractTransformation transformation : transformations)
 				visitor = transformation.getClassVisitor(className, visitor);
 			
 			creader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
@@ -122,13 +93,4 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 	}
 	
-	public String listTransformations() {
-		StringBuilder sb = new StringBuilder();
-		for (Transformation t : transformations) {
-			for(Method m: t.getAffectedMethods()) {
-				sb.append(t.getAffectedClass().getName()+"."+m.getName()+m.getDescriptor()+"\n");
-			}
-		}
-		return sb.toString();
-	}
 }
