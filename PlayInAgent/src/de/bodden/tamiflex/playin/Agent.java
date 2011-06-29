@@ -103,8 +103,8 @@ public class Agent {
 				Hasher.dontNormalize();
 			if(props.get("verbose").equals("true"))
 				verbose = true;
-			if(props.containsKey("outDir"))
-				inPath = (String) props.get("outDir"); 
+			if(props.containsKey("inDir"))
+				inPath = (String) props.get("inDir"); 
 
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
