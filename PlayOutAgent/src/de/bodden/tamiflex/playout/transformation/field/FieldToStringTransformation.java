@@ -10,7 +10,7 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation.field;
 
-import static de.bodden.tamiflex.playout.rt.Kind.MethodToString;
+import static de.bodden.tamiflex.playout.rt.Kind.FieldToString;
 
 import org.objectweb.asm.commons.Method;
 
@@ -23,6 +23,6 @@ public class FieldToStringTransformation extends FieldTransformation {
 	}
 	
 	protected Kind methodKind() {
-		return MethodToString;
+		return FieldToString;
 	}
 }
