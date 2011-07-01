@@ -13,6 +13,7 @@ package de.bodden.tamiflex.playout;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
@@ -142,7 +143,9 @@ public class Agent {
 
 	private static void loadProperties() {
 		String propFileName = "poa.properties";
-		String[] paths = { propFileName, System.getProperty("user.home")+File.separator+".tamiflex"+File.separator+propFileName };
+		String userPropFilePath = System.getProperty("user.home")+File.separator+".tamiflex"+File.separator+propFileName;
+		copyPropFileIfMissing(userPropFilePath);
+		String[] paths = { propFileName, userPropFilePath };
 		InputStream is = null;
 		File foundFile= null;
 		for (String path : paths) {
@@ -157,12 +160,7 @@ public class Agent {
 				}
 			} 
 		}
-		if(is==null) {
-			is = Agent.class.getClassLoader().getResourceAsStream(propFileName);
-			if(is==null) {
-				throw new InternalError("No default properties file found in agent JAR file!");
-			}
-		}
+		if(is==null) throw new InternalError("No properties files found!");
 		
 		Properties props =  new Properties();
 		try {
@@ -194,6 +192,29 @@ public class Agent {
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
 		}		
+	}
+
+	private static void copyPropFileIfMissing(String userPropFilePath) {
+		File f = new File(userPropFilePath);
+		if(!f.exists()) {
+			File dir = f.getParentFile();
+			if(!dir.exists()) dir.mkdirs();
+			try {
+				FileOutputStream fos = new FileOutputStream(f);
+				InputStream is = Agent.class.getClassLoader().getResourceAsStream(f.getName());
+				if(is==null) {
+					throw new InternalError("No default properties file found in agent JAR file!");
+				}
+				int i;
+				while((i=is.read())!=-1) {
+					fos.write(i);
+				}
+				fos.close();
+				is.close();				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
