@@ -50,7 +50,7 @@ public class FieldNode extends TreeObject {
 		IProject project = ((TreeParent)parent).getProject();
 		IJavaProject javaProject = JavaCore.create(project);
 		try {
-			IType type = javaProject.findType(name, (IProgressMonitor) null);
+			IType type = javaProject.findType(className, (IProgressMonitor) null);
 			if(type==null) {
 				MessageDialog.openError(Activator.getDefault().getWorkbench().getActiveWorkbenchWindow().getShell(),
 						"Class not found", "Unable to find class "+name+" on classpath of project "+project.getName()+".");
