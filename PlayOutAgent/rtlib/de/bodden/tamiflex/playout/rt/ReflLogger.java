@@ -47,7 +47,7 @@ public class ReflLogger {
 	private static boolean doCount;
 
 	//is initialized by the agent
-	private static boolean preventVirtualization;;
+	private static boolean useDeclaredTypes;;
 
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
@@ -215,7 +215,7 @@ public class ReflLogger {
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
 			
 			String className = resolved.getDeclaringClass().getName();
-			if (preventVirtualization) {
+			if (useDeclaredTypes) {
 				if (methodKind==Kind.MethodInvoke && !Modifier.isStatic(m.getModifiers()))
 					className = receiver.getClass().getName();
 				else if(methodKind==Kind.ClassGetMethod) {
@@ -260,7 +260,7 @@ public class ReflLogger {
 		if(isReentrant()) return;
 	    try {
 	        StackTraceElement frame = getInvokingFrame();
-	        Class<?> fieldClass = (preventVirtualization && fieldMethodKind==Kind.ClassGetField) ?
+	        Class<?> fieldClass = (useDeclaredTypes && fieldMethodKind==Kind.ClassGetField) ?
 	        		getFieldReceiverClass : f.getDeclaringClass();
 			logAndIncrementTargetFieldEntry(
 	                frame.getClassName()+"."+frame.getMethodName(),
@@ -413,8 +413,8 @@ public class ReflLogger {
 		newLineWriter = new PrintWriter(s.getOutputStream());
 	}
 	
-	public static void setPreventVirtualization(boolean on) {
-		preventVirtualization = on;
+	public static void setuseDeclaredTypes(boolean on) {
+		useDeclaredTypes = on;
 	}
 
 	//is called by the agent

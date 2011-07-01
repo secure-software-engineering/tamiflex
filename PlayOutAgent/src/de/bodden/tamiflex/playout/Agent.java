@@ -40,7 +40,7 @@ public class Agent {
 	private static boolean dontDump = false;
 	private static boolean dontNormalize = false;
 	private static boolean count = false;
-	private static boolean preventVirtualization;
+	private static boolean useDeclaredTypes;
 	private static boolean verbose = false;
 	private static boolean useSocket = false;
 	private static String socketString = null;
@@ -62,7 +62,7 @@ public class Agent {
 		appendRtJarToBootClassPath(inst);
 
 		ReflLogger.setMustCount(count);		
-		ReflLogger.setPreventVirtualization(preventVirtualization);		
+		ReflLogger.setuseDeclaredTypes(useDeclaredTypes);		
 		if(dontNormalize) Hasher.dontNormalize();
 
 		if(useSocket) {
@@ -178,8 +178,8 @@ public class Agent {
 				dontNormalize = true;
 			if(props.containsKey("verbose") && props.get("verbose").equals("true"))
 				verbose = true;
-			if(props.containsKey("preventVirtualization") && props.get("preventVirtualization").equals("true"))
-				preventVirtualization = true;
+			if(props.containsKey("useDeclaredTypes") && props.get("useDeclaredTypes").equals("true"))
+				useDeclaredTypes = true;
 			if(props.containsKey("socket")) {
 				useSocket = true;
 				socketString = (String) props.get("socket");
