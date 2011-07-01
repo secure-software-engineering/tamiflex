@@ -10,28 +10,31 @@
  ******************************************************************************/
 package de.bodden.tamiflex.views;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 
 public class ReflectionViewContentInserter {
 	
 	private final TreeParent root;
-	private final CategoryNode classForNameNode;
-	private final CategoryNode classNewInstanceNode;
-	private final CategoryNode methodInvokeNode;
-	private final CategoryNode constructorNewInstanceNode;
 	private final ReflectionView reflectionView;
-
+	private final Map<String,CategoryNode> nameToNode = new HashMap<String, CategoryNode>();
+	private final Pattern classNamePattern = Pattern.compile("^(([a-z])+.)*([A-Za-z])+$");
 	
 	public ReflectionViewContentInserter(TreeParent root, ReflectionView container) {
 		this.reflectionView = container;
-		classForNameNode = new CategoryNode("Class.forName");
-		root.addChild(classForNameNode);
-		classNewInstanceNode = new CategoryNode("Class.newInstance");
-		root.addChild(classNewInstanceNode);
-		methodInvokeNode = new CategoryNode("Method.invoke");
-		root.addChild(methodInvokeNode);
-		constructorNewInstanceNode = new CategoryNode("Constructor.newInstance");
-		root.addChild(constructorNewInstanceNode);
 		this.root = root;
+	}
+	
+	private CategoryNode insertNodeIfNecessary(String category) {
+		CategoryNode node = nameToNode.get(category);
+		if(node==null) {
+			node = new CategoryNode(category);
+			root.addChild(node);
+			nameToNode.put(category, node);
+		}		
+		return node;
 	}
 
 	public void insertFromTraceFileLine(String line) {
@@ -54,44 +57,30 @@ public class ReflectionViewContentInserter {
 		if(portions.length>3) {
 			lineNumber = Integer.parseInt(portions[3]);
 		}					
-		if(kind.equals("Class.forName")) {
-			TreeParent sourceMethodNode;
-			MethodNode ambMethodNode = new AmbiguousMethodNode(className,methodName,lineNumber).tryResolve(root.getProject());
-			if((sourceMethodNode=(TreeParent) classForNameNode.childFor(ambMethodNode.getName()))==null) {
-				classForNameNode.addChild(sourceMethodNode = ambMethodNode);
-			}
+		
+		CategoryNode categoryNode = insertNodeIfNecessary(kind);
+		TreeParent sourceMethodNode;
+		MethodNode ambMethodNode = new AmbiguousMethodNode(className,methodName,lineNumber).tryResolve(root.getProject());
+		if((sourceMethodNode=(TreeParent) categoryNode.childFor(ambMethodNode.getName()))==null) {
+			categoryNode.addChild(sourceMethodNode = ambMethodNode);
+		}
+		
+		if(classNamePattern.matcher(target).matches()) {
+			//target is class
 			sourceMethodNode.addChild(new ClassNode(target));
-		} else if(kind.equals("Class.newInstance")) {
-			TreeParent sourceMethodNode;
-			MethodNode ambMethodNode = new AmbiguousMethodNode(className,methodName,lineNumber).tryResolve(root.getProject());
-			if((sourceMethodNode=(TreeParent) classNewInstanceNode.childFor(ambMethodNode.getName()))==null) {
-				classNewInstanceNode.addChild(sourceMethodNode = ambMethodNode);
-			}
-			sourceMethodNode.addChild(new ClassNode(target));
-		} else if(kind.equals("Method.invoke")) {
-			TreeParent sourceMethodNode;
-			MethodNode ambMethodNode = new AmbiguousMethodNode(className,methodName,lineNumber).tryResolve(root.getProject());
-			if((sourceMethodNode=(TreeParent) methodInvokeNode.childFor(ambMethodNode.getName()))==null) {
-				methodInvokeNode.addChild(sourceMethodNode = ambMethodNode);
-			}
+		} else if(target.contains("(")) {
+			//target is method
 			String targetClassName= target.substring(1,target.indexOf(':'));
 			String targetSignature= target.substring(target.indexOf('('),target.length()-1);
 			String targetMethodName= target.substring(0,target.length()-targetSignature.length()-1);
 			targetMethodName = targetMethodName.substring(targetMethodName.lastIndexOf(' ')+1);
 			sourceMethodNode.addChild(new ResolvedMethodNode(targetClassName,targetMethodName,targetSignature));
-		} else if(kind.equals("Constructor.newInstance")) {
-			TreeParent sourceMethodNode;
-			MethodNode ambMethodNode = new AmbiguousMethodNode(className,methodName,lineNumber).tryResolve(root.getProject());
-			if((sourceMethodNode=(TreeParent) constructorNewInstanceNode.childFor(ambMethodNode.getName()))==null) {
-				constructorNewInstanceNode.addChild(sourceMethodNode = ambMethodNode);
-			}
-			String targetClassName= target.substring(1,target.indexOf(':'));
-			String targetSignature= target.substring(target.indexOf('('),target.length()-1);
-			String targetMethodName= target.substring(0,(target.length()-targetSignature.length())-1);
-			targetMethodName = targetMethodName.substring(targetMethodName.lastIndexOf(' ')+1);
-			sourceMethodNode.addChild(new ResolvedMethodNode(targetClassName,targetMethodName,targetSignature));
 		} else {
-			throw new RuntimeException("Unknown kind: "+kind);
+			//target is field
+			String targetClassName= target.substring(1,target.indexOf(':'));
+			String targetFieldName= target.substring(target.lastIndexOf(' ')+1,target.lastIndexOf('>'));
+			String targetType = target.substring(target.indexOf(' ')+1,target.lastIndexOf(' '));
+			sourceMethodNode.addChild(new FieldNode(targetClassName,targetFieldName,targetType));
 		}
 	}
 	

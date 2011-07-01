@@ -23,7 +23,7 @@ public abstract class TreeObject {
 
 	public final static TreeParent INVISIBLE_ROOT_NODE = new ResolvedMethodNode("","","");
 
-	public enum Kind {CATEGORY, TRACEFILE, ONLINEMONITOR, CLASS, METHOD};
+	public enum Kind {CATEGORY, TRACEFILE, ONLINEMONITOR, CLASS, METHOD, FIELD};
 	
 	protected String name;
 	protected TreeParent parent;
