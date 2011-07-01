@@ -38,16 +38,16 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		if(verbose) {
 			System.out.println("\nActive instruments:");
 		}
-		for (String string : split) {
-			string = string.trim();
+		for (String className : split) {
+			className = className.trim();
+			if(className.isEmpty()) continue;
 			try {				
-				String className = "de.bodden.tamiflex.playout.transformation."+string+"Transformation";
 				@SuppressWarnings("unchecked")
 				Class<AbstractTransformation> c = (Class<AbstractTransformation>) Class.forName(className);
 				AbstractTransformation transform = c.newInstance();
 				transformations.add(transform);
 				if(verbose) {
-					System.out.print(string);
+					System.out.print(className);
 					System.out.println(": ");
 					for(Method m: transform.getAffectedMethods()) {
 						System.out.print("    ");
@@ -55,7 +55,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException("There was an error instantiating the instrument "+string, e);
+				throw new RuntimeException("There was an error instantiating the instrument "+className, e);
 			}
 		}
 	}
