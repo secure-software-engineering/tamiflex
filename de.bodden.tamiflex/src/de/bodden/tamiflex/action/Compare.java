@@ -36,9 +36,11 @@ public class Compare implements IObjectActionDelegate {
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		IStructuredSelection sl = (IStructuredSelection) selection;
-		Iterator<?> iter = sl.iterator();
-		left = (IFile) iter.next();
-		right = (IFile) iter.next();
+		if(sl.size()==2) {
+			Iterator<?> iter = sl.iterator();
+			left = (IFile) iter.next();
+			right = (IFile) iter.next();
+		}
 	}
 
 
