@@ -45,7 +45,7 @@ public class Agent {
 	private static boolean useSocket = false;
 	private static String socketString = null;
 	private static String outPath = "out";
-	private static String instruments = "";
+	private static String transformations = "";
 	private static Socket socket;
 
 	
@@ -186,8 +186,8 @@ public class Agent {
 			}
 			if(props.containsKey("outDir"))
 				outPath = (String) props.get("outDir"); 
-			if(props.containsKey("instruments"))
-				instruments = (String) props.get("instruments"); 
+			if(props.containsKey("transformations"))
+				transformations = (String) props.get("transformations"); 
 
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
@@ -235,7 +235,7 @@ public class Agent {
 	}
 
 	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
-		ReflectionMonitor reflMonitor = new ReflectionMonitor(instruments, verbose);
+		ReflectionMonitor reflMonitor = new ReflectionMonitor(transformations, verbose);
 		inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
 		
 		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
