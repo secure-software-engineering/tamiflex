@@ -56,7 +56,7 @@
             name="Reflection Editor">
       </editor>
    </extension>
-   <extension
+<!--   <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
             delegate="de.bodden.tamiflex.launching.playout.PlayOutLaunchDelegate"
@@ -68,17 +68,6 @@
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
             sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
       </launchConfigurationType>
-   </extension>
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.launching.playout.ui.PlayOutAgentLaunchTabGroup"
-            id="ReflectionView.playOutAgentLaunchTabGroup"
-            type="ReflectionView.playOutLaunchConfig">
-      </launchConfigurationTabGroup>
-   </extension>
-   <extension
-         point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
             delegate="de.bodden.tamiflex.launching.playin.PlayInLaunchDelegate"
             delegateDescription="Launches the Java application with the Play-in Agent attached"
@@ -89,16 +78,21 @@
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
             sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
       </launchConfigurationType>
-   </extension>
-   <extension
+   </extension>-->
+<!--<extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="de.bodden.tamiflex.launching.playout.ui.PlayOutAgentLaunchTabGroup"
+            id="ReflectionView.playOutAgentLaunchTabGroup"
+            type="org.eclipse.jdt.launching.localJavaApplication">
+      </launchConfigurationTabGroup>
       <launchConfigurationTabGroup
             class="de.bodden.tamiflex.launching.playin.ui.PlayInAgentLaunchTabGroup"
             id="ReflectionView.playInAgentLaunchTabGroup"
-            type="ReflectionView.playInLaunchConfig">
+            type="org.eclipse.jdt.launching.localJavaApplication">
       </launchConfigurationTabGroup>
-   </extension>
-   <extension
+   </extension>-->
+<!--   <extension
          point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             icon="$nl$/icons/poa.gif"
@@ -110,7 +104,7 @@
             configTypeID="ReflectionView.playInLaunchConfig"
             id="ReflectionView.icons.playInLaunchConfig">
       </launchConfigurationTypeImage>
-   </extension>
+   </extension>-->
 <extension point="org.eclipse.ui.popupMenus">
    <objectContribution
          adaptable="false"
@@ -124,6 +118,143 @@
             label="Compare Log files">
       </action>
    </objectContribution> 
+</extension>
+<extension
+      point="org.eclipse.debug.core.launchModes">
+   <launchMode
+         label="Play-out"
+         launchAsLabel="Play-out"
+         mode="playout">
+   </launchMode>
+   <launchMode
+         label="Play-in"
+         launchAsLabel="Play-in"
+         mode="playin">
+   </launchMode>
+</extension>
+<extension
+      point="org.eclipse.debug.core.launchDelegates">
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playout.JavaPlayOutLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playout.java"
+         modes="playout"
+         name="Play-out Java"
+         type="org.eclipse.jdt.launching.localJavaApplication">
+   </launchDelegate>
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playout.JavaAppletPlayOutLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playout.javaapplet"
+         modes="playout"
+         name="Play-out Java Applet"
+         type="org.eclipse.jdt.launching.javaApplet">
+   </launchDelegate>
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playout.JUnitPlayOutLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playout.junit"
+         modes="playout"
+         name="Play-out JUnit"
+         type="org.eclipse.jdt.junit.launchconfig">
+   </launchDelegate>
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playin.JavaPlayInLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playin.java"
+         modes="playin"
+         name="Play-in Java Application"
+         type="org.eclipse.jdt.launching.localJavaApplication">
+   </launchDelegate>
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playin.JavaAppletPlayInLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playin.javaapplet"
+         modes="playin"
+         name="Play-in Java Applet"
+         type="org.eclipse.jdt.launching.javaApplet">
+   </launchDelegate>
+   <launchDelegate
+         delegate="de.bodden.tamiflex.launching.playin.JUnitPlayInLaunchDelegate"
+         id="de.bodden.tamiflex.launchDelegates.playin.junit"
+         modes="playin"
+         name="Play-in JUnit"
+         type="org.eclipse.jdt.junit.launchconfig">
+   </launchDelegate>
+</extension>
+<extension
+      point="org.eclipse.ui.actionSets">
+   <actionSet
+         id="de.bodden.tamiflex.actionSet"
+         label="TamiFlex"
+         visible="true">
+      <action
+            class="de.bodden.tamiflex.action.PlayOutAction"
+            icon="icons/poa.gif"
+            id="de.bodden.tamiflex.actions.playout"
+            label="Play-out Configurations..."
+            menubarPath="org.eclipse.ui.run/runGroup"
+            tooltip="Run playing out">
+      </action>
+      <action
+            class="de.bodden.tamiflex.action.PlayInAction"
+            icon="icons/pia.gif"
+            id="de.bodden.tamiflex.actions.playin"
+            label="Play-in Configurations..."
+            menubarPath="org.eclipse.ui.run/runGroup"
+            tooltip="Run playing in">
+      </action>
+   </actionSet>
+</extension>
+<extension
+      point="org.eclipse.debug.ui.launchGroups">
+   <launchGroup
+         bannerImage="$nl$/icons/run_wiz.png"
+         image="$nl$/icons/run_exc.gif"
+         id="de.bodden.tamiflex.launchGroups.playout"
+         label="Play-Out"
+         mode="playout"
+         title="TITLE: Play-Out">
+   </launchGroup>
+   <launchGroup
+         bannerImage="$nl$/icons/run_wiz.png"
+         image="$nl$/icons/run_exc.gif"
+         id="de.bodden.tamiflex.launchGroups.playin"
+         label="Play-In"
+         mode="playin"
+         title="TITLE: Play-In">
+   </launchGroup>
+</extension>
+<extension
+      point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+   <launchConfigurationTabGroup
+         class="org.eclipse.jdt.internal.debug.ui.launcher.LocalJavaApplicationTabGroup"
+         id="de.bodden.tamiflex.launchConfigurationTabGroups.java"
+         type="org.eclipse.jdt.launching.localJavaApplication">
+      <launchMode
+            mode="playout">
+      </launchMode>
+      <launchMode
+            mode="playin">
+      </launchMode>
+   </launchConfigurationTabGroup>
+   <launchConfigurationTabGroup
+         class="org.eclipse.jdt.internal.debug.ui.launcher.JavaAppletTabGroup"
+         id="de.bodden.tamiflex.launchConfigurationTabGroups.javaapplet"
+         type="org.eclipse.jdt.launching.javaApplet">
+      <launchMode
+            mode="playout">
+      </launchMode>
+      <launchMode
+            mode="playin">
+      </launchMode>
+   </launchConfigurationTabGroup>
+   <launchConfigurationTabGroup
+         class="org.eclipse.jdt.internal.junit.launcher.JUnitTabGroup"
+         id="de.bodden.tamiflex.launchConfigurationTabGroups.junit"
+         type="org.eclipse.jdt.junit.launchconfig">
+      <launchMode
+            mode="playout">
+      </launchMode>
+      <launchMode
+            mode="playin">
+      </launchMode>
+   </launchConfigurationTabGroup>
 </extension>
 
    

@@ -47,6 +47,17 @@ public class LaunchUtil {
 		}
 	}
 	
+	public static String appendAgentArgs(String otherArgs, boolean playIn) {
+		StringBuilder vmArguments = new StringBuilder(otherArgs);
+		if(!otherArgs.isEmpty()) vmArguments.append(" "); //make sure to separate our arguments from any others
+		
+		vmArguments.append("-javaagent:");
+		String localPath = playIn ? "lib/pia.jar" : "lib/poa.jar";
+		vmArguments.append(LaunchUtil.getAgentJarPath(localPath));		
+
+		return vmArguments.toString();
+	}
+	
 	public static String getAgentJarPath(String localPath) {
 
 		StringBuffer cpath = new StringBuffer();
