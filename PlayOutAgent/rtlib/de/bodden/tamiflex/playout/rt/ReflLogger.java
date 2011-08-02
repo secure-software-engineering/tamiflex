@@ -47,7 +47,7 @@ public class ReflLogger {
 	private static boolean doCount;
 
 	//is initialized by the agent
-	private static boolean useDeclaredTypes;;
+	private static boolean useDeclaredTypes;
 
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
