@@ -21,3 +21,25 @@ syntax: regexp
 \.jar$
 syntax: regexp
 ^PlayOutAgent/poa-trunk\.jar$
+syntax: regexp
+^Booster/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayOutAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^PlayInAgent/ant\.settings$
+syntax: regexp
+^de\.bodden\.tamiflex\.updatesite/artifacts\.jar$
+syntax: regexp
+^de\.bodden\.tamiflex\.updatesite/artifacts\.jar$
