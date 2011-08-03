@@ -18,13 +18,13 @@ import static org.objectweb.asm.Opcodes.RETURN;
 
 import java.lang.reflect.Field;
 
+import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
 import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
-import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
 
 public abstract class AbstractFieldTransformation extends AbstractTransformation {
 	
@@ -34,7 +34,7 @@ public abstract class AbstractFieldTransformation extends AbstractTransformation
 
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new RecursionAvoidingMethodAdapter(parent) {
+		return new MethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {

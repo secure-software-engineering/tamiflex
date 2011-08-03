@@ -17,11 +17,11 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import java.lang.reflect.Array;
 
+import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
-import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
 
 
 public abstract class AbstractArrayTransformation extends AbstractTransformation {
@@ -32,7 +32,7 @@ public abstract class AbstractArrayTransformation extends AbstractTransformation
 	
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new RecursionAvoidingMethodAdapter(parent) {
+		return new MethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {
