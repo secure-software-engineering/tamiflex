@@ -278,8 +278,18 @@ public class ReflLogger {
 	}
 		
     private static boolean isReentrant() {
+    	//this method is called at every entry point to
+    	//the TamiFlex runtime; at this point we are entering the reflection API
+    	enteringReflectionAPI();
+    	
+    	//check if we have a recursive call caused by TamiFlex itself;
+    	//this is the case if depth is >1
     	Integer depth = nestingDepth.get();
     	if(depth>1) {
+    		
+    		//by convention, when this method returns true,
+    		//we will be leaving the TamiFlex runtime (callers must    		
+    		//return immediately); hence we here flag that we leave the API
     		leavingReflectionAPI();
     		return true;
     	} else {

@@ -19,6 +19,7 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
+import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -26,7 +27,6 @@ import org.objectweb.asm.commons.Method;
 
 import de.bodden.tamiflex.playout.rt.Kind;
 import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
-import de.bodden.tamiflex.playout.transformation.RecursionAvoidingMethodAdapter;
 
 public class ClassGetMethodTransformation extends AbstractTransformation {
 	
@@ -36,7 +36,7 @@ public class ClassGetMethodTransformation extends AbstractTransformation {
 
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new RecursionAvoidingMethodAdapter(parent) {
+		return new MethodAdapter(parent) {
 			
 			@Override
 			public void visitInsn(int opcode) {
