@@ -43,3 +43,9 @@ syntax: regexp
 ^de\.bodden\.tamiflex\.updatesite/artifacts\.jar$
 syntax: regexp
 ^de\.bodden\.tamiflex\.updatesite/artifacts\.jar$
+syntax: regexp
+^de\.bodden\.tamiflex\.updatesite/features$
+syntax: regexp
+^de\.bodden\.tamiflex\.updatesite/features$
+syntax: regexp
+^de\.bodden\.tamiflex\.updatesite/plugins$
