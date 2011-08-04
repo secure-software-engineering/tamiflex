@@ -77,6 +77,8 @@ public class ReflectionViewContentInserter {
 				targetMethodName = targetMethodName.substring(targetMethodName.lastIndexOf(' ')+1);
 				sourceMethodNode.addChild(new ResolvedMethodNode(targetClassName,targetMethodName,targetSignature));
 			} else {
+				//FIXME: Failed to read line: Array.newInstance;<java.util.Formatter$FormatString[]>;java.util.Arrays.copyOf;2760;
+				
 				//target is field
 				String targetClassName= target.substring(1,target.indexOf(':'));
 				String targetFieldName= target.substring(target.lastIndexOf(' ')+1,target.lastIndexOf('>'));
