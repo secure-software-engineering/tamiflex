@@ -44,8 +44,6 @@ public class LogFileDatabase {
 			projectToLogFiles.put(p, files);				
 		}
 		files.add(logFile);
-		System.err.println(logFilesForProject(p));
-		System.err.println(allLogFiles());
 	}
 	
 	public List<File> logFilesForProject(IProject p) {
