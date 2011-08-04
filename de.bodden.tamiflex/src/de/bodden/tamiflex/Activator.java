@@ -25,6 +25,8 @@ public class Activator extends AbstractUIPlugin {
 
 	// The shared instance
 	private static Activator plugin;
+	
+	protected LogFileDatabase logDB;
 
 	/**
 	 * The constructor
@@ -39,6 +41,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		logDB = new LogFileDatabase();
 	}
 
 	/*
@@ -48,6 +51,7 @@ public class Activator extends AbstractUIPlugin {
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
 		super.stop(context);
+		logDB = null;
 	}
 
 	/**
@@ -68,5 +72,12 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
+	}
+	
+	/**
+	 * Returns the singleton log-file database object. 
+	 */
+	public LogFileDatabase getLogFileDatabase() {
+		return logDB;
 	}
 }
