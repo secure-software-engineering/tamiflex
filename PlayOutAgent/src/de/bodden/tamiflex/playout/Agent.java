@@ -42,8 +42,6 @@ public class Agent {
 	private static boolean count = false;
 	private static boolean useDeclaredTypes;
 	private static boolean verbose = false;
-	private static boolean useSocket = false;
-	private static String socketString = null;
 	private static String outPath = "out";
 	private static String transformations = "";
 	private static Socket socket;
@@ -65,78 +63,81 @@ public class Agent {
 		ReflLogger.setuseDeclaredTypes(useDeclaredTypes);		
 		if(dontNormalize) Hasher.dontNormalize();
 
-		if(useSocket) {
-			//online mode; no need to create any files; just insert instrumentation...
-			String hostColonPort = socketString;
-			if(!hostColonPort.contains(":")) throw new IllegalArgumentException("Wrong destination "+hostColonPort+" ! Format is host:port.");
-			String[] split = hostColonPort.split(":");
+		String hostAndPort = System.getenv("TAMIFLEX_ECLIPSE");
+		if(hostAndPort!=null && !hostAndPort.isEmpty()) {
+			//online mode, open Socket
+			String[] split = hostAndPort.split(":");
+			if(split.length!=2) {
+				System.err.println("Illegal argument: "+agentArgs);
+				System.err.println("Expected format: hostname:socket");
+				System.exit(1);
+			}
 			String host = split[0];
 			int port = Integer.parseInt(split[1]);
 			socket = new Socket(host, port);
 			ReflLogger.setSocket(socket);
-			instrumentClassesForLogging(inst);
-		} else {
-			if(outPath==null||outPath.isEmpty()) {
-				System.err.println("No outDir given!");
-			}
-			
-			File outDir = new File(outPath);
-			if(outDir.exists()) {
-				if(!outDir.isDirectory()) {
-					System.err.println(outDir+ "is not a directory");
-					System.exit(1);
-				}
-			} else {
-				boolean res = outDir.mkdirs();
-				if(!res) {
-					System.err.println("Cannot create directory "+outDir);
-					System.exit(1);
-				}
-			}
-			
-			final File logFile = new File(outDir,"refl.log");
-			
-			dumpLoadedClasses(inst,outDir,dontDump,verbose);
-			
-			ReflLogger.setLogFile(logFile);
-			
-			instrumentClassesForLogging(inst);
-			
-			inst.addTransformer(classDumper, CAN_RETRANSFORM);
-			
-			final boolean verboseOutput = verbose;
-			Runtime.getRuntime().addShutdownHook(new Thread() {
+		} 
 				
-				@Override
-				public void run() {
-					ShutdownStatus.hasShutDown = true;
-					if(socket!=null) {
-						try {
-							socket.close();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-					classDumper.writeClassesToDisk();
-					ReflLogger.writeLogfileToDisk(verboseOutput);
-					
-					String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
-					String version = Agent.class.getPackage().getImplementationVersion();
-					String dbJarPath = agentJarDir+'/'+"dbdumper-"+version+".jar";
-					
+		if(outPath==null||outPath.isEmpty()) {
+			System.err.println("No outDir given!");
+		}
+		
+		File outDir = new File(outPath);
+		if(outDir.exists()) {
+			if(!outDir.isDirectory()) {
+				System.err.println(outDir+ "is not a directory");
+				System.exit(1);
+			}
+		} else {
+			boolean res = outDir.mkdirs();
+			if(!res) {
+				System.err.println("Cannot create directory "+outDir);
+				System.exit(1);
+			}
+		}
+		
+		final File logFile = new File(outDir,"refl.log");
+		
+		dumpLoadedClasses(inst,outDir,dontDump,verbose);
+		
+		ReflLogger.setLogFile(logFile);
+		
+		instrumentClassesForLogging(inst);
+		
+		inst.addTransformer(classDumper, CAN_RETRANSFORM);
+		
+		final boolean verboseOutput = verbose;
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			
+			@Override
+			public void run() {
+				ShutdownStatus.hasShutDown = true;
+				if(socket!=null) {
 					try {
-						File jarfile = new File(new URI(dbJarPath));
-						if(jarfile.exists()) {
-							System.out.println("Database JAR file found. Will attempt to dump log file to database.");
-							DBDumper.dumpFileToDatabase(jarfile,logFile);
-						} 
-					} catch (URISyntaxException e) {
+						socket.close();
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
+				classDumper.writeClassesToDisk();
+				ReflLogger.writeLogfileToDisk(verboseOutput);
 				
-			});
-		}
+				String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
+				String version = Agent.class.getPackage().getImplementationVersion();
+				String dbJarPath = agentJarDir+'/'+"dbdumper-"+version+".jar";
+				
+				try {
+					File jarfile = new File(new URI(dbJarPath));
+					if(jarfile.exists()) {
+						System.out.println("Database JAR file found. Will attempt to dump log file to database.");
+						DBDumper.dumpFileToDatabase(jarfile,logFile);
+					} 
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		});
 		
 		System.out.println("============================================================");		
 	}
@@ -180,10 +181,6 @@ public class Agent {
 				verbose = true;
 			if(props.containsKey("useDeclaredTypes") && props.get("useDeclaredTypes").equals("true"))
 				useDeclaredTypes = true;
-			if(props.containsKey("socket")) {
-				useSocket = true;
-				socketString = (String) props.get("socket");
-			}
 			if(props.containsKey("outDir"))
 				outPath = (String) props.get("outDir"); 
 			if(props.containsKey("transformations"))

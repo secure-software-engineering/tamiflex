@@ -18,6 +18,12 @@ public class JavaAppletPlayOutLaunchDelegate extends JavaAppletLaunchConfigurati
 	}
 	
 	@Override
+	public String[] getEnvironment(ILaunchConfiguration configuration)
+			throws CoreException {
+		return LaunchUtil.openSocketAndUpdateEnvironment(configuration, super.getEnvironment(configuration));
+	}
+	
+	@Override
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		super.launch(configuration, "run", launch, monitor);
