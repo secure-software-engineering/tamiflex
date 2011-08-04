@@ -20,7 +20,8 @@ public class ReflectionViewContentInserter {
 	private final TreeParent root;
 	private final ReflectionView reflectionView;
 	private final Map<String,CategoryNode> nameToNode = new HashMap<String, CategoryNode>();
-	private final Pattern classNamePattern = Pattern.compile("^(([a-z0-9_])+.)*([A-Za-z0-9_])+$");
+	private final Pattern classNamePattern =     Pattern.compile("^(([a-z0-9_])+.)*([A-Za-z0-9_\\$])+$");
+	private final Pattern arrayTypeNamePattern = Pattern.compile("^(([a-z0-9_])+.)*([A-Za-z0-9_\\$])+(\\[\\])+$");
 	
 	public ReflectionViewContentInserter(TreeParent root, ReflectionView container) {
 		this.reflectionView = container;
@@ -69,6 +70,9 @@ public class ReflectionViewContentInserter {
 			if(classNamePattern.matcher(target).matches()) {
 				//target is class
 				sourceMethodNode.addChild(new ClassNode(target));
+			} else if(arrayTypeNamePattern.matcher(target).matches()) {
+				//target is array Type
+				sourceMethodNode.addChild(new ArrayNode(target));
 			} else if(target.contains("(")) {
 				//target is method
 				String targetClassName= target.substring(1,target.indexOf(':'));
@@ -77,8 +81,6 @@ public class ReflectionViewContentInserter {
 				targetMethodName = targetMethodName.substring(targetMethodName.lastIndexOf(' ')+1);
 				sourceMethodNode.addChild(new ResolvedMethodNode(targetClassName,targetMethodName,targetSignature));
 			} else {
-				//FIXME: Failed to read line: Array.newInstance;<java.util.Formatter$FormatString[]>;java.util.Arrays.copyOf;2760;
-				
 				//target is field
 				String targetClassName= target.substring(1,target.indexOf(':'));
 				String targetFieldName= target.substring(target.lastIndexOf(' ')+1,target.lastIndexOf('>'));
