@@ -133,15 +133,22 @@ public class LaunchUtil {
 						is = socket.getInputStream();
 						BufferedReader r = new BufferedReader(new InputStreamReader(is));
 						
-						String line;
-						while((line=r.readLine())!=null) {
-							contentInserter.insertFromTraceFileLine(line);
-							Display.getDefault().asyncExec(new Runnable() {			
-								public void run() {
-									reflView.refresh();
-								}
-							});
+						String line = r.readLine();
+						if(line!=null) {
+							//POA first sends absolute path of log file; this we then register with the LogFileDatabase 
+							File logFile = new File(line);
+							Activator.getDefault().getLogFileDatabase().registerLogFile(project, logFile);
+							
+							while((line=r.readLine())!=null) {
+								contentInserter.insertFromTraceFileLine(line);
+								Display.getDefault().asyncExec(new Runnable() {			
+									public void run() {
+										reflView.refresh();
+									}
+								});
+							}
 						}
+						
 					} catch (IOException e) {
 						e.printStackTrace();
 					} finally {
