@@ -13,6 +13,7 @@ package de.bodden.tamiflex;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,13 @@ import org.eclipse.core.resources.IProject;
 
 public class LogFileDatabase {
 	
+	private static final class LastModifiedDateComparator implements Comparator<File> {
+		@Override
+		public int compare(File f1, File f2) {
+			return Math.round(f1.lastModified() - f2.lastModified());
+		}
+	}
+
 	protected Map<IProject,Set<File>> projectToLogFiles;
 	
 	public LogFileDatabase() {
@@ -30,30 +38,32 @@ public class LogFileDatabase {
 	}
 	
 	public void registerLogFile(IProject p, File logFile) {
-		if(logFile.exists() && logFile.canRead()) {
-			Set<File> files = projectToLogFiles.get(p);	
-			if(files==null) {
-				files = new HashSet<File>();
-				projectToLogFiles.put(p, files);				
-			}
-			files.add(logFile);
-		}		
+		Set<File> files = projectToLogFiles.get(p);	
+		if(files==null) {
+			files = new HashSet<File>();
+			projectToLogFiles.put(p, files);				
+		}
+		files.add(logFile);
+		System.err.println(logFilesForProject(p));
+		System.err.println(allLogFiles());
 	}
 	
 	public List<File> logFilesForProject(IProject p) {
 		Set<File> set = projectToLogFiles.get(p);
-		ArrayList<File> list = new ArrayList<File>(set);
-		Collections.sort(list);
-		return list;
+		return sortedList(set);
 	}
-	
+
 	public List<File> allLogFiles() {
 		Set<File> set = new HashSet<File>();
 		for(Set<File> files: projectToLogFiles.values()) {
 			set.addAll(files);
 		}
+		return sortedList(set);
+	}
+
+	private List<File> sortedList(Set<File> set) {
 		ArrayList<File> list = new ArrayList<File>(set);
-		Collections.sort(list);
+		Collections.sort(list, new LastModifiedDateComparator());
 		return list;
 	}
 

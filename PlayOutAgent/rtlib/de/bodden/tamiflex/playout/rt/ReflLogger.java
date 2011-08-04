@@ -417,6 +417,9 @@ public class ReflLogger {
 	
 	public static void setLogFile(File f) {
 		logFile = f;
+		
+		//send path of log file over Socket (if connected)
+		newLineWriter.println(f.getAbsolutePath());
 	}
 	
 	public static void setSocket(Socket s) throws IOException {
