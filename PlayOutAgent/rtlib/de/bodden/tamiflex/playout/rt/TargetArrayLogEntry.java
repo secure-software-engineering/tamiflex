@@ -35,12 +35,10 @@ public class TargetArrayLogEntry extends RuntimeLogEntry {
 	
 	private static String sootSignature(String componentType, int... dimensions) {
 		StringBuilder b = new StringBuilder();
-		b.append("<");
 		b.append(componentType);
 		for (int i = 0; i < dimensions.length; i++) {
 			b.append("[]");
 		}
-		b.append(">");
 		return b.toString();
 	}
 
