@@ -184,12 +184,26 @@
          label="TamiFlex"
          visible="true">
       <action
+            label="Play-Out History"
+            style="pulldown"
+            class="de.bodden.tamiflex.action.PlayOutHistoryMenuAction"
+            menubarPath="org.eclipse.ui.run/runGroup"
+            id="de.bodden.tamiflex.action.PlayoutHistoryMenuAction">
+      </action>
+      <action
             class="de.bodden.tamiflex.action.PlayOutAction"
             icon="icons/poa.gif"
             id="de.bodden.tamiflex.actions.playout"
             label="Play-out Configurations..."
             menubarPath="org.eclipse.ui.run/runGroup"
             tooltip="Run playing out">
+      </action>
+      <action
+            label="Play-In History"
+            style="pulldown"
+            class="de.bodden.tamiflex.action.PlayInHistoryMenuAction"
+            menubarPath="org.eclipse.ui.run/runGroup"
+            id="de.bodden.tamiflex.action.PlayinHistoryMenuAction">
       </action>
       <action
             class="de.bodden.tamiflex.action.PlayInAction"
@@ -199,7 +213,27 @@
             menubarPath="org.eclipse.ui.run/runGroup"
             tooltip="Run playing in">
       </action>
-   </actionSet>
+         <action
+               id="de.bodden.tamiflex.action.PlayoutHistoryDropDownAction"
+               toolbarPath="debug.ext"
+               hoverIcon="$nl$/icons/full/etool16/run_exc.gif"
+               class="de.bodden.tamiflex.action.PlayOutToolbarAction"
+               disabledIcon="$nl$/icons/full/dtool16/run_exc.gif"
+               icon="$nl$/icons/full/etool16/run_exc.gif"
+               label="Play-Out"
+               style="pulldown">
+         </action>
+         <action
+               id="de.bodden.tamiflex.action.PlayinHistoryDropDownAction"
+               toolbarPath="debug.ext"
+               hoverIcon="$nl$/icons/full/etool16/run_exc.gif"
+               class="de.bodden.tamiflex.action.PlayInToolbarAction"
+               disabledIcon="$nl$/icons/full/dtool16/run_exc.gif"
+               icon="$nl$/icons/full/etool16/run_exc.gif"
+               label="Play-In"
+               style="pulldown">
+         </action>
+    </actionSet>
 </extension>
 <extension
       point="org.eclipse.debug.ui.launchGroups">
