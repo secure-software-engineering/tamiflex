@@ -20,7 +20,7 @@
       </category>
       <view
             name="Reflection Log"
-            icon="icons/poa.gif"
+            icon="icons/run_poa.png"
             category="ReflectionView"
             class="de.bodden.tamiflex.views.ReflectionView"
             id="reflectionview.views.ReflectionView">
@@ -50,61 +50,15 @@
             default="true"
             extensions="log"
             filenames="refl.log"
-            icon="icons/poa.gif"
+            icon="icons/run_poa.png"
             id="reflectionview.editors.TraceFileViewerEditor"
             launcher="de.bodden.tamiflex.editors.TraceFileViewerLauncher"
             name="Reflection Editor">
       </editor>
    </extension>
-<!--   <extension
-         point="org.eclipse.debug.core.launchConfigurationTypes">
-      <launchConfigurationType
-            delegate="de.bodden.tamiflex.launching.playout.PlayOutLaunchDelegate"
-            delegateDescription="Launches the Java application with the Play-out Agent attached"
-            delegateName="Play-Out-Agent Launcher"
-            id="ReflectionView.playOutLaunchConfig"
-            modes="run, debug"
-            name="Java Application with Play-out Agent"
-            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
-            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
-      </launchConfigurationType>
-      <launchConfigurationType
-            delegate="de.bodden.tamiflex.launching.playin.PlayInLaunchDelegate"
-            delegateDescription="Launches the Java application with the Play-in Agent attached"
-            delegateName="Play-In-Agent Launcher"
-            id="ReflectionView.playInLaunchConfig"
-            modes="run, debug"
-            name="Java Application with Play-in Agent"
-            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
-            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
-      </launchConfigurationType>
-   </extension>-->
-<!--<extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.launching.playout.ui.PlayOutAgentLaunchTabGroup"
-            id="ReflectionView.playOutAgentLaunchTabGroup"
-            type="org.eclipse.jdt.launching.localJavaApplication">
-      </launchConfigurationTabGroup>
-      <launchConfigurationTabGroup
-            class="de.bodden.tamiflex.launching.playin.ui.PlayInAgentLaunchTabGroup"
-            id="ReflectionView.playInAgentLaunchTabGroup"
-            type="org.eclipse.jdt.launching.localJavaApplication">
-      </launchConfigurationTabGroup>
-   </extension>-->
-<!--   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-      <launchConfigurationTypeImage
-            icon="$nl$/icons/poa.gif"
-            configTypeID="ReflectionView.playOutLaunchConfig"
-            id="ReflectionView.icons.playOutLaunchConfig">
-      </launchConfigurationTypeImage>
-      <launchConfigurationTypeImage
-            icon="$nl$/icons/pia.gif"
-            configTypeID="ReflectionView.playInLaunchConfig"
-            id="ReflectionView.icons.playInLaunchConfig">
-      </launchConfigurationTypeImage>
-   </extension>-->
+<!--
+CURRENTLY NOT IMPLEMENTED
+
 <extension point="org.eclipse.ui.popupMenus">
    <objectContribution
          adaptable="false"
@@ -119,6 +73,7 @@
       </action>
    </objectContribution> 
 </extension>
+-->
 <extension
       point="org.eclipse.debug.core.launchModes">
    <launchMode
@@ -192,7 +147,7 @@
       </action>
       <action
             class="de.bodden.tamiflex.action.PlayOutAction"
-            icon="icons/poa.gif"
+            icon="icons/run_poa.png"
             id="de.bodden.tamiflex.actions.playout"
             label="Play-out Configurations..."
             menubarPath="org.eclipse.ui.run/runGroup"
@@ -207,7 +162,7 @@
       </action>
       <action
             class="de.bodden.tamiflex.action.PlayInAction"
-            icon="icons/pia.gif"
+            icon="icons/run_pia.png"
             id="de.bodden.tamiflex.actions.playin"
             label="Play-in Configurations..."
             menubarPath="org.eclipse.ui.run/runGroup"
@@ -216,20 +171,20 @@
          <action
                id="de.bodden.tamiflex.action.PlayoutHistoryDropDownAction"
                toolbarPath="debug.ext"
-               hoverIcon="$nl$/icons/full/etool16/run_exc.gif"
+               hoverIcon="$nl$/icons/run_poa.png"
                class="de.bodden.tamiflex.action.PlayOutToolbarAction"
-               disabledIcon="$nl$/icons/full/dtool16/run_exc.gif"
-               icon="$nl$/icons/full/etool16/run_exc.gif"
+               disabledIcon="$nl$/icons/run_poa_disabled.png"
+               icon="$nl$/icons/run_poa.png"
                label="Play-Out"
                style="pulldown">
          </action>
          <action
                id="de.bodden.tamiflex.action.PlayinHistoryDropDownAction"
                toolbarPath="debug.ext"
-               hoverIcon="$nl$/icons/full/etool16/run_exc.gif"
+               hoverIcon="$nl$/icons/run_pia.png"
                class="de.bodden.tamiflex.action.PlayInToolbarAction"
-               disabledIcon="$nl$/icons/full/dtool16/run_exc.gif"
-               icon="$nl$/icons/full/etool16/run_exc.gif"
+               disabledIcon="$nl$/icons/run_pia_disabled.png"
+               icon="$nl$/icons/run_pia.png"
                label="Play-In"
                style="pulldown">
          </action>
@@ -239,7 +194,7 @@
       point="org.eclipse.debug.ui.launchGroups">
    <launchGroup
          bannerImage="$nl$/icons/run_wiz.png"
-         image="$nl$/icons/run_exc.gif"
+         image="$nl$/icons/run_poa.png"
          id="de.bodden.tamiflex.launchGroups.playout"
          label="Play-Out"
          mode="playout"
@@ -247,7 +202,7 @@
    </launchGroup>
    <launchGroup
          bannerImage="$nl$/icons/run_wiz.png"
-         image="$nl$/icons/run_exc.gif"
+         image="$nl$/icons/run_pia.png"
          id="de.bodden.tamiflex.launchGroups.playin"
          label="Play-In"
          mode="playin"
@@ -290,7 +245,4 @@
       </launchMode>
    </launchConfigurationTabGroup>
 </extension>
-
-   
-
 </plugin>
