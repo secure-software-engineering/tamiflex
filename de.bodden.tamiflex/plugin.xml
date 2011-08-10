@@ -193,7 +193,7 @@ CURRENTLY NOT IMPLEMENTED
 <extension
       point="org.eclipse.debug.ui.launchGroups">
    <launchGroup
-         bannerImage="$nl$/icons/run_wiz.png"
+         bannerImage="$nl$/icons/run_wiz_poa.png"
          image="$nl$/icons/run_poa.png"
          id="de.bodden.tamiflex.launchGroups.playout"
          label="Play-Out"
@@ -201,7 +201,7 @@ CURRENTLY NOT IMPLEMENTED
          title="TITLE: Play-Out">
    </launchGroup>
    <launchGroup
-         bannerImage="$nl$/icons/run_wiz.png"
+         bannerImage="$nl$/icons/run_wiz_pia.png"
          image="$nl$/icons/run_pia.png"
          id="de.bodden.tamiflex.launchGroups.playin"
          label="Play-In"
