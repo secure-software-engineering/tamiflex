@@ -10,6 +10,7 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation.method;
 
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
@@ -37,7 +38,7 @@ public abstract class AbstractMethodTransformation extends AbstractTransformatio
 			@Override
 			public void visitInsn(int opcode) {
 				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 1); // Load designated receiver
+					mv.visitInsn(ACONST_NULL); //ignore first argument to method methodMethodInvoke
 					mv.visitVarInsn(ALOAD, 0); // Load Method instance
 					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
 					mv.visitMethodInsn(
