@@ -26,5 +26,5 @@ public class MethodGetNameTransformation extends AbstractMethodTransformation {
 	protected Kind methodKind() {
 		return MethodGetName;
 	}
-	
+
 }
