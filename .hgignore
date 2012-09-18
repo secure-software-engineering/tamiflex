@@ -1,4 +1,5 @@
-
+syntax: regexp
+^.*/target$
 syntax: regexp
 ^PlayOutAgent/poa-rt\.jar$
 syntax: regexp
