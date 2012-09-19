@@ -2,7 +2,7 @@
 <feature
       id="de.bodden.tamiflex.feature"
       label="TamiFlex"
-      version="2.0.0.0"
+      version="2.0.1"
       provider-name="TU Darmstadt, Software Technology Group">
 
    <copyright>
@@ -266,6 +266,6 @@ its rights to a jury trial in any resulting litigation.
          id="de.bodden.tamiflex"
          download-size="0"
          install-size="0"
-         version="2.0.0.0"/>
+         version="2.0.1"/>
 
 </feature>
