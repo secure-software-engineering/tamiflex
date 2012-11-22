@@ -185,6 +185,11 @@ public class Agent {
 				outPath = (String) props.get("outDir"); 
 			if(props.containsKey("transformations"))
 				transformations = (String) props.get("transformations"); 
+			
+			if(transformations.isEmpty()) {
+				System.err.println("TamiFlex error: No transformations given! Check configuration file!");
+				System.exit(1);
+			}
 
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
