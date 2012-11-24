@@ -102,7 +102,8 @@ public class Agent {
 		
 		ReflLogger.setLogFile(logFile);
 		
-		instrumentClassesForLogging(inst);
+		if(!transformations.isEmpty())
+			instrumentClassesForLogging(inst);
 		
 		inst.addTransformer(classDumper, CAN_RETRANSFORM);
 		
@@ -120,7 +121,7 @@ public class Agent {
 					}
 				}
 				classDumper.writeClassesToDisk();
-				ReflLogger.writeLogfileToDisk(verboseOutput);
+				ReflLogger.writeLogfileToDisk(verboseOutput,classDumper.newClasses);
 				
 				String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
 				String version = Agent.class.getPackage().getImplementationVersion();
@@ -185,12 +186,6 @@ public class Agent {
 				outPath = (String) props.get("outDir"); 
 			if(props.containsKey("transformations"))
 				transformations = (String) props.get("transformations"); 
-			
-			if(transformations.isEmpty()) {
-				System.err.println("TamiFlex error: No transformations given! Check configuration file!");
-				System.exit(1);
-			}
-
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
 		}		
