@@ -46,6 +46,8 @@ public class ClassDumper implements ClassFileTransformer {
 
 	private final boolean dontReallyDump;
 	
+	public int newClasses;
+	
 	public ClassDumper(File outDir, boolean dontReallyDump, boolean verbose) {
 		this.outDir = outDir;
 		this.dontReallyDump = dontReallyDump;
@@ -105,7 +107,9 @@ public class ClassDumper implements ClassFileTransformer {
 				File outFile = new File(localOutDir, fileName);
 				if(outFile.exists()) {
 					outFile.delete();
-				} 
+				} else {
+					newClasses++;
+				}
 				FileOutputStream fos = null;
 				try {
 					outFile.createNewFile();

@@ -387,8 +387,8 @@ public class ReflLogger {
 		return outerFrame;
 	}
 	
-	public static synchronized void writeLogfileToDisk(boolean verbose) {
-		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog(verbose);
+	public static synchronized void writeLogfileToDisk(boolean verbose, int newClasses) {
+		Set<PersistedLogEntry> mergedEntries = mergeOldAndNewLog(verbose, newClasses);
 		//printStatistics();
 		try {
 			PrintWriter pw = new PrintWriter(logFile);
@@ -463,7 +463,7 @@ public class ReflLogger {
 		} 
 	}
 	
-	private static Set<PersistedLogEntry> mergeOldAndNewLog(boolean verbose) {
+	private static Set<PersistedLogEntry> mergeOldAndNewLog(boolean verbose, int newClasses) {
 		initializeLogFile();
 		Set<RuntimeLogEntry> newLogSet = new HashSet<RuntimeLogEntry>();
 		for(Map<RuntimeLogEntry,RuntimeLogEntry> values: containerMethodToEntries.values()) {
@@ -499,6 +499,11 @@ public class ReflLogger {
 			System.out.println("Found no new log entries.");
 		} else {
 			System.out.println("Found "+newEntries.size()+" new log entries.");
+		}
+		if(newClasses>0) {
+			System.out.println("Dumped "+newClasses+" new classes.");
+		} else {
+			System.out.println("Dumped no new classes.");
 		}
 		if(verbose) {
 			System.out.println("New Entries: ");
