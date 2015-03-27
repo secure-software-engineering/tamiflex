@@ -9,7 +9,7 @@ TamiFlex is a tool for dealing with reflection in the static analysis of Java pr
 
 TamiFlex itself is available as Open Source under the [Eclipse Public License](https://www.eclipse.org/legal/epl-v10.html).
 
-TamiFlex uses technology from ASM, which is under this OS license.
+TamiFlex uses technology from ASM, which is under [this OS license](http://asm.ow2.org/license.html).
 
 ## User questionnaire
 
