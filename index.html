@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Tamiflex by secure-software-engineering</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Tamiflex</h1>
+        <p>TamiFlex facilitates static analysis of programs that use reflection and custom class loaders</p>
+        <p class="view"><a href="https://github.com/secure-software-engineering/tamiflex">View the Project on GitHub <small>secure-software-engineering/tamiflex</small></a></p>
+        <ul>
+          <li><a href="https://github.com/secure-software-engineering/tamiflex/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/secure-software-engineering/tamiflex/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/secure-software-engineering/tamiflex">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>A small request to our users</p>
+
+<p>We would appreciate if you could briefly let us know about how you use TamiFlex. 
+<a href="https://spreadsheets.google.com/spreadsheet/viewform?formkey=dHdkbVM1ZW5kRHZPZzZ4a2otRUNmZnc6MQ">To do so, click here. It will only take a minute. Thanks!</a> </p>
+
+<h3>
+<a id="news" class="anchor" href="#news" aria-hidden="true"><span class="octicon octicon-link"></span></a>News</h3>
+
+<ul>
+<li>September 18th, 2012: <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V2.0.1">TamiFlex 2.0.1</a> is out! Read more about this release in the <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V2.0.1">ChangeLog</a>
+</li>
+<li>September 25th, 2011: <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V2.0">TamiFlex 2.0</a> is out! Read more about this release in the <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V2.0">ChangeLog</a>
+</li>
+<li>May 25th, 2011: Download out ICSE presentation here as <a href="https://github.com/secure-software-engineering/tamiflex/wiki/20110526%20-%20ICSE%20-%20TamiFlex.key">Keynote</a> or <a href="https://github.com/secure-software-engineering/tamiflex/wiki/20110526%20-%20ICSE%20-%20TamiFlex.pdf">PDF</a> file. You may use it under the <a href="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons “Attribution-ShareAlike” license</a>.</li>
+<li>November 19th, 2010: Our ICSE submission on TamiFlex was accepted for publication. You can <a href="http://www.bodden.de/pubs/bss+11taming.pdf">access the paper here</a>.</li>
+<li>August 4th, 2010: Today we are releasing <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V1.1">Version 1.1</a> of TamiFlex. Consult the <a href="https://github.com/secure-software-engineering/tamiflex/releases/tag/V1.1">change log</a> to see what's new.</li>
+</ul>
+
+<h2>
+<a id="what-is-tamiflex" class="anchor" href="#what-is-tamiflex" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is TamiFlex?</h2>
+
+<p>TamiFlex is a tool suite to facilitate static analyses of Java programs that use reflection and custom class loaders. The suite consists of two agents that use the java.lang.instrument API, one Play-out Agent and one Play-in Agent. Our Overview document gives more details.</p>
+
+<h2>
+<a id="what-features-does-tamiflex-offer" class="anchor" href="#what-features-does-tamiflex-offer" aria-hidden="true"><span class="octicon octicon-link"></span></a>What features does TamiFlex offer?</h2>
+
+<p>TamiFlex consists of three components, the <strong>Play-out Agent</strong>, the <strong>Play-in Agent</strong> and the <strong>Booster</strong>.</p>
+
+<p>The <strong>Play-out Agent</strong> allows you to:</p>
+
+<ul>
+<li>monitor a Java program using any Java-6 compliant JVM,
+** dumping a <strong>reflection trace file</strong>, providing information about reflective calls on the program run, and
+** <strong>dumping all classes</strong> that the virtual machine loaded on this run, including runtime-generated classes</li>
+</ul>
+
+<p>The <strong>Booster</strong> takes as input a class-file folder and reflection log produced by the Play-Out Agent and produces as output an enriched version of the program that contains "materialized" versions of the original reflective calls in the form of standard Java method calls. Statically analyzing the "boosted" program instead of the original program allows static-analysis tools to treat the reflective calls just as standard Java method calls.</p>
+
+<p>With the <strong>Play-in Agent</strong> you can cause the virtual machine to <strong>load classes from a specified directory</strong> instead of from they would normally be loaded from. This is useful for replacing classes by statically optimized classes irrespective of the program's class-loading setup.</p>
+
+<h2>
+<a id="who-are-the-creators-of-tamiflex" class="anchor" href="#who-are-the-creators-of-tamiflex" aria-hidden="true"><span class="octicon octicon-link"></span></a>Who are the creators of TamiFlex?</h2>
+
+<p>TamiFlex is a joint effort of Eric Bodden, Andreas Sewe, Jan Sinschek and Mira Mezini, of the <a href="http://www.stg.tu-darmstadt.de">Software Technology Group</a> and <a href="http://sse.ec-spride.de/">Secure Software Engineering Group</a> at TU Darmstadt. This work is supported by <a href="http://www.cased.de/">CASED</a>.</p>
+
+<p>TamiFlex uses technology from ASM, which is under <a href="http://asm.ow2.org/license.html">this OS license</a>, and from <a href="https://github.com/Sable/soot">Soot</a>, which is under LGPL.</p>
+
+<h2>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p><a href="https://github.com/secure-software-engineering/tamiflex/wiki/Overview">This document</a> gives an Overview of TamiFlex.</p>
+
+<h2>
+<a id="using-tamiflex" class="anchor" href="#using-tamiflex" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using TamiFlex</h2>
+
+<p>Our <a href="https://github.com/secure-software-engineering/tamiflex/wiki/Usage">Usage page</a> tells you how to use TamiFlex.</p>
+
+<h2>
+<a id="using-tamiflex-with-dacapo-and-soot" class="anchor" href="#using-tamiflex-with-dacapo-and-soot" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using TamiFlex with DaCapo and Soot</h2>
+
+<p>TamiFlex enables static whole-program analysis of DaCapo benchmarks using Soot. <a href="https://github.com/secure-software-engineering/tamiflex/wiki/DaCapoAndSoot">Here you can read more</a> about how this works.</p>
+
+<h2>
+<a id="scientific-papers" class="anchor" href="#scientific-papers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Scientific Papers</h2>
+
+<p>If you are interested in the internal workings of TamiFlex, please consult our <a href="http://www.bodden.de/pubs/bss+11taming.pdf">ICSE 2011 paper</a> or our <a href="http://www.bodden.de/pubs/TUD-CS-2010-0066.pdf">Technical Report</a>.</p>
+
+<h2>
+<a id="benchmarks" class="anchor" href="#benchmarks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Benchmarks</h2>
+
+<p>We also have all benchmarking results from this Tech Report online, along with scripts to reproduce them. Please consult our <a href="https://github.com/secure-software-engineering/tamiflex/wiki/Benchmarks">Benchmarks page</a> for details and also see <a href="https://github.com/secure-software-engineering/tamiflex.benchmarks/">this Github project</a>.</p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/secure-software-engineering">secure-software-engineering</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
