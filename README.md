@@ -1,4 +1,4 @@
-<img style="float: right" src="https://raw.githubusercontent.com/wiki/secure-software-engineering/tamiflex/logo.png" alt="TamiFlex Logo">
+![TamiFlex logo](https://raw.githubusercontent.com/wiki/secure-software-engineering/tamiflex/logo.png)
 
 # TamiFlex
 
