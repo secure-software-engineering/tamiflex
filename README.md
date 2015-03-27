@@ -1,3 +1,5 @@
+<img style="float: right" src="https://raw.githubusercontent.com/wiki/secure-software-engineering/tamiflex/logo.png" alt="TamiFlex Logo">
+
 # TamiFlex
 
 TamiFlex is a tool for dealing with reflection in the static analysis of Java programs. It can record reflective calls dynamically and then embed them into the application.
