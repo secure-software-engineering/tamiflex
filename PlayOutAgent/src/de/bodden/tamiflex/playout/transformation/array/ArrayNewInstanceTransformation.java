@@ -10,6 +10,7 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout.transformation.array;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
 public class ArrayNewInstanceTransformation extends AbstractArrayTransformation {
@@ -26,5 +27,10 @@ public class ArrayNewInstanceTransformation extends AbstractArrayTransformation 
 	@Override
 	protected String methodSignature() {
 		return "(Ljava/lang/Class;I)V";
+	}
+
+	@Override
+	protected int loadDimensionOpcode() {
+		return Opcodes.ILOAD;
 	}
 }

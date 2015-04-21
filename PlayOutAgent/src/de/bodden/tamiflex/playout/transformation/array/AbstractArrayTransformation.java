@@ -12,7 +12,6 @@ package de.bodden.tamiflex.playout.transformation.array;
 
 import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
 import java.lang.reflect.Array;
@@ -38,7 +37,7 @@ public abstract class AbstractArrayTransformation extends AbstractTransformation
 			public void visitInsn(int opcode) {
 				if (opcode == ARETURN) {
 					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitVarInsn(ILOAD, 1); // Load dimension
+					mv.visitVarInsn(loadDimensionOpcode(), 1); // Load dimension
 					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", methodName(), methodSignature());
 				}
 				super.visitInsn(opcode);
@@ -50,4 +49,7 @@ public abstract class AbstractArrayTransformation extends AbstractTransformation
 	protected abstract String methodName();
 
 	protected abstract String methodSignature();
+	
+	protected abstract int loadDimensionOpcode();
+
 }
