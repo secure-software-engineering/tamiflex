@@ -39,7 +39,8 @@ public class Hasher {
 		"GeneratedSerializationConstructorAccessor",
 		"ByCGLIB",
 		"org/apache/derby/exe/",
-		"$Proxy" /*,
+		"_pyx",
+		"$Proxy" /*
 		"schemaorg_apache_xmlbeans/system/" these names seem to be stable, as they are already hashed */
 	};
 	
