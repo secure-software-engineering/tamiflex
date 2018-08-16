@@ -77,8 +77,8 @@ public class Hasher {
     		}
 
     		@Override
-    		public MethodVisitor visitMethod(int access, String name,
-    				String desc, String signature, String[] exceptions) {
+    		public MethodVisitor visitMethod(int access, final String name,
+    				final String desc, String signature, String[] exceptions) {
     			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
     			mv = new RemappingStringConstantAdapter(mv, new StringRemapper() {
     				@Override
@@ -86,8 +86,8 @@ public class Hasher {
     					String slashed = slashed(constant);
 		    			if(theClassName.equals(slashed)) return "$$$NORMALIZED$$$";
 						String to = generatedClassNameToHashedClassName.get(slashed);
-    	    			if(!theClassName.equals(slashed) && Hasher.containsGeneratedClassName(slashed) && to==null) {
-    	    				throw new NoHashedNameException(slashed);
+    	    			if(!theClassName.equals(slashed) && Hasher.containsGeneratedClassName(slashed) && to==null && !isWhiteListConstant(theClassName, name, desc, slashed)) {
+    	    				throw new NoHashedNameException("While visiting method: " + theClassName + "." + name + desc +": " + slashed);
     	    			}
     					if(to!=null) constant = dotted(to);
     					return super.remapStringConstant(constant);
@@ -96,7 +96,7 @@ public class Hasher {
 				return mv;
     		}
     	};
-    	creader.accept(visitor, 0);
+    	creader.accept(visitor, ClassReader.EXPAND_FRAMES);
         byte[] renamed = writer.toByteArray();
 		////////
 		String hash = SHAHash.SHA1(renamed);
@@ -134,7 +134,11 @@ public class Hasher {
 	public static byte[] replaceGeneratedClassNamesByHashedNames(byte[] classBytes) {
 		return ClassRenamer.replaceClassNamesInBytes(generatedClassNameToHashedClassName,classBytes);		
 	}
-	
+
+	public static boolean isWhiteListConstant(String theClassName, String name, String desc, String slashed) {
+		return (slashed.equals("$Proxy") && theClassName.equals("java/lang/reflect/Proxy$ProxyClassFactory") && name.equals("apply"));
+	}
+
 
 	public static String dotted(String className) {
 		return className.replace('/', '.');
