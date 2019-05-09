@@ -160,7 +160,18 @@ public class ReflLogger {
 		try {
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,c.getDeclaringClass().getName(),"void","<init>", c.isAccessible(), paramTypes);
+			String declareClassName = c.getDeclaringClass().getName();
+			// Lambda's declaring class name comes out as: "<dotted package>.<class>$$Lambda$<count>/<number>",
+			// however we write out the lambda class as "<dotted package>.<class>$$Lambda$<count>.class"
+			// We need to remove "/<number>" so the reflection log entry matches the class file name.
+			if (declareClassName.contains("$$Lambda$"))
+			{
+				int ignoreStart = declareClassName.lastIndexOf('/');
+				if (ignoreStart != -1)
+					declareClassName = declareClassName.substring(0, ignoreStart);
+			}
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,declareClassName,"void","<init>", c.isAccessible(), paramTypes);
+
 		} finally {
 			leavingReflectionAPI();
 		}
