@@ -160,17 +160,24 @@ public class ReflLogger {
 		try {
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
-			String declareClassName = c.getDeclaringClass().getName();
-			// Lambda's declaring class name comes out as: "<dotted package>.<class>$$Lambda$<count>/<number>",
-			// however we write out the lambda class as "<dotted package>.<class>$$Lambda$<count>.class"
-			// We need to remove "/<number>" so the reflection log entry matches the class file name.
-			if (declareClassName.contains("$$Lambda$"))
+			String className = c.getDeclaringClass().getName();
+			// If this is a lambda proxy class the className comes out in the form:
+			// "<dotted package>.<class>$$Lambda$<count>/<hash code>",
+			// however, when we take its byte code to generate the class name (as happens when we 
+			// dump the classes to disk) the name does not contain the "/<hash code>".
+			// This logic below is to remove the hash code so the reflection log entries match
+			// the classes that are dumped and soot can process them.
+			if (className.contains("$$Lambda$"))
 			{
-				int ignoreStart = declareClassName.lastIndexOf('/');
-				if (ignoreStart != -1)
-					declareClassName = declareClassName.substring(0, ignoreStart);
+				String slashHashCode = "/" + c.getDeclaringClass().hashCode();
+				if (!className.endsWith(slashHashCode)) {
+					System.err.println("unexpected lambda proxy class: " + className);
+				}
+				else {
+					className = className.substring(0, className.length() - slashHashCode.length());
+				}
 			}
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,declareClassName,"void","<init>", c.isAccessible(), paramTypes);
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,className,"void","<init>", c.isAccessible(), paramTypes);
 
 		} finally {
 			leavingReflectionAPI();
