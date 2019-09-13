@@ -49,7 +49,7 @@ public class ClassRenamer {
 	 * @return The bytecode containing the renamed references.
 	 */
 	public static byte[] replaceClassNamesInBytes(final Map<String, String> fromTo,	byte[] classBytes) {
-		ClassReader creader = new ClassReader(classBytes);
+		final ClassReader creader = new ClassReader(classBytes);
     	ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
     	RemappingClassAdapter visitor = new RemappingClassAdapter(writer,new Remapper(){
     		//rename a type reference
@@ -65,8 +65,8 @@ public class ClassRenamer {
     	}) {
     		//visit the body of the method
     		@Override
-    		public MethodVisitor visitMethod(int access, String name,
-    				String desc, String signature, String[] exceptions) {
+    		public MethodVisitor visitMethod(int access, final String name,
+    				final String desc, String signature, String[] exceptions) {
     			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
     			mv = new RemappingStringConstantAdapter(mv, new StringRemapper() {
     				//rename any string constants
@@ -75,7 +75,7 @@ public class ClassRenamer {
     					//string constants will refer to the type using a dotted name; replace dots by slashes... 
     					String slashed = slashed(constant);
 						String to = fromTo.get(slashed);
-    	    			if(Hasher.containsGeneratedClassName(slashed) && to==null) {
+    	    			if(Hasher.containsGeneratedClassName(slashed) && to==null && !Hasher.isWhiteListConstant(creader.getClassName(), name, desc, slashed)) {
     	    				throw new NoHashedNameException(slashed);
     	    			}
     					if(to!=null) constant = dotted(to);
@@ -85,7 +85,7 @@ public class ClassRenamer {
 				return mv;
     		}
     	};
-    	creader.accept(visitor, 0);
+    	creader.accept(visitor, ClassReader.EXPAND_FRAMES);
         return writer.toByteArray();
 	}
 }
