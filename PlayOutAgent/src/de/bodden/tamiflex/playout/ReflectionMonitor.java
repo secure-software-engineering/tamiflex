@@ -77,7 +77,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		
 		try {
 			final ClassReader creader = new ClassReader(classfileBuffer);
-			final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+			final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 			ClassVisitor visitor = writer;
 			
 			for (AbstractTransformation transformation : transformations)
