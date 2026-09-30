@@ -7,9 +7,6 @@ PlayOutAgent/poa-trunk.jar
 ReportingAgent/bin
 TamiFlexDatabase/bin
 Booster/bin
-poa.jar
-/bin/
-.classpath
-.project
 PlayInAgent/pia-trunk.jar
 de.bodden.tamiflex/lib/pia.jar
+de.bodden.tamiflex/lib/poa.jar
