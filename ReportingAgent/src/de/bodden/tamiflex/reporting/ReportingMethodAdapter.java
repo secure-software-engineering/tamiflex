@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
@@ -15,24 +15,23 @@ import org.objectweb.asm.Opcodes;
 
 public abstract class ReportingMethodAdapter extends MethodVisitor {
 
-	public ReportingMethodAdapter(MethodVisitor mv) {
-		super(Opcodes.ASM9, mv);
-	}
+  public ReportingMethodAdapter(MethodVisitor mv) {
+    super(Opcodes.ASM9, mv);
+  }
 
-	@Override
-	public void visitCode() {
-		super.visitCode();
-		insertCall(true);			
-	}
-	
-	@Override
-	public void visitInsn(int opcode) {
-		if(opcode==Opcodes.ARETURN) {
-			insertCall(false);
-		}
-		super.visitInsn(opcode);
-	}
+  @Override
+  public void visitCode() {
+    super.visitCode();
+    insertCall(true);
+  }
 
-	protected abstract void insertCall(boolean beginningOfMethod);
-	
+  @Override
+  public void visitInsn(int opcode) {
+    if (opcode == Opcodes.ARETURN) {
+      insertCall(false);
+    }
+    super.visitInsn(opcode);
+  }
+
+  protected abstract void insertCall(boolean beginningOfMethod);
 }

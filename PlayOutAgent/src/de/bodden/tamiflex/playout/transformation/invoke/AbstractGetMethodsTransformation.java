@@ -14,38 +14,37 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASM9;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
+import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
 
-import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
-import de.bodden.tamiflex.playout.Agent;
-
-
 public abstract class AbstractGetMethodsTransformation extends AbstractTransformation {
-	
-	public AbstractGetMethodsTransformation(Method... methods) throws Exception {
-		super(Class.forName("java.lang.Class"), methods);
-	}
-	
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) 
-    {
-        return new MethodVisitor(ASM9, parent) {
 
-            @Override
-            public void visitInsn(int opcode) {
-                if (opcode == ARETURN) {
-                    super.visitMethodInsn(INVOKESTATIC,
-                        "de/bodden/tamiflex/playout/rt/ReflLogger",
-                        methodName(),
-                        methodSignature(),
-                        false);
-                }
-                super.visitInsn(opcode);
-            };
-		};
-	}
-	protected abstract String methodName();
+  public AbstractGetMethodsTransformation(Method... methods) throws Exception {
+    super(Class.forName("java.lang.Class"), methods);
+  }
 
-	protected abstract String methodSignature();
+  @Override
+  protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+    return new MethodVisitor(ASM9, parent) {
+
+      @Override
+      public void visitInsn(int opcode) {
+        if (opcode == ARETURN) {
+          super.visitMethodInsn(
+              INVOKESTATIC,
+              "de/bodden/tamiflex/playout/rt/ReflLogger",
+              methodName(),
+              methodSignature(),
+              false);
+        }
+        super.visitInsn(opcode);
+      }
+      ;
+    };
+  }
+
+  protected abstract String methodName();
+
+  protected abstract String methodSignature();
 }

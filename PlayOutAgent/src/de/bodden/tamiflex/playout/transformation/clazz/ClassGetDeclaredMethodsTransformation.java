@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andreas Sewe - initial implementation
  ******************************************************************************/
@@ -12,19 +12,17 @@ package de.bodden.tamiflex.playout.transformation.clazz;
 
 import static de.bodden.tamiflex.playout.rt.Kind.ClassGetDeclaredMethods;
 
+import de.bodden.tamiflex.playout.rt.Kind;
 import org.objectweb.asm.commons.Method;
 
-import de.bodden.tamiflex.playout.rt.Kind;
-
 public class ClassGetDeclaredMethodsTransformation extends AbstractClassTransformation {
-	
-	public ClassGetDeclaredMethodsTransformation() {
-		super(new Method("getDeclaredMethods", "()[Ljava/lang/reflect/Method;"));
-	}
 
-	@Override
-	protected Kind methodKind() {
-		return ClassGetDeclaredMethods;
-	}
+  public ClassGetDeclaredMethodsTransformation() {
+    super(new Method("getDeclaredMethods", "()[Ljava/lang/reflect/Method;"));
+  }
 
+  @Override
+  protected Kind methodKind() {
+    return ClassGetDeclaredMethods;
+  }
 }
