@@ -10,14 +10,13 @@
  ******************************************************************************/
 package de.bodden.tamiflex.reporting;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public abstract class ReportingMethodAdapter extends MethodAdapter {
+public abstract class ReportingMethodAdapter extends MethodVisitor {
 
 	public ReportingMethodAdapter(MethodVisitor mv) {
-		super(mv);
+		super(Opcodes.ASM9, mv);
 	}
 
 	@Override

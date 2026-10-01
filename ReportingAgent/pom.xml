@@ -24,7 +24,6 @@
                         <configuration>
                             <sources>
                                 <source>rtlib</source>
-                                <source>../Normalizer/src</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -56,14 +55,9 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>${asm.legacy.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>${asm.legacy.version}</version>
+            <groupId>de.bodden.tamiflex</groupId>
+            <artifactId>normalizer</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

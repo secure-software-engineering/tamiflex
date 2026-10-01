@@ -16,11 +16,9 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -36,7 +34,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
         	ClassReader creader = new ClassReader(classfileBuffer);
         	ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         	
-            ClassVisitor visitor = new ClassAdapter(writer) {
+            ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
             	
             	public MethodVisitor visitMethod(int access, String methodName, String desc, String signature, String[] exceptions) {
             		//delegate
@@ -66,10 +64,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		}
 	}
 	
-	static class ClassForNameAdapter extends MethodAdapter {
+	static class ClassForNameAdapter extends MethodVisitor {
 
 		public ClassForNameAdapter(MethodVisitor mv) {
-			super(mv);
+			super(Opcodes.ASM9, mv);
 		}
 		
 		@Override
@@ -85,10 +83,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		
 	}
 
-	static class ClassNewInstanceAdapter extends MethodAdapter {
+	static class ClassNewInstanceAdapter extends MethodVisitor {
 
 		public ClassNewInstanceAdapter(MethodVisitor mv) {
-			super(mv);
+			super(Opcodes.ASM9, mv);
 		}
 		
 		@Override
@@ -104,10 +102,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		
 	}
 
-	static class MethodInvokeAdapter extends MethodAdapter {
+	static class MethodInvokeAdapter extends MethodVisitor {
 
 		public MethodInvokeAdapter(MethodVisitor mv) {
-			super(mv);
+			super(Opcodes.ASM9, mv);
 		}
 		
 		@Override
@@ -125,11 +123,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		
 	}
 	
-	static class ConstructorNewInstanceAdapter extends MethodAdapter {
+	static class ConstructorNewInstanceAdapter extends MethodVisitor {
 
 
 		public ConstructorNewInstanceAdapter(MethodVisitor mv) {
-			super(mv);
+			super(Opcodes.ASM9, mv);
 		}
 		
 		@Override
@@ -146,10 +144,10 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	}
 
 	//Comment creation
-/*	static class CommentAdapter extends MethodAdapter {
+/*	static class CommentAdapter extends MethodVisitor {
 
 		public CommentAdapter(MethodVisitor mv) {
-			super(mv);
+			super(Opcodes.ASM9, mv);
 		}
 		
 		@Override
