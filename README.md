@@ -15,6 +15,16 @@ mvn clean package
 
 Maven downloads the build dependencies from Maven Central. The generated agent and tool JARs are written to the respective module's `target` directory.
 
+Before opening a pull request, format the sources:
+
+```sh
+mvn com.spotify.fmt:fmt-maven-plugin:format
+```
+
+## Releasing
+
+Run the *Prepare Release* GitHub workflow (choose major, minor or patch). It opens a release PR against `master`; once merged, the release is tagged, the JARs are attached to a GitHub release and `master` is advanced to the next `-SNAPSHOT` version.
+
 ## License
 
 TamiFlex itself is available as Open Source under the [Eclipse Public License](https://www.eclipse.org/legal/epl-v10.html).
