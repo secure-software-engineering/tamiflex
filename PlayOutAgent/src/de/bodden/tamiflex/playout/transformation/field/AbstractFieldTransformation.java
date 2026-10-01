@@ -16,9 +16,10 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import java.lang.reflect.Field;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -32,24 +33,26 @@ public abstract class AbstractFieldTransformation extends AbstractTransformation
 		super(Field.class, affectedMethods);
 	}
 
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Field instance
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(INVOKESTATIC,
-							"de/bodden/tamiflex/playout/rt/ReflLogger",
-							"fieldMethodInvoke",
-							"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V");
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+					super.visitVarInsn(ALOAD, 0); // Load Field instance
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(INVOKESTATIC,
+                        "de/bodden/tamiflex/playout/rt/ReflLogger",
+                        "fieldMethodInvoke",
+                        "(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V",
+                        false
+                    );
 				}
 				super.visitInsn(opcode);
-			}
-		};
-	}
+            }
+        };
+    }
 
 	protected abstract Kind methodKind();
 }

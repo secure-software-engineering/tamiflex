@@ -11,6 +11,20 @@
 package de.bodden.tamiflex.playout.rt;
 import static de.bodden.tamiflex.playout.rt.ShutdownStatus.hasShutDown;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.SimpleRemapper;
+
+import static de.bodden.tamiflex.normalizer.Hasher.isGeneratedClass;
+import static de.bodden.tamiflex.normalizer.Hasher.generateHashNumber;
+import static de.bodden.tamiflex.normalizer.Hasher.generateHashNumberForHidden;
+import static de.bodden.tamiflex.normalizer.Hasher.hashedClassNameForGeneratedClassBytes;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,15 +33,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.FileOutputStream;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +62,11 @@ public class ReflLogger {
 
 	//holds actual names
 	protected static Map<String,Map<RuntimeLogEntry,RuntimeLogEntry>> containerMethodToEntries = new HashMap<String, Map<RuntimeLogEntry,RuntimeLogEntry>>();
+
+    // hidden class bytes to dump
+	protected static final LinkedHashMap<String, byte[]> hiddenClassBytes = new LinkedHashMap<String, byte[]>();
+
+	public static int newHiddenClasses = 0;
 	
 	//is initialized by the agent
 	private static File logFile;
@@ -48,6 +76,9 @@ public class ReflLogger {
 
 	//is initialized by the agent
 	private static boolean useDeclaredTypes;
+
+	//is initialized by the agent
+	private static String outPath;
 
 	//is initialized by the agent
 	private static PrintWriter newLineWriter = new PrintWriter(new OutputStream() {
@@ -139,7 +170,8 @@ public class ReflLogger {
 		if(isReentrant()) return;
 		try {
 			StackTraceElement frame = getInvokingFrame();
-			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),classMethodKind,c.getName());
+            String className = tryGetHiddenHashedName(c);
+			logAndIncrementTargetClassEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),classMethodKind,className);
 		} finally {
 			leavingReflectionAPI();
 		}
@@ -160,24 +192,8 @@ public class ReflLogger {
 		try {
 			StackTraceElement frame = getInvokingFrame();
 			String[] paramTypes = classesToTypeNames(c.getParameterTypes());
-			String className = c.getDeclaringClass().getName();
-			// If this is a lambda proxy class the className comes out in the form:
-			// "<dotted package>.<class>$$Lambda$<count>/<hash code>",
-			// however, when we take its byte code to generate the class name (as happens when we 
-			// dump the classes to disk) the name does not contain the "/<hash code>".
-			// This logic below is to remove the hash code so the reflection log entries match
-			// the classes that are dumped and soot can process them.
-			if (className.contains("$$Lambda$"))
-			{
-				String slashHashCode = "/" + c.getDeclaringClass().hashCode();
-				if (!className.endsWith(slashHashCode)) {
-					System.err.println("unexpected lambda proxy class: " + className);
-				}
-				else {
-					className = className.substring(0, className.length() - slashHashCode.length());
-				}
-			}
-			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,className,"void","<init>", c.isAccessible(), paramTypes);
+            String className = tryGetHiddenHashedName(c.getDeclaringClass());
+			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),constructorMethodKind,className,"void","<init>", c.canAccess(null), paramTypes);
 
 		} finally {
 			leavingReflectionAPI();
@@ -193,11 +209,193 @@ public class ReflLogger {
 		}
 		return paramTypes;
 	}
+
+    public static void writeHiddenClassesToDisk() {
+        synchronized(ReflLogger.class) {
+            try {
+                for (Map.Entry<String, byte[]> entry : hiddenClassBytes.entrySet()) {
+                    String className = entry.getKey();
+                    byte[] c = entry.getValue();
+                    ClassReader cr = new ClassReader(c);
+                    String originalClassName = cr.getClassName();
+
+                    int idx = className.indexOf(' ');
+                    String loaderName = className.substring(0, idx);
+                    className = className.substring(idx + 1);
+
+                    final String fullHashedInternalName = className;
+
+                    File localOutDir = new File(outPath, loaderName);
+                    String packageName = "";
+                    if (originalClassName.contains("/")) {
+                        packageName = originalClassName.substring(0, originalClassName.lastIndexOf('/'));
+                        localOutDir = new File(localOutDir, packageName);
+                        localOutDir.mkdirs();
+                    }
+
+                    String hashedSimpleName = fullHashedInternalName.substring(fullHashedInternalName.lastIndexOf('/') + 1);
+                    String fileName = hashedSimpleName + ".class";
+                    File outFile = new File(localOutDir, fileName);
+
+                    // Replace all references with the hashed name
+                    ClassWriter cwDump = new ClassWriter(0);
+
+                    Remapper remapper = new Remapper(Opcodes.ASM9) {
+                        @Override
+                        public String map(String internalName) {
+                            if (internalName.equals(originalClassName)) {
+                                return fullHashedInternalName;
+                            }
+                            return internalName;
+                        }
+                    };
+
+                    ClassVisitor cvDump = new ClassRemapper(cwDump, remapper);
+
+                    cr.accept(cvDump, 0);
+                    byte[] dumpedBytes = cwDump.toByteArray();
+
+                    if (outFile.exists()) {
+                        // Compare new file with old file, if they are not the same throw an exception
+                        // If they are the same keep the old file
+                        byte[] existingBytes = Files.readAllBytes(outFile.toPath());
+                        if (!Arrays.equals(dumpedBytes, existingBytes)) {
+                            throw new Exception("FATAL: Classfile with same name has different contents on this run: " + outFile.toPath());
+                        }
+                    } else {
+                        // Write the renamed bytes to disk
+                        try (FileOutputStream fos = new FileOutputStream(outFile)) {
+                            fos.write(dumpedBytes);
+                            newHiddenClasses++;
+                            // System.out.println("Dumped Lambda: " + outFile.getAbsolutePath());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static byte[] processHiddenClass(byte[] c, ClassLoader loader) {
+        if (isReentrant()) return c;
+        byte[] byteCodeToReturn = c;
+        try {
+            String loader_name = "null_loader";
+            if (loader != null) {
+                loader_name = loader.getClass().getName();
+            }
+
+            ClassReader cr = new ClassReader(c);
+            String originalClassName = cr.getClassName();
+
+            // Ignore LambdaForm classes to converge
+            if (originalClassName.startsWith("java/lang/invoke/LambdaForm$BMH") ||
+                originalClassName.startsWith("java/lang/invoke/LambdaForm$DMH") ||
+                originalClassName.startsWith("java/lang/invoke/LambdaForm$MH")) {
+                return byteCodeToReturn;
+            }
+
+            generateHashNumberForHidden(originalClassName, c);
+            String fullHashedInternalName = hashedClassNameForGeneratedClassBytes(c);
+
+            synchronized (ReflLogger.class) {
+                hiddenClassBytes.put(loader_name + " " + fullHashedInternalName, c);
+            }
+
+            // Add __TAMIFLEX_HASH to the original(non-renamed) class before returning it to generateInnerClass()
+            // This is to associate java.lang.Class object with the hash
+            // The hashed name is logged to refl.log
+            ClassWriter cw = new ClassWriter(ClassReader.SKIP_DEBUG);
+            ClassVisitor cv = new ClassVisitor(Opcodes.ASM9, cw) {
+                @Override
+                public void visitEnd() {
+                    FieldVisitor fv = super.visitField(
+                        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL,
+                        "__TAMIFLEX_HASH",
+                        "Ljava/lang/String;",
+                        null,
+                        fullHashedInternalName
+                    );
+                    if (fv != null) {
+                        fv.visitEnd();
+                    }
+                    super.visitEnd();
+                }
+            };
+
+            cr.accept(cv, 0);
+            byteCodeToReturn = cw.toByteArray();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            leavingReflectionAPI();
+        }
+
+        return byteCodeToReturn;
+    }
+
+    public static Method[] sortMethods(Method[] m) {
+		if(isReentrant()) return m;
+		try {
+            if (m == null || m.length <= 1) {
+                return m;
+            }
+
+            Method[] sorted = m.clone();
+
+            Arrays.sort(sorted, Comparator.comparing(t ->
+                t.getName() + MethodType.methodType(t.getReturnType(), t.getParameterTypes()).toMethodDescriptorString() + t.getDeclaringClass().getName()
+            ));
+
+            return sorted;
+		} finally {
+			leavingReflectionAPI();
+		}
+    }
+
+    public static String tryGetHiddenHashedName(Class<?> clazz) {
+        String className = clazz.getName();
+        if (clazz.isArray()) {
+            className = clazz.getCanonicalName();
+        }
+        try {
+            Field hashField = clazz.getDeclaredField("__TAMIFLEX_HASH");
+            hashField.setAccessible(true);
+            String s = (String)hashField.get(null);
+            className = s;
+        } catch (NoSuchFieldException e) {
+            // Skip
+        } catch (NoClassDefFoundError e) {
+            // Skip because Class depends on libraries not present in the class path
+            // Spring throws this
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return className;
+    }
 	
 
 	public static void methodMethodInvoke(Object receiver, Method m, Kind methodKind) {
 		methodMethodInvoke(receiver, m, methodKind, null);
 	}
+
+    // Resolve default implementation of a method in an interface
+    private static Method findDefaultInterfaceMethod(Class<?> clazz, String name, Class<?>[] paramTypes) {
+        try {
+            // getMethod automatically resolves the "Most Specific Interface" for public methods
+            Method method = clazz.getMethod(name, paramTypes);
+            if (method.isDefault()) {
+                return method;
+            }
+        } catch (NoSuchMethodException e) {
+            // Method not found
+        }
+        return null;
+    }
 	
 	public static void methodMethodInvoke(Object receiver, Method m, Kind methodKind, Class<?> getMethodReceiverClass) {
 		if(isReentrant()) return;
@@ -211,11 +409,14 @@ public class ReflLogger {
 			leavingReflectionAPI();
 			return;		
 		}
-				
+		
+        // Look at POA/transformation/method/* for clear understanding, only when the reflection call made is
+        // Kind.MethodInvoke for a non-static method is the "receiver" field not null and it makes sense to log
+        // the accurate receiver class
 		Class<?> receiverClass = methodKind!=Kind.MethodInvoke || Modifier.isStatic(m.getModifiers())
 		  ? m.getDeclaringClass() : receiver.getClass();
 		try {
-			//resolve virtual call
+			// Resolve virtual call to find out the class which defines the method "m"
 			Method resolved = null;
 			Class<?> c = receiverClass;
 			do {
@@ -225,9 +426,19 @@ public class ReflLogger {
 					c = c.getSuperclass();
 				}				
 			} while(resolved==null && c!=null);
+
+            // If not found in super classes try to resolve inside interfaces
+            if (resolved == null) {
+                resolved = findDefaultInterfaceMethod(receiverClass, m.getName(), m.getParameterTypes());
+            }
 			if(resolved==null) {
-				Error error = new Error("Method not found : "+m+" in class "+receiverClass+" and super classes.");
-				error.printStackTrace();
+                // getUnsafe is not found but resolve anyway
+                if (m.toString().equals("public static sun.misc.Unsafe sun.misc.Unsafe.getUnsafe()")) {
+                    resolved = m;
+                } else {
+                    Error error = new Error("Method not found : "+m+" in class "+receiverClass+" and super classes.");
+                    error.printStackTrace();
+                }
 			}
 			
 			String[] paramTypes = classesToTypeNames(resolved.getParameterTypes());
@@ -240,6 +451,8 @@ public class ReflLogger {
 					className = getMethodReceiverClass.getName();
 				}
 			} 
+
+            className = tryGetHiddenHashedName(resolved.getDeclaringClass());
 			
 			logAndIncrementTargetMethodEntry(frame.getClassName()+"."+frame.getMethodName(),frame.getLineNumber(),methodKind,className,getTypeName(resolved.getReturnType()),resolved.getName(), m.isAccessible(), paramTypes);
 		} catch (Exception e) {
@@ -360,6 +573,7 @@ public class ReflLogger {
         return className;
     }
 
+    // TODO: should we use getCanonicalName here?
 	private static String getTypeName(Class<?> type) {
 		//copied from java.lang.reflect.Field.getTypeName(Class)
 		if (type.isArray()) {
@@ -371,14 +585,14 @@ public class ReflLogger {
 			    cl = cl.getComponentType();
 			}
 			StringBuffer sb = new StringBuffer();
-			sb.append(cl.getName());
+			sb.append(tryGetHiddenHashedName(cl));
 			for (int i = 0; i < dimensions; i++) {
 			    sb.append("[]");
 			}
 			return sb.toString();
 		    } catch (Throwable e) { /*FALLTHRU*/ }
 		}
-		return type.getName();
+		return tryGetHiddenHashedName(type);
 	}
 
 	/**
@@ -438,6 +652,10 @@ public class ReflLogger {
 		
 		//send path of log file over Socket (if connected)
 		newLineWriter.println(f.getAbsolutePath());
+	}
+
+	public static void setOutPath(String path) {
+		outPath = path;
 	}
 	
 	public static void setSocket(Socket s) throws IOException {

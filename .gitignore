@@ -3,8 +3,10 @@ MonitorAgent/bin
 Normalizer/bin
 PlayInAgent/bin
 PlayOutAgent/bin
-PlayOutAgent
+PlayOutAgent/poa-trunk.jar
 ReportingAgent/bin
 TamiFlexDatabase/bin
 Booster/bin
-poa.jar
+PlayInAgent/pia-trunk.jar
+de.bodden.tamiflex/lib/pia.jar
+de.bodden.tamiflex/lib/poa.jar

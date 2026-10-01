@@ -10,7 +10,8 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout;
 
-import static de.bodden.tamiflex.normalizer.Hasher.containsGeneratedClassName;
+import de.bodden.tamiflex.normalizer.Hasher;
+import static de.bodden.tamiflex.normalizer.Hasher.isGeneratedClass;
 import static de.bodden.tamiflex.normalizer.Hasher.generateHashNumber;
 import static de.bodden.tamiflex.normalizer.Hasher.hashedClassNameForGeneratedClassName;
 import static de.bodden.tamiflex.normalizer.Hasher.replaceGeneratedClassNamesByHashedNames;
@@ -27,12 +28,22 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Comparator;
+
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
 
 public class ClassDumper implements ClassFileTransformer {
 
 	protected final File outDir; 
+	private static final String ASM_PKGNAME = ClassVisitor.class.getPackage().getName().replace('.', '/');
+	private static final String NORMALIZER_PKGNAME = Hasher.class.getPackage().getName().replace('.', '/');
 	
 	/**
 	 * It is important that this be a <i>linked</i> hash map because we need to generate hash numbers
@@ -60,35 +71,111 @@ public class ClassDumper implements ClassFileTransformer {
 		}
 		if(hasShutDown) return null;
 		if(className.startsWith(Agent.PKGNAME)) return null;
+		if(className.startsWith(NORMALIZER_PKGNAME)) return null;
+        if(className.startsWith("openj9/")) return null;
 		
 		byte[] oldBytes;
+
+        // Instrument bytebuddy RandomString to prevent randomized field names in generated classes
+        if (className != null && className.equals("net/bytebuddy/utility/RandomString")) {
+            ClassReader cr = new ClassReader(classfileBuffer);
+
+            ClassWriter cw = new ClassWriter(cr, 0);
+
+            ClassVisitor cv = new ClassVisitor(Opcodes.ASM9, cw) {
+                @Override
+                public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                    MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
+
+                    if ("nextString".equals(name) && "()Ljava/lang/String;".equals(descriptor)) {
+                        return new MethodVisitor(Opcodes.ASM9, mv) {
+                            @Override
+                            public void visitInsn(int opcode) {
+                                if (opcode == Opcodes.ARETURN) {
+                                    super.visitInsn(Opcodes.POP);
+                                    super.visitLdcInsn("TAMIFLEX");
+                                }
+                                super.visitInsn(opcode);
+                            };
+                        };
+                    }
+                    return mv;
+                }
+            };
+
+            cr.accept(cv, 0);
+            byte[] modifiedBytes = cw.toByteArray();
+
+            synchronized (this) {
+                String loaderName = "null_loader";
+                if (loader != null) {
+                    loaderName = loader.getClass().getName();
+                }
+                classNameToBytes.put(loaderName + " " + className, modifiedBytes);
+            }
+
+            return modifiedBytes;
+        }
+
+        // Synchronization is necessary as a single static instance of ClassDumper is maintained in Agent.java
+        // This instance is passed for class file transformations(which could occur in multiple threads simultaneously)
 		synchronized (this) {
-			oldBytes = classNameToBytes.put(className, classfileBuffer);
+            String loaderName = "null_loader";
+            if (loader != null) {
+                loaderName = loader.getClass().getName();
+            }
+            oldBytes = classNameToBytes.put(loaderName + " " + className, classfileBuffer);
 		}
 
 		if(verbose && oldBytes!=null && !Arrays.equals(classfileBuffer, oldBytes)) {
 			System.err.println("WARNING: There exist two different classes with name "+className);
 		}
 
+        // We are only interested in reading the class file, no intention of modifying them
 		return null;
 	}
+
+    public static byte[] normalizeClass(byte[] originalClassBytes) {
+        ClassReader cr = new ClassReader(originalClassBytes);
+
+        ClassNode cn = new ClassNode();
+        cr.accept(cn, 0);
+
+        // Deterministically sort fields and methods by name and descriptor
+        cn.fields.sort(Comparator.comparing(f -> f.name + f.desc));
+        cn.methods.sort(Comparator.comparing(m -> m.name + m.desc));
+
+        // Deterministically set constant pool
+        ClassWriter cw = new ClassWriter(0);
+        cn.accept(cw);
+
+        return cw.toByteArray();
+    }
 	
 	public void writeClassesToDisk() {
+        // Synchronization is necessary as the static instance of ClassDumper in Agent.java calls writeClassesToDisk() as part
+        // of it's shutdown hook, which could(I think not) run parallely with any call to transform() which can modify classNameToBytes
 		synchronized (this) {
 			Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
 			for (Map.Entry<String, byte[]> entry: entrySet) {
 				String className = entry.getKey();
 				byte[] classfileBuffer = entry.getValue();
+
+                int idx = className.indexOf(' ');
+                String loaderName = className.substring(0, idx);
+                className = className.substring(idx + 1);
 		
-				if(containsGeneratedClassName(className)) {
+				if (isGeneratedClass(className)) {
+                    // This normalization is needed because Proxy classes don't have consistent constantpool and method ordering
+                    classfileBuffer = normalizeClass(classfileBuffer);
 					generateHashNumber(className, classfileBuffer);
 					className = hashedClassNameForGeneratedClassName(className);
 					classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);
 				}
 	
-				if(dontReallyDump) continue; //don't dump
+				if (dontReallyDump) continue; //don't dump
 				
-				File localOutDir = outDir;
+				File localOutDir = new File(outDir, loaderName);
 				
 				localOutDir.mkdirs();
 				

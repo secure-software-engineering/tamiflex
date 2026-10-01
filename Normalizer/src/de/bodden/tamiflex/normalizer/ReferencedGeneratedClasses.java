@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.commons.EmptyVisitor;
+import org.objectweb.asm.ClassVisitor;
+
+import static org.objectweb.asm.Opcodes.ASM9;
 
 public class ReferencedGeneratedClasses {
 	
@@ -31,12 +33,15 @@ public class ReferencedGeneratedClasses {
 		
 		Set<String> res = namesOfGeneratedClassesReferenced(classBytes);
         if(res.isEmpty()) return null;
-        if(res.size()>1) throw new RuntimeException("Class "+className+"references more than one other generated class: "+res+"\n (Current known limitation of TamiFlex.)");
         
-        //know that res has exactly one element
+        // ToDo: Find a fix for the limitation
+        if(res.size()>1) 
+            throw new RuntimeException("Class "+className+"references more than one other generated class: "+res+"\n (Current known limitation of TamiFlex.)");
+        
+        // res has exactly one element
         String ref = res.iterator().next();
         
-        //update cache
+        // Update cache
         generatedClassNameToReferencedGeneratedClassName.put(className, ref);
         
 		return ref;
@@ -48,10 +53,14 @@ public class ReferencedGeneratedClasses {
 	private static Set<String> namesOfGeneratedClassesReferenced(byte[] classBytes) {
 		final Set<String> res = new HashSet<String>();
 		ClassReader creader = new ClassReader(classBytes);
-		ReferencedClassesExtracter visitor = new ReferencedClassesExtracter(new EmptyVisitor(), res);
+
+        // new ClassVisitor(ASM9) {} is equivalent to an empty class visitor
+		ReferencedClassesExtracter visitor = new ReferencedClassesExtracter(new ClassVisitor(ASM9) {}, res);
+        
+        // Can be optimized with flags (ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES)
         creader.accept(visitor, 0);
         
-        //remove name of the declaring class
+        // Remove name of the declaring class
         res.remove(visitor.getClassName());
         return res;
 	}

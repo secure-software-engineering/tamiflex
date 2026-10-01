@@ -16,7 +16,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -30,20 +31,27 @@ public abstract class AbstractClassTransformation extends AbstractTransformation
 		super(Class.class, methods);
 	}
 	
-	@Override
+    @Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                // We don't consider opcode == ATHROW coz we only want to log successful calls
+                // See Technical report: pg7 1st column last paragraph
 				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classMethodInvoke", "(Ljava/lang/Class;Lde/bodden/tamiflex/playout/rt/Kind;)V");
+					// The first index into the local variable array gives "this" pointer only for Non-Static method
+                    // All except Class.forName(...) are Non-Static methods
+                    // "this" pointer clearly refers to an object of the type Java.lang.Class (under the Non-Static assumption)
+                    // Because this is a Non-static method, this Class object must be ge generated from Obj.getClass() or Class.forName() method
+                    // "this" pointer is stored in a class <?> c parameter to get the TARGET(of the refln) CLASS NAME using c.getName() method
+                    super.visitVarInsn(ALOAD, 0);
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", "classMethodInvoke", "(Ljava/lang/Class;Lde/bodden/tamiflex/playout/rt/Kind;)V", false);
 				}
 				super.visitInsn(opcode);
-			}
-		};
+            }
+        };
 	}
 	
 	protected abstract Kind methodKind();

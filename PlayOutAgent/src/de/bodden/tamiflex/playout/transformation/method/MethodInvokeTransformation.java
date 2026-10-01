@@ -17,7 +17,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -30,31 +31,32 @@ public class MethodInvokeTransformation extends AbstractMethodTransformation {
 		super(new Method("invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"));
 	}
 
+    // Have to override as this method has been defined as abstract in AbstractMethodTransformation
 	@Override
 	protected Kind methodKind() {
 		return MethodInvoke;
 	}
-	
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 1); // Load designated receiver
-					mv.visitVarInsn(ALOAD, 0); // Load Method instance
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(
+
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+					super.visitVarInsn(ALOAD, 1); // Load designated receiver
+					super.visitVarInsn(ALOAD, 0); // Load Method instance
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
 						"methodMethodInvoke",
-						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V",
+                        false
 					);
 				}
 				super.visitInsn(opcode);
-			}
-		};
-	}
-	
+            }
+        };
+    }
 }

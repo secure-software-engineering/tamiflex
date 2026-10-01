@@ -17,7 +17,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -28,31 +29,30 @@ import de.bodden.tamiflex.playout.transformation.AbstractTransformation;
 
 public class ClassGetFieldTransformation extends AbstractTransformation {
 	
-	public ClassGetFieldTransformation() {
-		super(Class.class, new Method("getField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;"));
-	}
+    public ClassGetFieldTransformation() {
+        super(Class.class, new Method("getField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;"));
+    }
 
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitInsn(Opcodes.DUP); 	//duplicate return value (the Field instance)
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetField.name(), Type.getDescriptor(Kind.class));
-					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitMethodInsn(
-						INVOKESTATIC,
-						"de/bodden/tamiflex/playout/rt/ReflLogger",
-						"fieldMethodInvoke",
-						"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;Ljava/lang/Class;)V"
-					);
-				}
-				super.visitInsn(opcode);
-			}
-
-		};
-	}
-	
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+                    super.visitInsn(Opcodes.DUP); 	//duplicate return value (the Field instance)
+                    super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetField.name(), Type.getDescriptor(Kind.class));
+                    super.visitVarInsn(ALOAD, 0); // Load Class instance
+                    super.visitMethodInsn(
+                        INVOKESTATIC,
+                        "de/bodden/tamiflex/playout/rt/ReflLogger",
+                        "fieldMethodInvoke",
+                        "(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;Ljava/lang/Class;)V",
+                        false
+                    );
+                }
+                super.visitInsn(opcode);
+            }
+        };
+    }	
 }

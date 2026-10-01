@@ -15,13 +15,15 @@
 	<target name="default" depends="copy-agent-jar"/>
 
 	<target name="agent">
-    	<mkdir dir="bin-agent"/>
+    	<echo message="Using Java version ${ant.java.version}."/>
+      <mkdir dir="bin-agent"/>
         <javac
             destdir="bin-agent"
-        	source="1.5"
-        	target="1.5"
+        	source="21"
+        	target="21"
         	debug="true"
 			debuglevel="lines,vars,source"        	
+            includeantruntime="true"
         >
             <src path="src"/>
             <src path="rtlib"/>
@@ -29,9 +31,12 @@
             <classpath>
                 <pathelement location="poa-rt.jar"/>
                 <pathelement location="lib/ant.jar"/>
-                <pathelement location="../Normalizer/lib/asm-3.2.jar"/>
-                <pathelement location="../Normalizer/lib/asm-commons-3.2.jar"/>
+                <pathelement location="../Normalizer/lib/asm-9.9.1.jar"/>
+                <pathelement location="../Normalizer/lib/asm-commons-9.9.1.jar"/>
+                <pathelement location="../Normalizer/lib/asm-util-9.9.1.jar"/>
+                <pathelement location="../Normalizer/lib/asm-tree-9.9.1.jar"/>
             </classpath>
+          <compilerarg value="-Xlint:deprecation" />
         </javac>
     </target>
 
@@ -43,13 +48,16 @@
            <attribute name="Main-Class" value="de.bodden.tamiflex.playout.Agent"/>
            <attribute name="Can-Retransform-Classes" value="true"/>
            <attribute name="Implementation-Version" value="${tf.version}"/> 
+           <attribute name="Boot-Class-Path" value="poa-${tf.version}.jar poa.jar"/>
        </manifest>
 
         <jar destfile="poa-${tf.version}.jar" manifest="META-INF/MANIFEST.MF">
             <fileset dir="bin-agent"/>
             <fileset file="poa.properties"/>
-            <zipfileset src="../Normalizer/lib/asm-3.2.jar"/>
-            <zipfileset src="../Normalizer/lib/asm-commons-3.2.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-9.9.1.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-commons-9.9.1.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-util-9.9.1.jar"/>
+            <zipfileset src="../Normalizer/lib/asm-tree-9.9.1.jar"/>
         </jar>
 		<delete dir="bin-agent"/>
 		<delete dir="META-INF"/>

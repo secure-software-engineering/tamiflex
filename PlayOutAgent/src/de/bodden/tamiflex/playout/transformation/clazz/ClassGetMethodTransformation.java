@@ -19,7 +19,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -34,28 +35,28 @@ public class ClassGetMethodTransformation extends AbstractTransformation {
 		super(Class.class, new Method("getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;"));
 	}
 
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitInsn(DUP); 			//duplicate return value (the Method instance)
-					mv.visitInsn(ACONST_NULL); 	//no receiver
-					mv.visitInsn(Opcodes.SWAP); //null constant must go first
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetMethod.name(), Type.getDescriptor(Kind.class));
-					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitMethodInsn(
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+					super.visitInsn(DUP); 			//duplicate return value (the Method instance)
+					super.visitInsn(ACONST_NULL); 	//no receiver
+					super.visitInsn(Opcodes.SWAP); //null constant must go first
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetMethod.name(), Type.getDescriptor(Kind.class));
+					super.visitVarInsn(ALOAD, 0); // Load Class instance
+					super.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
 						"methodMethodInvoke",
-						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;Ljava/lang/Class;)V"
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;Ljava/lang/Class;)V",
+                        false
 					);
 				}
 				super.visitInsn(opcode);
-			}
-		};
-	}
-
+            }
+        };
+    }
 }

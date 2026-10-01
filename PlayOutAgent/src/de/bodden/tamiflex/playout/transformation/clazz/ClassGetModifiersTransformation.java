@@ -18,7 +18,8 @@ import de.bodden.tamiflex.playout.rt.Kind;
 
 public class ClassGetModifiersTransformation extends AbstractClassTransformation {
 	
-	//FIXME this is not working because getModifiers is native!
+    // ??
+	// FIXME this is not working because getModifiers is native!
 	
 	public ClassGetModifiersTransformation() {
 		super(new Method("getModifiers", "()I"));

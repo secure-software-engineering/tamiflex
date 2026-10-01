@@ -10,19 +10,20 @@
  ******************************************************************************/
 package de.bodden.tamiflex.normalizer;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
+import static org.objectweb.asm.Opcodes.ASM9;
 
 /**
- * A {@link MethodAdapter} that calls the provided {@link StringRemapper} to re-map
- * string constants.
+ * A {@link MethodVisitor} that calls the provided {@link StringRemapper} to re-map string constants.
+ * ASM's ClassWriter typically constructs Constant Pool through visitxyz() calls of MethodVisitor
+ * Therefore modifying the visitLdcInsn effectively transforms the constant pool. This class only transforms String constants
  */
-public class RemappingStringConstantAdapter extends MethodAdapter  {
+public class RemappingStringConstantVisitor extends MethodVisitor {
     
 	protected final StringRemapper rm;
 
-	public RemappingStringConstantAdapter(MethodVisitor mv, StringRemapper rm) {
-		super(mv);
+	public RemappingStringConstantVisitor(MethodVisitor parentMV, StringRemapper rm) {
+		super(ASM9, parentMV);
 		this.rm = rm;
 	}
 	

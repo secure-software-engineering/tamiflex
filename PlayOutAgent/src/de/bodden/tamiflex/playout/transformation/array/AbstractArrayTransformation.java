@@ -14,9 +14,10 @@ import static org.objectweb.asm.Opcodes.ALOAD;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import java.lang.reflect.Array;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Method;
 
@@ -31,19 +32,23 @@ public abstract class AbstractArrayTransformation extends AbstractTransformation
 	
 	@Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (opcode == ARETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Class instance
-					mv.visitVarInsn(loadDimensionOpcode(), 1); // Load dimension
-					mv.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", methodName(), methodSignature());
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (opcode == ARETURN) {
+                    // Only 2 methods are under consideration
+                    // 1. Multi-D Array: newInstance(Class<?> componentType, int... dimensions)
+                    // 2. Single-D Array: newInstance(Class<?> componentType, int length)
+                    // Both the Methods are static, therefore the local variable at index 0 is `componentType` 
+                    // and the local variable at index 1 is either an Int or an Array
+					super.visitVarInsn(ALOAD, 0);
+					super.visitVarInsn(loadDimensionOpcode(), 1); // Load dimension
+					super.visitMethodInsn(INVOKESTATIC, "de/bodden/tamiflex/playout/rt/ReflLogger", methodName(), methodSignature(), false);
 				}
-				super.visitInsn(opcode);
-			}
-
-		};
+                super.visitInsn(opcode);
+            }
+        };
 	}
 	
 	protected abstract String methodName();

@@ -42,6 +42,7 @@ public class Agent {
 	private static boolean count = false;
 	private static boolean useDeclaredTypes;
 	private static boolean verbose = false;
+	private static boolean propertiesLoaded = false;
 	private static String outPath = "out";
 	private static String transformations = "";
 	private static Socket socket;
@@ -51,6 +52,7 @@ public class Agent {
 		if(!inst.isRetransformClassesSupported()) {
 			throw new RuntimeException("retransformation not supported");
 		}
+        new java.util.LinkedList<>().iterator();
 		
 		System.out.println("============================================================");
 		System.out.println("TamiFlex Play-Out Agent Version "+Agent.class.getPackage().getImplementationVersion());
@@ -82,6 +84,10 @@ public class Agent {
 			System.err.println("No outDir given!");
 		}
 		
+        // Pass in outPath as agent argument
+        if (agentArgs != null && !agentArgs.isEmpty()) {
+            outPath = agentArgs;
+        }
 		File outDir = new File(outPath);
 		if(outDir.exists()) {
 			if(!outDir.isDirectory()) {
@@ -95,16 +101,22 @@ public class Agent {
 				System.exit(1);
 			}
 		}
+
+        ReflLogger.setOutPath(outPath);
 		
 		final File logFile = new File(outDir,"refl.log");
 		
+		// For dumping classes which have already been loaded
 		dumpLoadedClasses(inst,outDir,dontDump,verbose);
 		
+		// All reflection calls to be monitored are sent to this class
 		ReflLogger.setLogFile(logFile);
 		
+		// For logging reflection calls made by the program under observation
 		if(!transformations.isEmpty())
 			instrumentClassesForLogging(inst);
 		
+		// For dumping classes which will be loaded down the line
 		inst.addTransformer(classDumper, CAN_RETRANSFORM);
 		
 		final boolean verboseOutput = verbose;
@@ -121,12 +133,14 @@ public class Agent {
 					}
 				}
 				classDumper.writeClassesToDisk();
-				ReflLogger.writeLogfileToDisk(verboseOutput,classDumper.newClasses);
+                ReflLogger.writeHiddenClassesToDisk();
+                ReflLogger.writeLogfileToDisk(verboseOutput,classDumper.newClasses + ReflLogger.newHiddenClasses);
 				
+				// If DB jar exists, log file is dumped to the database
 				String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
 				String version = Agent.class.getPackage().getImplementationVersion();
 				String dbJarPath = agentJarDir+'/'+"dbdumper-"+version+".jar";
-				
+								
 				try {
 					File jarfile = new File(new URI(dbJarPath));
 					if(jarfile.exists()) {
@@ -186,10 +200,17 @@ public class Agent {
 				outPath = (String) props.get("outDir"); 
 			if(props.containsKey("transformations"))
 				transformations = (String) props.get("transformations"); 
+            propertiesLoaded = true;
 		} catch (IOException e) {
 			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
 		}		
 	}
+
+    public static String getOutPath() {
+        if (!propertiesLoaded)
+            loadProperties();
+        return outPath;
+    }
 
 	private static void copyPropFileIfMissing(String userPropFilePath) {
 		File f = new File(userPropFilePath);
@@ -198,7 +219,7 @@ public class Agent {
 			if(!dir.exists()) dir.mkdirs();
 			try {
 				FileOutputStream fos = new FileOutputStream(f);
-				InputStream is = Agent.class.getClassLoader().getResourceAsStream(f.getName());
+				InputStream is = Agent.class.getResourceAsStream("/" + f.getName());
 				if(is==null) {
 					fos.close();
 					throw new InternalError("No default properties file found in agent JAR file!");
@@ -221,11 +242,19 @@ public class Agent {
 		inst.addTransformer(classDumper, CAN_RETRANSFORM);
 		//dump all classes that are already loaded
 		for (Class<?> c : inst.getAllLoadedClasses()) {
-			if(inst.isModifiableClass(c)) {
+			if (inst.isModifiableClass(c)) {
+				// java.lang.instrument API supports re-transforming classes which have been loaded already 
 				inst.retransformClasses(c);
 			} else {
-				if(!c.isPrimitive() && !c.isArray() && (c.getPackage()==null || !c.getPackage().getName().startsWith("java.lang"))){
-					System.err.println("WARNING: Cannot dump class "+c.getName());
+                // (In order) Cannot modify Primitive classes, Arrays, classes loaded by the bootstrap class loader, Core Java classes
+                // Other than those on encountering an unmodifiable class send a warning
+				if (verbose && !c.isPrimitive() && !c.isArray() && (c.getPackage()==null || !c.getPackage().getName().startsWith("java.lang"))) {
+                    // Cannot modify some synthetic classes too
+                    if (c.isSynthetic()) {
+                        System.err.println("WARNING: Cannot dump (unmodifiable) SYNTHETIC class "+c.getName());
+                    } else {
+                        System.err.println("WARNING: Cannot dump (unmodifiable) NON-SYNTHETIC class "+c.getName());
+                    }
 				}
 			}
 		}
@@ -237,6 +266,7 @@ public class Agent {
 		inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
 		
 		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
+		// java.lang.instrument API supports re-transforming classes which have been loaded already
 		inst.retransformClasses(affectedClasses.toArray(new Class<?>[affectedClasses.size()]));
 		
 		inst.removeTransformer(reflMonitor);
@@ -251,6 +281,7 @@ public class Agent {
 		agentJarFilePath = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));		
 		URI uri = new URI(agentJarFilePath);
 		JarFile jarFile = new JarFile(new File(uri));
+        // TODO: This might not be needed because we specify this in the MANIFEST.MF
 		inst.appendToBootstrapClassLoaderSearch(jarFile);
 	}
 	

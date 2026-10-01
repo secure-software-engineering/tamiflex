@@ -103,9 +103,12 @@ public abstract class RuntimeLogEntry {
 
 	protected static String replaceByHashedClassName(String className) {
 		String slashedClassName = slashed(className);		
-		String hashedName = Hasher.containsGeneratedClassName(slashedClassName) ?
+		String hashedName = Hasher.isGeneratedClass(slashedClassName) ?
 			Hasher.hashedClassNameForGeneratedClassName(slashedClassName) : 
 			slashedClassName;
+        if (slashedClassName.contains("$$Lambda")) {
+            hashedName = slashedClassName;
+        }
 		return dotted(hashedName);
 	}
 	

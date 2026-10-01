@@ -16,7 +16,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -31,26 +32,25 @@ public class ClassGetDeclaredFieldTransformation extends AbstractTransformation 
 		super(Class.class, new Method("getDeclaredField", "(Ljava/lang/String;)Ljava/lang/reflect/Field;"));
 	}
 
-	@Override
+    @Override
 	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitInsn(Opcodes.DUP); 	//duplicate return value (the Field instance)
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetDeclaredField.name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+					super.visitInsn(Opcodes.DUP); 	//duplicate return value (the Field instance)
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", ClassGetDeclaredField.name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
 						"fieldMethodInvoke",
-						"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+						"(Ljava/lang/reflect/Field;Lde/bodden/tamiflex/playout/rt/Kind;)V",
+                        false
 					);
 				}
 				super.visitInsn(opcode);
-			}
-
-		};
-	}
-	
+            }
+        };
+	}	
 }

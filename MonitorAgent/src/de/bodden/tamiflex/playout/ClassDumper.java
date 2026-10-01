@@ -10,7 +10,7 @@
  ******************************************************************************/
 package de.bodden.tamiflex.playout;
 
-import static de.bodden.tamiflex.normalizer.Hasher.containsGeneratedClassName;
+import static de.bodden.tamiflex.normalizer.Hasher.isGeneratedClass;
 import static de.bodden.tamiflex.normalizer.Hasher.generateHashNumber;
 import static de.bodden.tamiflex.normalizer.Hasher.hashedClassNameForGeneratedClassName;
 import static de.bodden.tamiflex.normalizer.Hasher.replaceGeneratedClassNamesByHashedNames;
@@ -33,7 +33,7 @@ public class ClassDumper implements ClassFileTransformer {
 	protected final File outDir; 
 	
 	/**
-	 * It is important that this be a <i>linked</i> has map because we need to generate hash numbers
+	 * It is important that this be a <i>linked</i> hash map because we need to generate hash numbers
 	 * for the classes in the order in which they are loaded. This is because a generated class <i>a</i> may reference
 	 * other generated classes, and when determining a hash code for <i>a</i>, the hash code for those
 	 * referenced classes must already have been computed.
@@ -68,12 +68,13 @@ public class ClassDumper implements ClassFileTransformer {
 	
 	public void writeClassesToDisk() {
 		synchronized (this) {
+            // TODO: Add dumped lambda class files to classNameToBytes
 			Set<Entry<String, byte[]>> entrySet = classNameToBytes.entrySet();
 			for (Map.Entry<String, byte[]> entry: entrySet) {
 				String className = entry.getKey();
 				byte[] classfileBuffer = entry.getValue();
 		
-				if(containsGeneratedClassName(className)) {
+				if(isGeneratedClass(className)) {
 					generateHashNumber(className, classfileBuffer);
 					className = hashedClassNameForGeneratedClassName(className);
 					classfileBuffer = replaceGeneratedClassNamesByHashedNames(classfileBuffer);

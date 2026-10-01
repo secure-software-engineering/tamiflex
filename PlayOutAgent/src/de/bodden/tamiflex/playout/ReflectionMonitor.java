@@ -33,6 +33,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
 	private List<AbstractTransformation> transformations = new LinkedList<AbstractTransformation>();
 	
 	public ReflectionMonitor(String instruments, boolean verbose) {
+		// Split with delimiter being one or more occurrences of the space character " "
 		List<String> split = new ArrayList<String>(Arrays.asList(instruments.split("[ ]+")));
 		Collections.sort(split);
 		if(verbose) {
@@ -44,7 +45,8 @@ public class ReflectionMonitor implements ClassFileTransformer {
 			try {				
 				@SuppressWarnings("unchecked")
 				Class<AbstractTransformation> c = (Class<AbstractTransformation>) Class.forName(className);
-				AbstractTransformation transform = c.newInstance();
+				AbstractTransformation transform = c.getDeclaredConstructor().newInstance();
+				
 				transformations.add(transform);
 				if(verbose) {
 					System.out.print(className);
@@ -77,7 +79,11 @@ public class ReflectionMonitor implements ClassFileTransformer {
 		
 		try {
 			final ClassReader creader = new ClassReader(classfileBuffer);
-			final ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+			
+			// Use COMPUTE_FRAMES flag to automatically compute both Size(of Operand stack and 
+			// Local variables) and Stack map frames. See section 3.2.1 of ASM documentation
+            // Passing `creader` for optimizing ASM performance (See Section 2.2.4 subsection Optimization of ASM documentation)
+			final ClassWriter writer = new ClassWriter(creader, ClassWriter.COMPUTE_FRAMES);
 			ClassVisitor visitor = writer;
 			
 			for (AbstractTransformation transformation : transformations)

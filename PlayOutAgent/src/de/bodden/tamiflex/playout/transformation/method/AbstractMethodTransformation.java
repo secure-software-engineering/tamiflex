@@ -17,7 +17,8 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
-import org.objectweb.asm.MethodAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -30,28 +31,29 @@ public abstract class AbstractMethodTransformation extends AbstractTransformatio
 	public AbstractMethodTransformation(Method... methods) {
 		super(java.lang.reflect.Method.class, methods);
 	}
-	
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitInsn(ACONST_NULL); //ignore first argument to method methodMethodInvoke
-					mv.visitVarInsn(ALOAD, 0); // Load Method instance
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(
+
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+					super.visitInsn(ACONST_NULL); //ignore first argument to method methodMethodInvoke
+					super.visitVarInsn(ALOAD, 0); // Load Method instance
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
 						"methodMethodInvoke",
-						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V"
+						"(Ljava/lang/Object;Ljava/lang/reflect/Method;Lde/bodden/tamiflex/playout/rt/Kind;)V",
+                        false
 					);
 				}
 				super.visitInsn(opcode);
-			}
-		};
-	}
+            }
+        };
+    }
 	
 	protected abstract Kind methodKind();
 }

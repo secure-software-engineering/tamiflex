@@ -13,7 +13,7 @@
  */
 package de.bodden.tamiflex.normalizer;
 
-import static de.bodden.tamiflex.normalizer.Hasher.containsGeneratedClassName;
+import static de.bodden.tamiflex.normalizer.Hasher.isGeneratedClass;
 import static de.bodden.tamiflex.normalizer.Hasher.slashed;
 
 import java.util.Set;
@@ -21,24 +21,29 @@ import java.util.Set;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.commons.RemappingClassAdapter;
+import org.objectweb.asm.commons.ClassRemapper;
 
-import de.bodden.tamiflex.normalizer.RemappingStringConstantAdapter;
+import static org.objectweb.asm.Opcodes.ASM9;
+
+import de.bodden.tamiflex.normalizer.RemappingStringConstantVisitor;
 import de.bodden.tamiflex.normalizer.StringRemapper;
 
-public final class ReferencedClassesExtracter extends
-		RemappingClassAdapter {
+// Stores a set of all generated class names(slashed '/' format) that appear (as Typenames and String constants) 
+// in a classfile via the constructor parameter "res"
+public final class ReferencedClassesExtracter extends ClassRemapper {
 	private final Set<String> res;
 
 	public ReferencedClassesExtracter(ClassVisitor cv, final Set<String> res) {
-		super(cv, new Remapper() {
-    		@Override
-    		public String map(String typeName) {
-    			if(containsGeneratedClassName(typeName))
-    				res.add(typeName);
-   				return super.map(typeName);
-    		}
-    	});
+		super(ASM9, cv, 
+            new Remapper(ASM9) {
+                @Override
+                public String map(String typeName) {
+                    if (isGeneratedClass(typeName))
+                        res.add(typeName);
+                    return super.map(typeName);
+                }
+    	    }
+        );
 		this.res = res;
 	}
 
@@ -46,19 +51,22 @@ public final class ReferencedClassesExtracter extends
 	public MethodVisitor visitMethod(int access, String name,
 			String desc, String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-		mv = new RemappingStringConstantAdapter(mv, new StringRemapper() {
-			@Override
-			public String remapStringConstant(String constant) {
-				String slashed = slashed(constant);
-				if(containsGeneratedClassName(slashed))
-					res.add(slashed);
-				return super.remapStringConstant(constant);
-			}
-		});
+		mv = new RemappingStringConstantVisitor(mv, 
+            new StringRemapper() {
+                @Override
+                public String remapStringConstant(String constant) {
+                    String slashed = slashed(constant);
+                    if (isGeneratedClass(slashed))
+                        res.add(slashed);
+                    return super.remapStringConstant(constant);
+                }
+		    }
+        );
 		return mv;
 	}
 
 	public String getClassName () {
+        // className comes from ClassRemapper
 		return className;
 	}
 }

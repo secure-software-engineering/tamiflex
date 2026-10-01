@@ -16,9 +16,10 @@ import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.RETURN;
 
+import static org.objectweb.asm.Opcodes.ASM9;
+
 import java.lang.reflect.Constructor;
 
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
@@ -31,26 +32,30 @@ public abstract class AbstractConstructorTransformation extends AbstractTransfor
 	public AbstractConstructorTransformation(Method... methods) {
 		super(Constructor.class, methods);
 	}
-	
-	@Override
-	protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
-		return new MethodAdapter(parent) {
-			
-			@Override
-			public void visitInsn(int opcode) {
-				if (IRETURN <= opcode && opcode <= RETURN) {
-					mv.visitVarInsn(ALOAD, 0); // Load Constructor instance
-					mv.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
-					mv.visitMethodInsn(
+
+    @Override
+    protected MethodVisitor getMethodVisitor(MethodVisitor parent) {
+        return new MethodVisitor(ASM9, parent) {
+            
+            @Override
+            public void visitInsn(int opcode) {
+                if (IRETURN <= opcode && opcode <= RETURN) {
+                    // All 4 reflection calls under consideration for Constructor.class are Non-Static
+                    // Therefore the local variable indexed by 0 is the `this` pointer which is of type "Constructor<?>"
+					super.visitVarInsn(ALOAD, 0); // Load Constructor instance
+					super.visitFieldInsn(GETSTATIC, "de/bodden/tamiflex/playout/rt/Kind", methodKind().name(), Type.getDescriptor(Kind.class));
+					super.visitMethodInsn(
 						INVOKESTATIC,
 						"de/bodden/tamiflex/playout/rt/ReflLogger",
 						"constructorMethodInvoke",
-						"(Ljava/lang/reflect/Constructor;Lde/bodden/tamiflex/playout/rt/Kind;)V");
+						"(Ljava/lang/reflect/Constructor;Lde/bodden/tamiflex/playout/rt/Kind;)V",
+                        false
+                    );
 				}
 				super.visitInsn(opcode);
-			}
-		};
-	}
+            }
+        };
+    }
 	
 	protected abstract Kind methodKind();
 }
