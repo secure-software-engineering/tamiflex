@@ -1,0 +1,11 @@
+de/bodden/tamiflex/playin/HiddenClassTransformer.class
+de/bodden/tamiflex/playin/rt/HiddenClassLoader.class
+de/bodden/tamiflex/playin/HiddenClassTransformer$HiddenClassModificationVisitor.class
+de/bodden/tamiflex/playin/ClassReplacer$1.class
+de/bodden/tamiflex/playin/Agent.class
+de/bodden/tamiflex/playin/Agent$1.class
+de/bodden/tamiflex/playin/HiddenClassTransformer$ClassGetMethodAdapter.class
+de/bodden/tamiflex/playin/rt/HiddenClassLoader$1.class
+de/bodden/tamiflex/playin/HiddenClassTransformer$HiddenClassMethodAdapter.class
+de/bodden/tamiflex/playin/HiddenClassTransformer$ClassModificationVisitor.class
+de/bodden/tamiflex/playin/ClassReplacer.class

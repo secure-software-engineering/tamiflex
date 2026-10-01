@@ -1,0 +1,8 @@
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/ClassRenamer.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/Hasher.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/NameExtractor.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/ReferencedClassesExtracter.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/ReferencedGeneratedClasses.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/RemappingStringConstantVisitor.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/SHAHash.java
+/home/runner/work/tamiflex/tamiflex/Normalizer/src/de/bodden/tamiflex/normalizer/StringRemapper.java
