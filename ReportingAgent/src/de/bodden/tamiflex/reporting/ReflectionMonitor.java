@@ -18,11 +18,11 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import de.bodden.tamiflex.normalizer.NameExtractor;
 
@@ -43,7 +43,7 @@ public class ReflectionMonitor implements ClassFileTransformer {
         	ClassReader creader = new ClassReader(classfileBuffer);
         	ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         	
-            ClassVisitor visitor = new ClassAdapter(writer) {
+            ClassVisitor visitor = new ClassVisitor(Opcodes.ASM9, writer) {
             	
             	public MethodVisitor visitMethod(int access, String methodName, String desc, String signature, String[] exceptions) {
             		//delegate

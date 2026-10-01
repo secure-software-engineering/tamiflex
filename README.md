@@ -5,6 +5,16 @@
 TamiFlex is a tool for dealing with reflection in the static analysis of Java programs. It can record reflective calls dynamically and then embed them into the application.
 [Read more here in the wiki.](https://github.com/secure-software-engineering/tamiflex/wiki)
 
+## Building
+
+Build the project from the repository root with Maven and JDK 21 or newer:
+
+```sh
+mvn clean package
+```
+
+Maven downloads the build dependencies from Maven Central. The generated agent and tool JARs are written to the respective module's `target` directory.
+
 ## License
 
 TamiFlex itself is available as Open Source under the [Eclipse Public License](https://www.eclipse.org/legal/epl-v10.html).
