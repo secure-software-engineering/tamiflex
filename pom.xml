@@ -24,7 +24,7 @@
         <maven.compiler.release>8</maven.compiler.release>
         <asm.version>9.11</asm.version>
         <maven.compiler.plugin.version>3.16.0</maven.compiler.plugin.version>
-        <maven.shade.plugin.version>3.6.0</maven.shade.plugin.version>
+        <maven.shade.plugin.version>3.6.2</maven.shade.plugin.version>
         <build.helper.plugin.version>3.6.2</build.helper.plugin.version>
         <fmt.plugin.version>2.29</fmt.plugin.version>
         <license.plugin.version>2.7.1</license.plugin.version>
