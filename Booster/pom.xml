@@ -44,7 +44,7 @@
         <dependency>
             <groupId>org.soot-oss</groupId>
             <artifactId>soot</artifactId>
-            <version>4.6.0</version>
+            <version>4.7.1</version>
         </dependency>
     </dependencies>
 </project>
