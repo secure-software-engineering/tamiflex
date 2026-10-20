@@ -1,0 +1,17 @@
+name: Check Formalities (Style, License, ... )
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-formatting:
+    # Reusable workflow: secure-software-engineering/actions/.github/workflows/maven-style-check.yml
+    uses: secure-software-engineering/actions/.github/workflows/maven-style-check.yml@6856b8183bba81fce20d9052b9aa6f3e20823b36 # develop
+    with:
+      java_version: '21'
+      java_distribution: adopt

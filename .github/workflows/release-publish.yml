@@ -1,0 +1,187 @@
+name: Publish Release
+
+# Adapted from secure-software-engineering/actions/.github/workflows/maven-release-publish.yml:
+# instead of deploying to Maven Central, the agent/tool JARs are attached to a GitHub release.
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup-abandoned:
+    name: Delete abandoned automation branch
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == false &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (startsWith(github.event.pull_request.head.ref, 'release/prep-') ||
+       startsWith(github.event.pull_request.head.ref, 'chore/next-snapshot-'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete abandoned release branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          gh api -X DELETE "repos/${REPO}/git/refs/heads/${HEAD_REF}" \
+            || echo "Branch already gone, nothing to do."
+
+  release:
+    name: Tag and publish GitHub release
+    concurrency:
+      group: release-publish
+      cancel-in-progress: false
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.AUTO_MERGE_PAT }}
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Determine version and check for existing tag
+        id: version
+        run: |
+          set -euo pipefail
+          # master's tip now holds whatever version the merged release PR brought in
+          CURRENT_VERSION=$(mvn -ntp help:evaluate -Dexpression=project.version -q -DforceStdout)
+          TAG_NAME="V${CURRENT_VERSION}"
+          echo "version=$CURRENT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+          if [[ "$CURRENT_VERSION" == *-SNAPSHOT ]]; then
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::master is on a SNAPSHOT version ($CURRENT_VERSION); skipping release."
+          elif git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Tag $TAG_NAME already exists; skipping release (version already released)."
+          else
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build release JARs
+        if: steps.version.outputs.is_release == 'true'
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mvn -U -B -ntp clean package -Dfmt.skip
+
+          mkdir dist
+          cp "Normalizer/target/normalizer-${CURRENT_VERSION}.jar" dist/
+          cp "Booster/target/booster-${CURRENT_VERSION}.jar" dist/
+          cp "PlayInAgent/target/pia-${CURRENT_VERSION}.jar" dist/
+          cp "PlayOutAgent/target/poa-${CURRENT_VERSION}.jar" dist/
+          # MonitorAgent also builds a poa-*.jar; rename to avoid clashing with PlayOutAgent's
+          cp "MonitorAgent/target/poa-${CURRENT_VERSION}.jar" "dist/monitor-poa-${CURRENT_VERSION}.jar"
+          cp "ReportingAgent/target/reporting-${CURRENT_VERSION}.jar" dist/
+          cp "TamiFlexDatabase/target/dbdumper-${CURRENT_VERSION}.jar" dist/
+          ls -l dist
+
+      - name: Tag the release version
+        if: steps.version.outputs.is_release == 'true'
+        env:
+          ACTOR: ${{ github.actor }}
+          CURRENT_VERSION: ${{ steps.version.outputs.version }}
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          git config --global user.email "${ACTOR}@users.noreply.github.com"
+          git config --global user.name "$ACTOR"
+
+          git tag -a "$TAG_NAME" -m "version $CURRENT_VERSION"
+          git push origin "$TAG_NAME"
+
+      - name: Create GitHub release
+        if: steps.version.outputs.is_release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
+        run: |
+          gh release create "$TAG_NAME" --title "$TAG_NAME" --generate-notes dist/*.jar
+
+    outputs:
+      tag_name: ${{ steps.version.outputs.tag_name }}
+      is_release: ${{ steps.version.outputs.is_release }}
+
+  bump-master:
+    name: Advance master to next SNAPSHOT
+    needs: release
+    if: needs.release.outputs.is_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ secrets.AUTO_MERGE_PAT }}
+          ref: master
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Bump to next SNAPSHOT and open auto-merge PR
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_PAT }}
+          ACTOR: ${{ github.actor }}
+          RUN_ID: ${{ github.run_id }}
+          RELEASE_TAG_NAME: ${{ needs.release.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          git config --global user.email "${ACTOR}@users.noreply.github.com"
+          git config --global user.name "$ACTOR"
+
+          # branch prefix is exempted from the SNAPSHOT check in maven-style-check.yml
+          BRANCH="chore/next-snapshot-${RUN_ID}"
+          git checkout -b "$BRANCH"
+
+          # e.g. 2.0.4 -> 2.0.5-SNAPSHOT
+          mvn -B -ntp versions:set versions:commit -DnextSnapshot
+          git ls-files | grep 'pom.xml$' | xargs git add
+          git commit --allow-empty -am "prepare next development iteration"
+          # --force: BRANCH is tied to run_id, so a retry may find a stale copy
+          git push --force origin "$BRANCH"
+
+          # reuse the PR if a previous attempt already opened it
+          EXISTING_PR=$(gh pr list -B master -H "$BRANCH" --state open --json number -q '.[0].number // empty')
+          if [[ -z "$EXISTING_PR" ]]; then
+            gh pr create \
+              -B master \
+              -H "$BRANCH" \
+              -t "Prepare next development iteration after ${RELEASE_TAG_NAME}" \
+              -b "Advances master's SNAPSHOT version following the ${RELEASE_TAG_NAME} release."
+            PR_NUMBER=$(gh pr view "$BRANCH" --json number -q .number)
+          else
+            PR_NUMBER="$EXISTING_PR"
+            echo "Reusing existing open PR #$PR_NUMBER for $BRANCH (retry)."
+          fi
+
+          gh pr merge "$PR_NUMBER" --auto --merge

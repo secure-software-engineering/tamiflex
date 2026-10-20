@@ -4,12 +4,15 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Eric Bodden - initial API and implementation
  ******************************************************************************/
 package de.bodden.tamiflex.playout;
 
+import de.bodden.tamiflex.normalizer.Hasher;
+import de.bodden.tamiflex.playout.rt.ReflLogger;
+import de.bodden.tamiflex.playout.rt.ShutdownStatus;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,286 +29,303 @@ import java.util.List;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
-import de.bodden.tamiflex.normalizer.Hasher;
-import de.bodden.tamiflex.playout.rt.ReflLogger;
-import de.bodden.tamiflex.playout.rt.ShutdownStatus;
-
 public class Agent {
-	
-	public final static String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
-	
-	private static final boolean CAN_RETRANSFORM = true;
-	
-	private static ClassDumper classDumper;
-	private static boolean dontDump = false;
-	private static boolean dontNormalize = false;
-	private static boolean count = false;
-	private static boolean useDeclaredTypes;
-	private static boolean verbose = false;
-	private static boolean propertiesLoaded = false;
-	private static String outPath = "out";
-	private static String transformations = "";
-	private static Socket socket;
 
-	
-	public static void premain(String agentArgs, Instrumentation inst) throws IOException, ClassNotFoundException, UnmodifiableClassException, URISyntaxException, InterruptedException {
-		if(!inst.isRetransformClassesSupported()) {
-			throw new RuntimeException("retransformation not supported");
-		}
-        new java.util.LinkedList<>().iterator();
-		
-		System.out.println("============================================================");
-		System.out.println("TamiFlex Play-Out Agent Version "+Agent.class.getPackage().getImplementationVersion());
+  public static final String PKGNAME = Agent.class.getPackage().getName().replace('.', '/');
 
-		loadProperties();		
-		
-		appendRtJarToBootClassPath(inst);
+  private static final boolean CAN_RETRANSFORM = true;
 
-		ReflLogger.setMustCount(count);		
-		ReflLogger.setuseDeclaredTypes(useDeclaredTypes);		
-		if(dontNormalize) Hasher.dontNormalize();
+  private static ClassDumper classDumper;
+  private static boolean dontDump = false;
+  private static boolean dontNormalize = false;
+  private static boolean count = false;
+  private static boolean useDeclaredTypes;
+  private static boolean verbose = false;
+  private static boolean propertiesLoaded = false;
+  private static String outPath = "out";
+  private static String transformations = "";
+  private static Socket socket;
 
-		String hostAndPort = System.getenv("TAMIFLEX_ECLIPSE");
-		if(hostAndPort!=null && !hostAndPort.isEmpty()) {
-			//online mode, open Socket
-			String[] split = hostAndPort.split(":");
-			if(split.length!=2) {
-				System.err.println("Illegal argument: "+agentArgs);
-				System.err.println("Expected format: hostname:socket");
-				System.exit(1);
-			}
-			String host = split[0];
-			int port = Integer.parseInt(split[1]);
-			socket = new Socket(host, port);
-			ReflLogger.setSocket(socket);
-		} 
-				
-		if(outPath==null||outPath.isEmpty()) {
-			System.err.println("No outDir given!");
-		}
-		
-        // Pass in outPath as agent argument
-        if (agentArgs != null && !agentArgs.isEmpty()) {
-            outPath = agentArgs;
-        }
-		File outDir = new File(outPath);
-		if(outDir.exists()) {
-			if(!outDir.isDirectory()) {
-				System.err.println(outDir+ "is not a directory");
-				System.exit(1);
-			}
-		} else {
-			boolean res = outDir.mkdirs();
-			if(!res) {
-				System.err.println("Cannot create directory "+outDir);
-				System.exit(1);
-			}
-		}
+  public static void premain(String agentArgs, Instrumentation inst)
+      throws IOException,
+          ClassNotFoundException,
+          UnmodifiableClassException,
+          URISyntaxException,
+          InterruptedException {
+    if (!inst.isRetransformClassesSupported()) {
+      throw new RuntimeException("retransformation not supported");
+    }
+    new java.util.LinkedList<>().iterator();
 
-        ReflLogger.setOutPath(outPath);
-		
-		final File logFile = new File(outDir,"refl.log");
-		
-		// For dumping classes which have already been loaded
-		dumpLoadedClasses(inst,outDir,dontDump,verbose);
-		
-		// All reflection calls to be monitored are sent to this class
-		ReflLogger.setLogFile(logFile);
-		
-		// For logging reflection calls made by the program under observation
-		if(!transformations.isEmpty())
-			instrumentClassesForLogging(inst);
-		
-		// For dumping classes which will be loaded down the line
-		inst.addTransformer(classDumper, CAN_RETRANSFORM);
-		
-		final boolean verboseOutput = verbose;
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			
-			@Override
-			public void run() {
-				ShutdownStatus.hasShutDown = true;
-				if(socket!=null) {
-					try {
-						socket.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				classDumper.writeClassesToDisk();
-                ReflLogger.writeHiddenClassesToDisk();
-                ReflLogger.writeLogfileToDisk(verboseOutput,classDumper.newClasses + ReflLogger.newHiddenClasses);
-				
-				// If DB jar exists, log file is dumped to the database
-				String agentJarDir = agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
-				String version = Agent.class.getPackage().getImplementationVersion();
-				String dbJarPath = agentJarDir+'/'+"dbdumper-"+version+".jar";
-								
-				try {
-					File jarfile = new File(new URI(dbJarPath));
-					if(jarfile.exists()) {
-						System.out.println("Database JAR file found. Will attempt to dump log file to database.");
-						DBDumper.dumpFileToDatabase(jarfile,logFile);
-					} 
-				} catch (URISyntaxException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		});
-		
-		System.out.println("============================================================");		
-	}
+    System.out.println("============================================================");
+    System.out.println(
+        "TamiFlex Play-Out Agent Version " + Agent.class.getPackage().getImplementationVersion());
 
-	private static void loadProperties() {
-		String propFileName = "poa.properties";
-		String userPropFilePath = System.getProperty("user.home")+File.separator+".tamiflex"+File.separator+propFileName;
-		copyPropFileIfMissing(userPropFilePath);
-		String[] paths = { propFileName, userPropFilePath };
-		InputStream is = null;
-		File foundFile= null;
-		for (String path : paths) {
-			File file = new File(path);
-			if(file.exists() && file.canRead()) {
-				try {
-					is = new FileInputStream(file);
-					foundFile = file;
-					break;
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
-			} 
-		}
-		if(is==null) throw new InternalError("No properties files found!");
-		
-		Properties props =  new Properties();
-		try {
-			props.load(is);
+    loadProperties();
 
-			if(!props.containsKey("quiet") || !props.get("quiet").equals("true")) {
-				String path = (foundFile!=null) ? foundFile.getAbsolutePath() : "<JAR FILE>!/"+propFileName;
-				System.out.println("Loaded properties from "+path);
-			}
-			if(props.containsKey("count") && props.get("count").equals("true"))
-				count = true;
-			if(props.containsKey("dontDumpClasses") && props.get("dontDumpClasses").equals("true"))
-				dontDump = true;
-			if(props.containsKey("dontNormalize") && props.get("dontNormalize").equals("true"))
-				dontNormalize = true;
-			if(props.containsKey("verbose") && props.get("verbose").equals("true"))
-				verbose = true;
-			if(props.containsKey("useDeclaredTypes") && props.get("useDeclaredTypes").equals("true"))
-				useDeclaredTypes = true;
-			if(props.containsKey("outDir"))
-				outPath = (String) props.get("outDir"); 
-			if(props.containsKey("transformations"))
-				transformations = (String) props.get("transformations"); 
-            propertiesLoaded = true;
-		} catch (IOException e) {
-			throw new InternalError("Error loading default properties file: "+e.getMessage()); 
-		}		
-	}
+    appendRtJarToBootClassPath(inst);
 
-    public static String getOutPath() {
-        if (!propertiesLoaded)
-            loadProperties();
-        return outPath;
+    ReflLogger.setMustCount(count);
+    ReflLogger.setuseDeclaredTypes(useDeclaredTypes);
+    if (dontNormalize) Hasher.dontNormalize();
+
+    String hostAndPort = System.getenv("TAMIFLEX_ECLIPSE");
+    if (hostAndPort != null && !hostAndPort.isEmpty()) {
+      // online mode, open Socket
+      String[] split = hostAndPort.split(":");
+      if (split.length != 2) {
+        System.err.println("Illegal argument: " + agentArgs);
+        System.err.println("Expected format: hostname:socket");
+        System.exit(1);
+      }
+      String host = split[0];
+      int port = Integer.parseInt(split[1]);
+      socket = new Socket(host, port);
+      ReflLogger.setSocket(socket);
     }
 
-	private static void copyPropFileIfMissing(String userPropFilePath) {
-		File f = new File(userPropFilePath);
-		if(!f.exists()) {
-			File dir = f.getParentFile();
-			if(!dir.exists()) dir.mkdirs();
-			try {
-				FileOutputStream fos = new FileOutputStream(f);
-				InputStream is = Agent.class.getResourceAsStream("/" + f.getName());
-				if(is==null) {
-					fos.close();
-					throw new InternalError("No default properties file found in agent JAR file!");
-				}
-				int i;
-				while((i=is.read())!=-1) {
-					fos.write(i);
-				}
-				fos.close();
-				is.close();				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
+    if (outPath == null || outPath.isEmpty()) {
+      System.err.println("No outDir given!");
+    }
 
-	private static void dumpLoadedClasses(Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
-			throws UnmodifiableClassException {
-		classDumper = new ClassDumper(outDir,dontReallyDump,verbose);
-		inst.addTransformer(classDumper, CAN_RETRANSFORM);
-		//dump all classes that are already loaded
-		for (Class<?> c : inst.getAllLoadedClasses()) {
-			if (inst.isModifiableClass(c)) {
-				// java.lang.instrument API supports re-transforming classes which have been loaded already 
-				inst.retransformClasses(c);
-			} else {
-                // (In order) Cannot modify Primitive classes, Arrays, classes loaded by the bootstrap class loader, Core Java classes
-                // Other than those on encountering an unmodifiable class send a warning
-				if (verbose && !c.isPrimitive() && !c.isArray() && (c.getPackage()==null || !c.getPackage().getName().startsWith("java.lang"))) {
-                    // Cannot modify some synthetic classes too
-                    if (c.isSynthetic()) {
-                        System.err.println("WARNING: Cannot dump (unmodifiable) SYNTHETIC class "+c.getName());
-                    } else {
-                        System.err.println("WARNING: Cannot dump (unmodifiable) NON-SYNTHETIC class "+c.getName());
-                    }
-				}
-			}
-		}
-		inst.removeTransformer(classDumper);
-	}
+    // Pass in outPath as agent argument
+    if (agentArgs != null && !agentArgs.isEmpty()) {
+      outPath = agentArgs;
+    }
+    File outDir = new File(outPath);
+    if (outDir.exists()) {
+      if (!outDir.isDirectory()) {
+        System.err.println(outDir + "is not a directory");
+        System.exit(1);
+      }
+    } else {
+      boolean res = outDir.mkdirs();
+      if (!res) {
+        System.err.println("Cannot create directory " + outDir);
+        System.exit(1);
+      }
+    }
 
-	private static void instrumentClassesForLogging(Instrumentation inst) throws UnmodifiableClassException {
-		ReflectionMonitor reflMonitor = new ReflectionMonitor(transformations, verbose);
-		inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
-		
-		List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
-		// java.lang.instrument API supports re-transforming classes which have been loaded already
-		inst.retransformClasses(affectedClasses.toArray(new Class<?>[affectedClasses.size()]));
-		
-		inst.removeTransformer(reflMonitor);
-	}
+    ReflLogger.setOutPath(outPath);
 
-	private static void appendRtJarToBootClassPath(Instrumentation inst) throws URISyntaxException, IOException {
-		URL locationOfAgent = Agent.class.getResource("/de/bodden/tamiflex/playout/rt/ReflLogger.class");
-		if(locationOfAgent==null) {
-			System.err.println("Support library for reflection log not found on classpath.");
-			System.exit(1);
-		}
-		agentJarFilePath = locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));		
-		URI uri = new URI(agentJarFilePath);
-		JarFile jarFile = new JarFile(new File(uri));
-        // TODO: This might not be needed because we specify this in the MANIFEST.MF
-		inst.appendToBootstrapClassLoaderSearch(jarFile);
-	}
-	
-	public static void main(String[] args) {
-		usage();
-	}
+    final File logFile = new File(outDir, "refl.log");
 
-	private static void usage() {
-		System.out.println("============================================================");
-		System.out.println("TamiFlex Play-Out Agent Version "+Agent.class.getPackage().getImplementationVersion());
-		System.out.println(DISCLAIMER);
-		System.out.println("============================================================");
-		System.exit(1);
-	}
-	
-	private final static String DISCLAIMER=
-		"\n\nCopyright (c) 2010-2011 Eric Bodden and others.\n" +
-		"\n" +
-		"DISCLAIMER: USE OF THIS SOFTWARE IS AT OWN RISK.\n" +
-		"\n" +
-		"All rights reserved. This program and the accompanying materials\n" +
-		"are made available under the terms of the Eclipse Public License v1.0\n" +
-		"which accompanies this distribution, and is available at\n" +
-		"http://www.eclipse.org/legal/epl-v10.html";
-	private static String agentJarFilePath;
+    // For dumping classes which have already been loaded
+    dumpLoadedClasses(inst, outDir, dontDump, verbose);
 
+    // All reflection calls to be monitored are sent to this class
+    ReflLogger.setLogFile(logFile);
+
+    // For logging reflection calls made by the program under observation
+    if (!transformations.isEmpty()) instrumentClassesForLogging(inst);
+
+    // For dumping classes which will be loaded down the line
+    inst.addTransformer(classDumper, CAN_RETRANSFORM);
+
+    final boolean verboseOutput = verbose;
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread() {
+
+              @Override
+              public void run() {
+                ShutdownStatus.hasShutDown = true;
+                if (socket != null) {
+                  try {
+                    socket.close();
+                  } catch (IOException e) {
+                    e.printStackTrace();
+                  }
+                }
+                classDumper.writeClassesToDisk();
+                ReflLogger.writeHiddenClassesToDisk();
+                ReflLogger.writeLogfileToDisk(
+                    verboseOutput, classDumper.newClasses + ReflLogger.newHiddenClasses);
+
+                // If DB jar exists, log file is dumped to the database
+                String agentJarDir =
+                    agentJarFilePath.substring(0, agentJarFilePath.lastIndexOf('/'));
+                String version = Agent.class.getPackage().getImplementationVersion();
+                String dbJarPath = agentJarDir + '/' + "dbdumper-" + version + ".jar";
+
+                try {
+                  File jarfile = new File(new URI(dbJarPath));
+                  if (jarfile.exists()) {
+                    System.out.println(
+                        "Database JAR file found. Will attempt to dump log file to database.");
+                    DBDumper.dumpFileToDatabase(jarfile, logFile);
+                  }
+                } catch (URISyntaxException e) {
+                  e.printStackTrace();
+                }
+              }
+            });
+
+    System.out.println("============================================================");
+  }
+
+  private static void loadProperties() {
+    String propFileName = "poa.properties";
+    String userPropFilePath =
+        System.getProperty("user.home")
+            + File.separator
+            + ".tamiflex"
+            + File.separator
+            + propFileName;
+    copyPropFileIfMissing(userPropFilePath);
+    String[] paths = {propFileName, userPropFilePath};
+    InputStream is = null;
+    File foundFile = null;
+    for (String path : paths) {
+      File file = new File(path);
+      if (file.exists() && file.canRead()) {
+        try {
+          is = new FileInputStream(file);
+          foundFile = file;
+          break;
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    if (is == null) throw new InternalError("No properties files found!");
+
+    Properties props = new Properties();
+    try {
+      props.load(is);
+
+      if (!props.containsKey("quiet") || !props.get("quiet").equals("true")) {
+        String path =
+            (foundFile != null) ? foundFile.getAbsolutePath() : "<JAR FILE>!/" + propFileName;
+        System.out.println("Loaded properties from " + path);
+      }
+      if (props.containsKey("count") && props.get("count").equals("true")) count = true;
+      if (props.containsKey("dontDumpClasses") && props.get("dontDumpClasses").equals("true"))
+        dontDump = true;
+      if (props.containsKey("dontNormalize") && props.get("dontNormalize").equals("true"))
+        dontNormalize = true;
+      if (props.containsKey("verbose") && props.get("verbose").equals("true")) verbose = true;
+      if (props.containsKey("useDeclaredTypes") && props.get("useDeclaredTypes").equals("true"))
+        useDeclaredTypes = true;
+      if (props.containsKey("outDir")) outPath = (String) props.get("outDir");
+      if (props.containsKey("transformations"))
+        transformations = (String) props.get("transformations");
+      propertiesLoaded = true;
+    } catch (IOException e) {
+      throw new InternalError("Error loading default properties file: " + e.getMessage());
+    }
+  }
+
+  public static String getOutPath() {
+    if (!propertiesLoaded) loadProperties();
+    return outPath;
+  }
+
+  private static void copyPropFileIfMissing(String userPropFilePath) {
+    File f = new File(userPropFilePath);
+    if (!f.exists()) {
+      File dir = f.getParentFile();
+      if (!dir.exists()) dir.mkdirs();
+      try {
+        FileOutputStream fos = new FileOutputStream(f);
+        InputStream is = Agent.class.getResourceAsStream("/" + f.getName());
+        if (is == null) {
+          fos.close();
+          throw new InternalError("No default properties file found in agent JAR file!");
+        }
+        int i;
+        while ((i = is.read()) != -1) {
+          fos.write(i);
+        }
+        fos.close();
+        is.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private static void dumpLoadedClasses(
+      Instrumentation inst, File outDir, boolean dontReallyDump, boolean verbose)
+      throws UnmodifiableClassException {
+    classDumper = new ClassDumper(outDir, dontReallyDump, verbose);
+    inst.addTransformer(classDumper, CAN_RETRANSFORM);
+    // dump all classes that are already loaded
+    for (Class<?> c : inst.getAllLoadedClasses()) {
+      if (inst.isModifiableClass(c)) {
+        // java.lang.instrument API supports re-transforming classes which have been loaded already
+        inst.retransformClasses(c);
+      } else {
+        // (In order) Cannot modify Primitive classes, Arrays, classes loaded by the bootstrap class
+        // loader, Core Java classes
+        // Other than those on encountering an unmodifiable class send a warning
+        if (verbose
+            && !c.isPrimitive()
+            && !c.isArray()
+            && (c.getPackage() == null || !c.getPackage().getName().startsWith("java.lang"))) {
+          // Cannot modify some synthetic classes too
+          if (c.isSynthetic()) {
+            System.err.println(
+                "WARNING: Cannot dump (unmodifiable) SYNTHETIC class " + c.getName());
+          } else {
+            System.err.println(
+                "WARNING: Cannot dump (unmodifiable) NON-SYNTHETIC class " + c.getName());
+          }
+        }
+      }
+    }
+    inst.removeTransformer(classDumper);
+  }
+
+  private static void instrumentClassesForLogging(Instrumentation inst)
+      throws UnmodifiableClassException {
+    ReflectionMonitor reflMonitor = new ReflectionMonitor(transformations, verbose);
+    inst.addTransformer(reflMonitor, CAN_RETRANSFORM);
+
+    List<Class<?>> affectedClasses = reflMonitor.getAffectedClasses();
+    // java.lang.instrument API supports re-transforming classes which have been loaded already
+    inst.retransformClasses(affectedClasses.toArray(new Class<?>[affectedClasses.size()]));
+
+    inst.removeTransformer(reflMonitor);
+  }
+
+  private static void appendRtJarToBootClassPath(Instrumentation inst)
+      throws URISyntaxException, IOException {
+    URL locationOfAgent =
+        Agent.class.getResource("/de/bodden/tamiflex/playout/rt/ReflLogger.class");
+    if (locationOfAgent == null) {
+      System.err.println("Support library for reflection log not found on classpath.");
+      System.exit(1);
+    }
+    agentJarFilePath =
+        locationOfAgent.getPath().substring(0, locationOfAgent.getPath().indexOf("!"));
+    URI uri = new URI(agentJarFilePath);
+    JarFile jarFile = new JarFile(new File(uri));
+    // TODO: This might not be needed because we specify this in the MANIFEST.MF
+    inst.appendToBootstrapClassLoaderSearch(jarFile);
+  }
+
+  public static void main(String[] args) {
+    usage();
+  }
+
+  private static void usage() {
+    System.out.println("============================================================");
+    System.out.println(
+        "TamiFlex Play-Out Agent Version " + Agent.class.getPackage().getImplementationVersion());
+    System.out.println(DISCLAIMER);
+    System.out.println("============================================================");
+    System.exit(1);
+  }
+
+  private static final String DISCLAIMER =
+      "\n\nCopyright (c) 2010-2011 Eric Bodden and others.\n"
+          + "\n"
+          + "DISCLAIMER: USE OF THIS SOFTWARE IS AT OWN RISK.\n"
+          + "\n"
+          + "All rights reserved. This program and the accompanying materials\n"
+          + "are made available under the terms of the Eclipse Public License v1.0\n"
+          + "which accompanies this distribution, and is available at\n"
+          + "http://www.eclipse.org/legal/epl-v10.html";
+  private static String agentJarFilePath;
 }

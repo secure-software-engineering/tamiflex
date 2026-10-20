@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Contributors:
  *     Andreas Sewe - initial implementation
  ******************************************************************************/
@@ -14,23 +14,23 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Method;
 
 public class ArrayNewInstanceTransformation extends AbstractArrayTransformation {
-	
-	public ArrayNewInstanceTransformation() {
-		super(new Method("newInstance", "(Ljava/lang/Class;I)Ljava/lang/Object;"));
-	}
-	
-	@Override
-	protected String methodName() {
-		return "arrayNewInstance";
-	}
 
-	@Override
-	protected String methodSignature() {
-		return "(Ljava/lang/Class;I)V";
-	}
+  public ArrayNewInstanceTransformation() {
+    super(new Method("newInstance", "(Ljava/lang/Class;I)Ljava/lang/Object;"));
+  }
 
-	@Override
-	protected int loadDimensionOpcode() {
-		return Opcodes.ILOAD;
-	}
+  @Override
+  protected String methodName() {
+    return "arrayNewInstance";
+  }
+
+  @Override
+  protected String methodSignature() {
+    return "(Ljava/lang/Class;I)V";
+  }
+
+  @Override
+  protected int loadDimensionOpcode() {
+    return Opcodes.ILOAD;
+  }
 }
