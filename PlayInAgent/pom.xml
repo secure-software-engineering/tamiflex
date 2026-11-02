@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.bodden.tamiflex</groupId>
         <artifactId>tamiflex-parent</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>playin-agent</artifactId>
     <properties>
