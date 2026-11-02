@@ -133,6 +133,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # GITHUB_TOKEN approves the bump PR below. The PR is authored by the
+      # AUTO_MERGE_PAT owner, who cannot approve their own PR.
+      pull-requests: write
     steps:
       - name: Checkout master
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -149,6 +152,7 @@ jobs:
           cache: 'maven'
 
       - name: Bump to next SNAPSHOT and open auto-merge PR
+        id: bump
         env:
           GH_TOKEN: ${{ secrets.AUTO_MERGE_PAT }}
           ACTOR: ${{ github.actor }}
@@ -185,3 +189,20 @@ jobs:
           fi
 
           gh pr merge "$PR_NUMBER" --auto --merge
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Approve next-SNAPSHOT PR as github-actions[bot]
+        # The PR is opened with AUTO_MERGE_PAT, so its owner is the PR author and
+        # GitHub won't let them approve it - branch protection requiring a review
+        # would block the auto-merge forever. Approving with GITHUB_TOKEN counts as
+        # a review by a different actor (github-actions[bot]).
+        # Requires the repo/org setting "Allow GitHub Actions to create and approve
+        # pull requests" (Settings -> Actions -> General -> Workflow permissions).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.bump.outputs.pr_number }}
+          RELEASE_TAG_NAME: ${{ needs.release.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          gh pr review "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --approve \
+            -b "Automated SNAPSHOT bump following ${RELEASE_TAG_NAME}."
