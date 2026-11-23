@@ -27,7 +27,7 @@
         <maven.shade.plugin.version>3.6.2</maven.shade.plugin.version>
         <build.helper.plugin.version>3.7.0</build.helper.plugin.version>
         <fmt.plugin.version>2.29</fmt.plugin.version>
-        <license.plugin.version>2.7.1</license.plugin.version>
+        <license.plugin.version>2.8.0</license.plugin.version>
         <javadoc.plugin.version>3.12.0</javadoc.plugin.version>
         <!-- existing sources carry hand-written EPL headers, so missing plugin headers only warn -->
         <license-check.failOnMissingHeader>false</license-check.failOnMissingHeader>
